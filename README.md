@@ -1,29 +1,37 @@
 # Planora
 
-Planora is a calm personal planning and productivity tracker for Android and iOS. The application connects daily focus, forward planning, long-term goals, and personal reflection through a clear mobile experience.
+Planora is a cross-platform mobile application for organizing daily tasks, planning schedules, managing goals, and reviewing personal progress.
 
-This repository contains the completed Phase 1 foundation. Data persistence, accounts, remote services, notifications, payments, and complete planning workflows are intentionally outside the current scope.
+The application is designed for Android and iOS with a clean interface, responsive layouts, accessible controls, and light and dark themes.
 
-## Foundation features
+## Features
 
-- Five primary destinations: Today, Planner, Goals, Insights, and Settings
-- File-based navigation with Expo Router
-- Strict TypeScript configuration
-- System-aware light and dark themes
-- Indigo, teal, and warm-neutral design tokens
-- Reusable screen, card, button, text, empty-state, and section-header components
-- Safe-area handling and responsive content widths for phones and larger screens
-- Accessible touch targets, semantic colors, scalable typography, and navigation labels
-- Original Planora wordmark and branded loading experience
-- Android and iOS application identity configuration
+- Daily task organization
+- Weekly and monthly planning
+- Goal and milestone tracking
+- Productivity insights
+- Personal settings
+- Light and dark themes
+- Responsive mobile layouts
+- Accessible navigation and controls
 
-## Requirements
+## Technology
+
+- React Native
+- Expo
+- Expo Router
+- TypeScript
+- npm
+
+## Getting started
+
+### Requirements
 
 - Node.js LTS
 - npm
-- Expo Go installed on an Android device or iPhone
+- Expo Go on an Android device or iPhone
 
-## Setup
+### Installation
 
 ```bash
 git clone https://github.com/Nahom-Taye/planora-mobile.git
@@ -31,60 +39,52 @@ cd planora-mobile
 npm install
 ```
 
-## Start the application
+### Run the application
 
 ```bash
 npm run start
 ```
 
-The Expo terminal displays a QR code after the development server starts.
+Scan the displayed QR code using Expo Go on Android or the Camera application on iPhone.
 
-- On Android, open Expo Go and scan the QR code.
-- On iPhone, scan the QR code with the Camera application and open it in Expo Go.
-- Keep the computer and mobile device on the same network.
-- If local network discovery is unavailable, run `npx expo start --tunnel`.
-
-Platform-specific development commands are also available:
+The computer and mobile device should be connected to the same network. If the connection is unavailable, use:
 
 ```bash
+npx expo start --tunnel
+```
+
+## Development commands
+
+```bash
+npm run start
 npm run android
 npm run ios
 npm run web
+npm run typecheck
+npm run lint
+npm run doctor
+npm run check
 ```
 
 ## Project structure
 
 ```text
-app/                  Route files and navigation layouts
-assets/               Local images, fonts, and bundled media
-docs/                 Product direction and phased scope
+app/                  Navigation and application routes
+assets/               Images, fonts, and bundled media
+docs/                 Product documentation
 src/
-  components/         Reusable brand and interface components
-  features/           Feature-owned screens and modules
+  components/         Shared interface components
+  features/           Application features and screens
   hooks/              Shared React hooks
-  theme/              Themes, semantic colors, and design tokens
-  types/              Shared TypeScript types
-  utils/              Shared constants and utilities
+  theme/              Colors, typography, and themes
+  types/              Shared TypeScript definitions
+  utils/              Shared utilities and constants
 ```
 
-Routes remain thin and delegate presentation to feature modules. Shared visual rules live in the theme and component layers.
+## Planned development
 
-## Verification
+Planora will continue to expand with complete task management, recurring plans, habits, reminders, focus sessions, calendar views, progress reports, offline storage, account synchronization, and additional personalization options.
 
-Run checks individually:
+## Repository
 
-```bash
-npm run typecheck
-npm run lint
-npm run doctor
-```
-
-Run the complete project check:
-
-```bash
-npm run check
-```
-
-## Product specification
-
-The product vision, navigation map, future domain entities, accessibility expectations, security principles, and ten planned phases are documented in [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md).
+Developed and maintained by [Nahom Taye](https://github.com/Nahom-Taye).
