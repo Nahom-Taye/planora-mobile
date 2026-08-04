@@ -6,7 +6,13 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 
 import { BrandWordmark } from './brand-wordmark';
 
-export function BrandedLaunchScreen() {
+type BrandedLaunchScreenProps = {
+  message?: string;
+};
+
+export function BrandedLaunchScreen({
+  message = 'Make space for what matters.',
+}: BrandedLaunchScreenProps) {
   const theme = useAppTheme();
 
   return (
@@ -31,8 +37,12 @@ export function BrandedLaunchScreen() {
       />
       <View style={[styles.center, { gap: theme.spacing.xl }]}>
         <BrandWordmark markSize={58} />
-        <Text align="center" tone="textMuted">
-          Make space for what matters.
+        <Text
+          accessibilityLiveRegion="polite"
+          align="center"
+          tone="textMuted"
+        >
+          {message}
         </Text>
       </View>
       <ActivityIndicator color={theme.colors.accent} style={styles.indicator} />
