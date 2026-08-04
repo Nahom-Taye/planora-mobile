@@ -27,7 +27,7 @@ Planora is not intended to replace team project-management, clinical treatment, 
 
 ## Planned feature list
 
-The following list describes intended direction, not functionality included in Phase 1.
+The following list describes intended direction, not complete functionality included through Phase 3.
 
 - A focused Today view for priorities, tasks, routines, and time blocks.
 - A Planner for day and week organization, rescheduling, and capacity awareness.
@@ -65,7 +65,8 @@ Planora
     ├── Appearance and accessibility
     ├── Planning preferences
     ├── Notifications (future)
-    ├── Account and sync (future)
+    ├── Optional account profile and recovery
+    ├── Planning synchronization (future)
     └── Privacy and data controls (future)
 ```
 
@@ -73,7 +74,7 @@ The five primary destinations remain visible in bottom navigation. Creation and 
 
 ## Core future data entities
 
-These are domain concepts for future design and do not define a Phase 1 database schema.
+Phase 2 defines local domain models and storage for these concepts without exposing complete feature workflows.
 
 - **UserProfile:** display preferences, locale, time zone, week start, and accessibility settings.
 - **Workspace:** the personal data boundary and future sync scope.
@@ -86,8 +87,7 @@ These are domain concepts for future design and do not define a Phase 1 database
 - **Area:** an optional life or responsibility category used for organization.
 - **Tag:** a lightweight user-defined classification.
 - **Reflection:** a dated qualitative note attached to a day, week, goal, or insight period.
-- **Reminder:** a user-configured delivery rule for an eligible entity.
-- **SyncRecord:** local metadata used to reconcile offline changes with the future remote source.
+- **LocalChange:** local revision, deletion, and queue metadata reserved for future reconciliation.
 
 Every persisted entity should use stable identifiers, creation and update timestamps, and explicit version or conflict metadata where sync requires it. Deletion behavior must be designed before remote synchronization is introduced.
 
@@ -131,7 +131,7 @@ Every persisted entity should use stable identifiers, creation and update timest
 
 1. **Application foundation:** Expo and TypeScript setup, Expo Router shell, five primary tabs, design tokens, reusable UI primitives, branded loading, documentation, and automated project checks.
 2. **Offline domain and storage:** Define versioned domain models, repositories, migrations, local persistence, seed-free development fixtures, and deterministic offline behavior.
-3. **Onboarding and account foundation:** Introduce optional onboarding, secure authentication, profiles, session handling, and backend authorization policies. Supabase may be evaluated and integrated here; it is not part of Phase 1.
+3. **Onboarding and account foundation:** Optional first-run onboarding, local-only access, email-and-password authentication, secure native session storage, minimal account profiles, local account linkage, recovery deep links, and profile authorization policies. Planning content remains local and synchronization is not included.
 4. **Today and task workflows:** Implement quick capture, task lifecycle, priorities, daily planning, routines, and accessible editing flows.
 5. **Planner and scheduling:** Add day and week planning, plan blocks, capacity cues, recurrence rules, and resilient rescheduling.
 6. **Goals and milestones:** Connect outcomes to milestones, routines, and actionable work with flexible progress models.
@@ -140,4 +140,4 @@ Every persisted entity should use stable identifiers, creation and update timest
 9. **Sync quality and premium capabilities:** Harden multi-device reconciliation, export and deletion, observability, restore flows, and only then introduce clearly valuable optional paid capabilities.
 10. **Release hardening and launch:** Complete accessibility audits, privacy and security review, performance profiling, recovery testing, store assets, beta feedback, production monitoring, and staged Android/iOS release.
 
-Each phase requires its own acceptance criteria and verification plan before work begins. Phase 1 intentionally excludes storage, Supabase, authentication, notifications, payments, and complete business workflows.
+Each phase requires its own acceptance criteria and verification plan before work begins. Phase 3 adds optional accounts and onboarding while preserving the Phase 2 local domain and storage foundation. Remote planning synchronization, notifications, payments, and complete planning workflows remain excluded.

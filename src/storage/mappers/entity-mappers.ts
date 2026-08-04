@@ -1,0 +1,815 @@
+import type {
+  AppSettings,
+  LocalAccountLink,
+  Area,
+  EntityMetadata,
+  Goal,
+  LocalChange,
+  Milestone,
+  PlanBlock,
+  Reflection,
+  Routine,
+  RoutineCheckIn,
+  Tag,
+  Task,
+  UserProfile,
+  Weekday,
+  Workspace,
+} from '../../domain/entities/index.ts';
+import {
+  toCalendarDate,
+  toInstant,
+  toLocalTime,
+  toTimeZone,
+} from '../../domain/entities/common.ts';
+import type {
+  LocalChangeFilter,
+  AccountLinkFilter,
+  MilestoneFilter,
+  ProfileFilter,
+  ReflectionFilter,
+  RoutineCheckInFilter,
+  WorkspaceEntityFilter,
+  WorkspaceFilter,
+} from '../../domain/repositories/contracts.ts';
+import { StorageError } from '../database/errors.ts';
+import type {
+  DatabaseRecord,
+  DatabaseRow,
+  EntityMapper,
+  FilterClause,
+} from './types.ts';
+
+const metadataColumns = [
+  'id',
+  'created_at',
+  'updated_at',
+  'revision',
+  'deleted_at',
+] as const;
+
+function stringValue(row: DatabaseRow, key: string): string {
+  const value = row[key];
+
+  if (typeof value !== 'string') {
+    throw invalidRow();
+  }
+
+  return value;
+}
+
+function nullableString(row: DatabaseRow, key: string): string | null {
+  const value = row[key];
+
+  if (value === null) {
+    return null;
+  }
+
+  if (typeof value !== 'string') {
+    throw invalidRow();
+  }
+
+  return value;
+}
+
+function numberValue(row: DatabaseRow, key: string): number {
+  const value = row[key];
+
+  if (typeof value !== 'number') {
+    throw invalidRow();
+  }
+
+  return value;
+}
+
+function jsonValue(row: DatabaseRow, key: string): unknown {
+  try {
+    return JSON.parse(stringValue(row, key)) as unknown;
+  } catch {
+    throw invalidRow();
+  }
+}
+
+function accessibilityValue(
+  row: DatabaseRow,
+): UserProfile['accessibility'] {
+  const value = jsonValue(row, 'accessibility_json');
+
+  if (!isRecord(value)) {
+    throw invalidRow();
+  }
+
+  const { reduceMotion, useBoldText, textScale } = value;
+
+  if (
+    !isNullableBoolean(reduceMotion) ||
+    !isNullableBoolean(useBoldText) ||
+    !(
+      textScale === null ||
+      (typeof textScale === 'number' && Number.isFinite(textScale) && textScale > 0)
+    )
+  ) {
+    throw invalidRow();
+  }
+
+  return { reduceMotion, useBoldText, textScale };
+}
+
+function routineScheduleValue(row: DatabaseRow): Routine['schedule'] {
+  const value = jsonValue(row, 'schedule_json');
+
+  if (!isRecord(value) || (value.kind !== 'daily' && value.kind !== 'weekly')) {
+    throw invalidRow();
+  }
+
+  const time =
+    value.time === null
+      ? null
+      : typeof value.time === 'string'
+        ? toLocalTime(value.time)
+        : undefined;
+
+  if (time === undefined) {
+    throw invalidRow();
+  }
+
+  if (value.kind === 'daily') {
+    return { kind: 'daily', time };
+  }
+
+  if (
+    !Array.isArray(value.weekdays) ||
+    value.weekdays.some(
+      (weekday) =>
+        typeof weekday !== 'number' ||
+        !Number.isInteger(weekday) ||
+        weekday < 0 ||
+        weekday > 6,
+    )
+  ) {
+    throw invalidRow();
+  }
+
+  return {
+    kind: 'weekly',
+    time,
+    weekdays: [...new Set(value.weekdays)] as Weekday[],
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isNullableBoolean(value: unknown): value is boolean | null {
+  return value === null || typeof value === 'boolean';
+}
+
+function invalidRow() {
+  return new StorageError(
+    'INVALID_DATA',
+    'Stored local data could not be read safely.',
+    false,
+  );
+}
+
+function metadataFromRow(row: DatabaseRow): EntityMetadata {
+  const deletedAt = nullableString(row, 'deleted_at');
+
+  return {
+    id: stringValue(row, 'id'),
+    createdAt: toInstant(stringValue(row, 'created_at')),
+    updatedAt: toInstant(stringValue(row, 'updated_at')),
+    revision: numberValue(row, 'revision'),
+    deletedAt: deletedAt ? toInstant(deletedAt) : null,
+  };
+}
+
+function metadataToRow(entity: EntityMetadata): DatabaseRecord {
+  return {
+    id: entity.id,
+    created_at: entity.createdAt,
+    updated_at: entity.updatedAt,
+    revision: entity.revision,
+    deleted_at: entity.deletedAt,
+  };
+}
+
+function clauses(entries: [string, unknown][]): FilterClause[] {
+  return entries
+    .filter((entry): entry is [string, string | number] =>
+      ['string', 'number'].includes(typeof entry[1]),
+    )
+    .map(([column, value]) => ({ sql: `${column} = ?`, parameters: [value] }));
+}
+
+const noFilters = () => [];
+
+export const userProfileMapper: EntityMapper<
+  UserProfile,
+  Record<string, never>
+> = {
+  table: 'user_profiles',
+  columns: [
+    ...metadataColumns,
+    'display_name',
+    'locale',
+    'time_zone',
+    'week_starts_on',
+    'accessibility_json',
+  ],
+  orderBy: 'updated_at DESC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    display_name: entity.displayName,
+    locale: entity.locale,
+    time_zone: entity.timeZone,
+    week_starts_on: entity.weekStartsOn,
+    accessibility_json: JSON.stringify(entity.accessibility),
+  }),
+  fromRow: (row) => ({
+    ...metadataFromRow(row),
+    displayName: nullableString(row, 'display_name'),
+    locale: stringValue(row, 'locale'),
+    timeZone: toTimeZone(stringValue(row, 'time_zone')),
+    weekStartsOn: numberValue(row, 'week_starts_on') as UserProfile['weekStartsOn'],
+    accessibility: accessibilityValue(row),
+  }),
+  buildFilters: noFilters,
+};
+
+export const workspaceMapper: EntityMapper<Workspace, WorkspaceFilter> = {
+  table: 'workspaces',
+  columns: [...metadataColumns, 'profile_id', 'name', 'kind', 'status'],
+  orderBy: 'updated_at DESC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    profile_id: entity.profileId,
+    name: entity.name,
+    kind: entity.kind,
+    status: entity.status,
+  }),
+  fromRow: (row) => ({
+    ...metadataFromRow(row),
+    profileId: stringValue(row, 'profile_id'),
+    name: stringValue(row, 'name'),
+    kind: stringValue(row, 'kind') as Workspace['kind'],
+    status: stringValue(row, 'status') as Workspace['status'],
+  }),
+  buildFilters: (filter) =>
+    clauses([
+      ['profile_id', filter?.profileId],
+      ['status', filter?.status],
+    ]),
+};
+
+export const appSettingsMapper: EntityMapper<AppSettings, ProfileFilter> = {
+  table: 'app_settings',
+  columns: [
+    ...metadataColumns,
+    'profile_id',
+    'theme_preference',
+    'default_tab',
+    'planning_day_starts_at',
+    'onboarding_version',
+    'onboarding_completed_at',
+  ],
+  orderBy: 'updated_at DESC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    profile_id: entity.profileId,
+    theme_preference: entity.themePreference,
+    default_tab: entity.defaultTab,
+    planning_day_starts_at: entity.planningDayStartsAt,
+    onboarding_version: entity.onboardingVersion,
+    onboarding_completed_at: entity.onboardingCompletedAt,
+  }),
+  fromRow: (row) => {
+    const onboardingCompletedAt = nullableString(
+      row,
+      'onboarding_completed_at',
+    );
+
+    return {
+      ...metadataFromRow(row),
+      profileId: stringValue(row, 'profile_id'),
+      themePreference: stringValue(
+        row,
+        'theme_preference',
+      ) as AppSettings['themePreference'],
+      defaultTab: stringValue(row, 'default_tab') as AppSettings['defaultTab'],
+      planningDayStartsAt: toLocalTime(
+        stringValue(row, 'planning_day_starts_at'),
+      ),
+      onboardingVersion: numberValue(row, 'onboarding_version'),
+      onboardingCompletedAt: onboardingCompletedAt
+        ? toInstant(onboardingCompletedAt)
+        : null,
+    };
+  },
+  buildFilters: (filter) => clauses([['profile_id', filter?.profileId]]),
+};
+
+export const accountLinkMapper: EntityMapper<
+  LocalAccountLink,
+  AccountLinkFilter
+> = {
+  table: 'account_links',
+  columns: [
+    ...metadataColumns,
+    'local_profile_id',
+    'local_workspace_id',
+    'remote_account_id',
+    'status',
+    'linked_at',
+    'last_authenticated_at',
+  ],
+  orderBy: 'updated_at DESC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    local_profile_id: entity.localProfileId,
+    local_workspace_id: entity.localWorkspaceId,
+    remote_account_id: entity.remoteAccountId,
+    status: entity.status,
+    linked_at: entity.linkedAt,
+    last_authenticated_at: entity.lastAuthenticatedAt,
+  }),
+  fromRow: (row) => ({
+    ...metadataFromRow(row),
+    localProfileId: stringValue(row, 'local_profile_id'),
+    localWorkspaceId: nullableString(row, 'local_workspace_id'),
+    remoteAccountId: stringValue(row, 'remote_account_id'),
+    status: stringValue(row, 'status') as LocalAccountLink['status'],
+    linkedAt: toInstant(stringValue(row, 'linked_at')),
+    lastAuthenticatedAt: toInstant(
+      stringValue(row, 'last_authenticated_at'),
+    ),
+  }),
+  buildFilters: (filter) =>
+    clauses([
+      ['local_profile_id', filter?.localProfileId],
+      ['remote_account_id', filter?.remoteAccountId],
+      ['status', filter?.status],
+    ]),
+};
+
+export const areaMapper: EntityMapper<
+  Area,
+  WorkspaceEntityFilter<Area['status']>
+> = {
+  table: 'areas',
+  columns: [...metadataColumns, 'workspace_id', 'name', 'color', 'status'],
+  orderBy: 'updated_at DESC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    name: entity.name,
+    color: entity.color,
+    status: entity.status,
+  }),
+  fromRow: (row) => ({
+    ...metadataFromRow(row),
+    workspaceId: stringValue(row, 'workspace_id'),
+    name: stringValue(row, 'name'),
+    color: nullableString(row, 'color'),
+    status: stringValue(row, 'status') as Area['status'],
+  }),
+  buildFilters: (filter) =>
+    clauses([
+      ['workspace_id', filter?.workspaceId],
+      ['status', filter?.status],
+    ]),
+};
+
+export const goalMapper: EntityMapper<
+  Goal,
+  WorkspaceEntityFilter<Goal['status']>
+> = {
+  table: 'goals',
+  columns: [
+    ...metadataColumns,
+    'workspace_id',
+    'area_id',
+    'title',
+    'description',
+    'motivation',
+    'status',
+    'horizon',
+    'target_date',
+    'completed_at',
+  ],
+  orderBy: 'updated_at DESC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    area_id: entity.areaId,
+    title: entity.title,
+    description: entity.description,
+    motivation: entity.motivation,
+    status: entity.status,
+    horizon: entity.horizon,
+    target_date: entity.targetDate,
+    completed_at: entity.completedAt,
+  }),
+  fromRow: (row) => {
+    const targetDate = nullableString(row, 'target_date');
+    const completedAt = nullableString(row, 'completed_at');
+
+    return {
+      ...metadataFromRow(row),
+      workspaceId: stringValue(row, 'workspace_id'),
+      areaId: nullableString(row, 'area_id'),
+      title: stringValue(row, 'title'),
+      description: nullableString(row, 'description'),
+      motivation: nullableString(row, 'motivation'),
+      status: stringValue(row, 'status') as Goal['status'],
+      horizon: stringValue(row, 'horizon') as Goal['horizon'],
+      targetDate: targetDate ? toCalendarDate(targetDate) : null,
+      completedAt: completedAt ? toInstant(completedAt) : null,
+    };
+  },
+  buildFilters: (filter) =>
+    clauses([
+      ['workspace_id', filter?.workspaceId],
+      ['status', filter?.status],
+    ]),
+};
+
+export const milestoneMapper: EntityMapper<Milestone, MilestoneFilter> = {
+  table: 'milestones',
+  columns: [
+    ...metadataColumns,
+    'workspace_id',
+    'goal_id',
+    'title',
+    'notes',
+    'status',
+    'target_date',
+    'completed_at',
+    'sort_order',
+  ],
+  orderBy: 'sort_order ASC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    goal_id: entity.goalId,
+    title: entity.title,
+    notes: entity.notes,
+    status: entity.status,
+    target_date: entity.targetDate,
+    completed_at: entity.completedAt,
+    sort_order: entity.sortOrder,
+  }),
+  fromRow: (row) => {
+    const targetDate = nullableString(row, 'target_date');
+    const completedAt = nullableString(row, 'completed_at');
+
+    return {
+      ...metadataFromRow(row),
+      workspaceId: stringValue(row, 'workspace_id'),
+      goalId: stringValue(row, 'goal_id'),
+      title: stringValue(row, 'title'),
+      notes: nullableString(row, 'notes'),
+      status: stringValue(row, 'status') as Milestone['status'],
+      targetDate: targetDate ? toCalendarDate(targetDate) : null,
+      completedAt: completedAt ? toInstant(completedAt) : null,
+      sortOrder: numberValue(row, 'sort_order'),
+    };
+  },
+  buildFilters: (filter) =>
+    clauses([
+      ['workspace_id', filter?.workspaceId],
+      ['goal_id', filter?.goalId],
+    ]),
+};
+
+export const routineMapper: EntityMapper<
+  Routine,
+  WorkspaceEntityFilter<Routine['status']>
+> = {
+  table: 'routines',
+  columns: [
+    ...metadataColumns,
+    'workspace_id',
+    'title',
+    'notes',
+    'schedule_json',
+    'time_zone',
+    'status',
+  ],
+  orderBy: 'updated_at DESC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    title: entity.title,
+    notes: entity.notes,
+    schedule_json: JSON.stringify(entity.schedule),
+    time_zone: entity.timeZone,
+    status: entity.status,
+  }),
+  fromRow: (row) => ({
+    ...metadataFromRow(row),
+    workspaceId: stringValue(row, 'workspace_id'),
+    title: stringValue(row, 'title'),
+    notes: nullableString(row, 'notes'),
+    schedule: routineScheduleValue(row),
+    timeZone: toTimeZone(stringValue(row, 'time_zone')),
+    status: stringValue(row, 'status') as Routine['status'],
+  }),
+  buildFilters: (filter) =>
+    clauses([
+      ['workspace_id', filter?.workspaceId],
+      ['status', filter?.status],
+    ]),
+};
+
+export const routineCheckInMapper: EntityMapper<
+  RoutineCheckIn,
+  RoutineCheckInFilter
+> = {
+  table: 'routine_check_ins',
+  columns: [
+    ...metadataColumns,
+    'workspace_id',
+    'routine_id',
+    'date',
+    'outcome',
+    'recorded_at',
+    'note',
+  ],
+  orderBy: 'date DESC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    routine_id: entity.routineId,
+    date: entity.date,
+    outcome: entity.outcome,
+    recorded_at: entity.recordedAt,
+    note: entity.note,
+  }),
+  fromRow: (row) => ({
+    ...metadataFromRow(row),
+    workspaceId: stringValue(row, 'workspace_id'),
+    routineId: stringValue(row, 'routine_id'),
+    date: toCalendarDate(stringValue(row, 'date')),
+    outcome: stringValue(row, 'outcome') as RoutineCheckIn['outcome'],
+    recordedAt: toInstant(stringValue(row, 'recorded_at')),
+    note: nullableString(row, 'note'),
+  }),
+  buildFilters: (filter) => {
+    const result = clauses([
+      ['workspace_id', filter?.workspaceId],
+      ['routine_id', filter?.routineId],
+    ]);
+
+    if (filter?.fromDate) {
+      result.push({ sql: 'date >= ?', parameters: [filter.fromDate] });
+    }
+
+    if (filter?.toDate) {
+      result.push({ sql: 'date <= ?', parameters: [filter.toDate] });
+    }
+
+    return result;
+  },
+};
+
+export const taskMapper: EntityMapper<
+  Task,
+  WorkspaceEntityFilter<Task['status']>
+> = {
+  table: 'tasks',
+  columns: [
+    ...metadataColumns,
+    'workspace_id',
+    'title',
+    'notes',
+    'status',
+    'priority',
+    'due_date',
+    'scheduled_time',
+    'time_zone',
+    'completed_at',
+    'area_id',
+    'goal_id',
+    'parent_task_id',
+  ],
+  orderBy: 'updated_at DESC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    title: entity.title,
+    notes: entity.notes,
+    status: entity.status,
+    priority: entity.priority,
+    due_date: entity.dueDate,
+    scheduled_time: entity.scheduledTime,
+    time_zone: entity.timeZone,
+    completed_at: entity.completedAt,
+    area_id: entity.areaId,
+    goal_id: entity.goalId,
+    parent_task_id: entity.parentTaskId,
+  }),
+  fromRow: (row) => {
+    const dueDate = nullableString(row, 'due_date');
+    const scheduledTime = nullableString(row, 'scheduled_time');
+    const timeZone = nullableString(row, 'time_zone');
+    const completedAt = nullableString(row, 'completed_at');
+
+    return {
+      ...metadataFromRow(row),
+      workspaceId: stringValue(row, 'workspace_id'),
+      title: stringValue(row, 'title'),
+      notes: nullableString(row, 'notes'),
+      status: stringValue(row, 'status') as Task['status'],
+      priority: stringValue(row, 'priority') as Task['priority'],
+      dueDate: dueDate ? toCalendarDate(dueDate) : null,
+      scheduledTime: scheduledTime ? toLocalTime(scheduledTime) : null,
+      timeZone: timeZone ? toTimeZone(timeZone) : null,
+      completedAt: completedAt ? toInstant(completedAt) : null,
+      areaId: nullableString(row, 'area_id'),
+      goalId: nullableString(row, 'goal_id'),
+      parentTaskId: nullableString(row, 'parent_task_id'),
+    };
+  },
+  buildFilters: (filter) =>
+    clauses([
+      ['workspace_id', filter?.workspaceId],
+      ['status', filter?.status],
+    ]),
+};
+
+export const planBlockMapper: EntityMapper<
+  PlanBlock,
+  WorkspaceEntityFilter<PlanBlock['status']>
+> = {
+  table: 'plan_blocks',
+  columns: [
+    ...metadataColumns,
+    'workspace_id',
+    'date',
+    'start_time',
+    'end_time',
+    'time_zone',
+    'title',
+    'notes',
+    'status',
+    'task_id',
+    'routine_id',
+  ],
+  orderBy: 'date ASC, start_time ASC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    date: entity.date,
+    start_time: entity.startTime,
+    end_time: entity.endTime,
+    time_zone: entity.timeZone,
+    title: entity.title,
+    notes: entity.notes,
+    status: entity.status,
+    task_id: entity.taskId,
+    routine_id: entity.routineId,
+  }),
+  fromRow: (row) => ({
+    ...metadataFromRow(row),
+    workspaceId: stringValue(row, 'workspace_id'),
+    date: toCalendarDate(stringValue(row, 'date')),
+    startTime: toLocalTime(stringValue(row, 'start_time')),
+    endTime: toLocalTime(stringValue(row, 'end_time')),
+    timeZone: toTimeZone(stringValue(row, 'time_zone')),
+    title: stringValue(row, 'title'),
+    notes: nullableString(row, 'notes'),
+    status: stringValue(row, 'status') as PlanBlock['status'],
+    taskId: nullableString(row, 'task_id'),
+    routineId: nullableString(row, 'routine_id'),
+  }),
+  buildFilters: (filter) =>
+    clauses([
+      ['workspace_id', filter?.workspaceId],
+      ['status', filter?.status],
+    ]),
+};
+
+export const tagMapper: EntityMapper<Tag, WorkspaceEntityFilter> = {
+  table: 'tags',
+  columns: [...metadataColumns, 'workspace_id', 'name', 'color'],
+  orderBy: 'updated_at DESC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    name: entity.name,
+    color: entity.color,
+  }),
+  fromRow: (row) => ({
+    ...metadataFromRow(row),
+    workspaceId: stringValue(row, 'workspace_id'),
+    name: stringValue(row, 'name'),
+    color: nullableString(row, 'color'),
+  }),
+  buildFilters: (filter) => clauses([['workspace_id', filter?.workspaceId]]),
+};
+
+export const reflectionMapper: EntityMapper<Reflection, ReflectionFilter> = {
+  table: 'reflections',
+  columns: [
+    ...metadataColumns,
+    'workspace_id',
+    'scope',
+    'scope_id',
+    'period_start',
+    'body',
+    'mood',
+  ],
+  orderBy: 'period_start DESC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    scope: entity.scope,
+    scope_id: entity.scopeId,
+    period_start: entity.periodStart,
+    body: entity.body,
+    mood: entity.mood,
+  }),
+  fromRow: (row) => ({
+    ...metadataFromRow(row),
+    workspaceId: stringValue(row, 'workspace_id'),
+    scope: stringValue(row, 'scope') as Reflection['scope'],
+    scopeId: nullableString(row, 'scope_id'),
+    periodStart: toCalendarDate(stringValue(row, 'period_start')),
+    body: stringValue(row, 'body'),
+    mood: nullableString(row, 'mood') as Reflection['mood'],
+  }),
+  buildFilters: (filter) => {
+    const result = clauses([
+      ['workspace_id', filter?.workspaceId],
+      ['scope', filter?.scope],
+    ]);
+
+    if (filter?.fromDate) {
+      result.push({ sql: 'period_start >= ?', parameters: [filter.fromDate] });
+    }
+
+    if (filter?.toDate) {
+      result.push({ sql: 'period_start <= ?', parameters: [filter.toDate] });
+    }
+
+    return result;
+  },
+};
+
+export const localChangeMapper: EntityMapper<LocalChange, LocalChangeFilter> = {
+  table: 'local_changes',
+  columns: [
+    'id',
+    'created_at',
+    'updated_at',
+    'revision',
+    'entity_type',
+    'entity_id',
+    'entity_revision',
+    'operation',
+    'state',
+    'attempt_count',
+    'last_attempt_at',
+    'error_code',
+  ],
+  orderBy: 'created_at ASC, id ASC',
+  toRow: (entity) => ({
+    id: entity.id,
+    created_at: entity.createdAt,
+    updated_at: entity.updatedAt,
+    revision: entity.revision,
+    entity_type: entity.entityType,
+    entity_id: entity.entityId,
+    entity_revision: entity.entityRevision,
+    operation: entity.operation,
+    state: entity.state,
+    attempt_count: entity.attemptCount,
+    last_attempt_at: entity.lastAttemptAt,
+    error_code: entity.errorCode,
+  }),
+  fromRow: (row) => {
+    const lastAttemptAt = nullableString(row, 'last_attempt_at');
+
+    return {
+      id: stringValue(row, 'id'),
+      createdAt: toInstant(stringValue(row, 'created_at')),
+      updatedAt: toInstant(stringValue(row, 'updated_at')),
+      revision: numberValue(row, 'revision'),
+      entityType: stringValue(row, 'entity_type') as LocalChange['entityType'],
+      entityId: stringValue(row, 'entity_id'),
+      entityRevision: numberValue(row, 'entity_revision'),
+      operation: stringValue(row, 'operation') as LocalChange['operation'],
+      state: stringValue(row, 'state') as LocalChange['state'],
+      attemptCount: numberValue(row, 'attempt_count'),
+      lastAttemptAt: lastAttemptAt ? toInstant(lastAttemptAt) : null,
+      errorCode: nullableString(row, 'error_code'),
+    };
+  },
+  buildFilters: (filter) =>
+    clauses([
+      ['entity_type', filter?.entityType],
+      ['state', filter?.state],
+    ]),
+};
