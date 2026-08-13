@@ -32,12 +32,17 @@ export type Workspace = EntityMetadata & {
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type DefaultTab = 'today' | 'planner' | 'goals' | 'insights';
+export type LanguagePreference = 'system' | 'en' | 'am' | 'es' | 'fr' | 'ar';
+export type PlannerView = 'day' | 'week';
 
 export type AppSettings = EntityMetadata & {
   profileId: EntityId;
   themePreference: ThemePreference;
   defaultTab: DefaultTab;
   planningDayStartsAt: LocalTime;
+  languagePreference: LanguagePreference;
+  dailyPlanningCapacityMinutes: number;
+  plannerView: PlannerView;
   onboardingVersion: number;
   onboardingCompletedAt: Instant | null;
 };

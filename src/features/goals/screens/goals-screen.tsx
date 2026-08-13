@@ -1,13 +1,15 @@
 import { FeaturePlaceholder } from '@/features/foundation/components/feature-placeholder';
+import { useLocalization } from '@/providers/localization-provider';
 
 export function GoalsScreen() {
+  const localization = useLocalization();
   return (
     <FeaturePlaceholder
-      description="Turn longer-term intentions into visible milestones and practical next actions."
-      emptyDescription="Goal paths, milestones, and progress check-ins are planned for a dedicated feature phase."
-      emptyTitle="Meaningful progress starts here"
+      description={localization.t('placeholders.goalsDescription')}
+      emptyDescription={localization.t('placeholders.goalsEmptyDescription')}
+      emptyTitle={localization.t('placeholders.goalsEmpty')}
       icon="flag-outline"
-      title="Goals"
+      title={localization.t('tabs.goals')}
     />
   );
 }

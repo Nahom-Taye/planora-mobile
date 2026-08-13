@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BrandWordmark } from '@/components/brand';
 import { Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useLocalization } from '@/providers/localization-provider';
 import { MAX_CONTENT_WIDTH, MIN_TOUCH_TARGET } from '@/utils/layout';
 
 type AuthScaffoldProps = PropsWithChildren<{
@@ -28,12 +29,13 @@ export function AuthScaffold({
   children,
   title,
   description,
-  eyebrow = 'OPTIONAL ACCOUNT',
+  eyebrow,
   icon = 'person-outline',
   showBack = true,
 }: AuthScaffoldProps) {
   const theme = useAppTheme();
   const router = useRouter();
+  const localization = useLocalization();
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -51,12 +53,16 @@ export function AuthScaffold({
             <View style={styles.navigation}>
               {showBack ? (
                 <Pressable
-                  accessibilityLabel="Go back"
+                  accessibilityLabel={localization.t('common.goBack')}
                   accessibilityRole="button"
                   onPress={() => router.back()}
                   style={styles.backButton}
                 >
-                  <Ionicons color={theme.colors.text} name="arrow-back" size={24} />
+                  <Ionicons
+                    color={theme.colors.text}
+                    name={localization.isRTL ? 'arrow-forward' : 'arrow-back'}
+                    size={24}
+                  />
                 </Pressable>
               ) : (
                 <View style={styles.backButton} />
@@ -77,7 +83,7 @@ export function AuthScaffold({
                 <Ionicons color={theme.colors.accent} name={icon} size={36} />
               </View>
               <Text tone="primary" variant="overline">
-                {eyebrow}
+                {eyebrow ?? localization.t('auth.accountTitle')}
               </Text>
               <Text accessibilityRole="header" variant="display">
                 {title}

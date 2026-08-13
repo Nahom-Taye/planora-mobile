@@ -4,6 +4,7 @@ import { TextInput } from 'react-native';
 
 import { Button } from '@/components/ui';
 import { useAccount } from '@/providers/account-provider';
+import { useLocalization } from '@/providers/localization-provider';
 
 import { AuthErrorSummary } from '../components/auth-error-summary';
 import { AuthScaffold } from '../components/auth-scaffold';
@@ -17,6 +18,7 @@ import {
 export function ResetPasswordScreen() {
   const router = useRouter();
   const account = useAccount();
+  const localization = useLocalization();
   const confirmRef = useRef<TextInput>(null);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -38,17 +40,17 @@ export function ResetPasswordScreen() {
 
   return (
     <AuthScaffold
-      description="Choose a new password for your account. This does not change or remove local planning data."
-      eyebrow="SECURE RECOVERY"
+      description={localization.t('auth.choosePasswordDescription')}
+      eyebrow={localization.t('auth.secureRecovery')}
       icon="lock-closed-outline"
       showBack={false}
-      title="Choose a new password"
+      title={localization.t('auth.choosePassword')}
     >
       <AuthErrorSummary message={account.errorMessage} />
       <AuthTextField
         autoComplete="new-password"
-        error={errors.password}
-        label="New password"
+        error={localization.message(errors.password) || undefined}
+        label={localization.t('auth.newPassword')}
         onChangeText={setPassword}
         onSubmitEditing={() => confirmRef.current?.focus()}
         password
@@ -58,8 +60,8 @@ export function ResetPasswordScreen() {
       />
       <AuthTextField
         autoComplete="new-password"
-        error={errors.confirmPassword}
-        label="Confirm new password"
+        error={localization.message(errors.confirmPassword) || undefined}
+        label={localization.t('auth.confirmNewPassword')}
         onChangeText={setConfirmPassword}
         onSubmitEditing={() => void submit()}
         password
@@ -69,7 +71,7 @@ export function ResetPasswordScreen() {
         value={confirmPassword}
       />
       <Button
-        label="Save new password"
+        label={localization.t('auth.savePassword')}
         loading={account.isBusy}
         onPress={() => void submit()}
       />

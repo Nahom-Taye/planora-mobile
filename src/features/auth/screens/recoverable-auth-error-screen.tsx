@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 
 import { Button } from '@/components/ui';
 import { useAccount } from '@/providers/account-provider';
+import { useLocalization } from '@/providers/localization-provider';
 
 import { AuthErrorSummary } from '../components/auth-error-summary';
 import { AuthScaffold } from '../components/auth-scaffold';
@@ -9,26 +10,27 @@ import { AuthScaffold } from '../components/auth-scaffold';
 export function RecoverableAuthErrorScreen() {
   const router = useRouter();
   const account = useAccount();
+  const localization = useLocalization();
 
   return (
     <AuthScaffold
-      description="The account request did not complete, but your local Planora data is safe and remains available."
-      eyebrow="RECOVERABLE ISSUE"
+      description={localization.t('auth.issueDescription')}
+      eyebrow={localization.t('auth.issueEyebrow')}
       icon="refresh-circle-outline"
-      title="Let's try another path"
+      title={localization.t('auth.issueTitle')}
     >
       <AuthErrorSummary
         message={
           account.errorMessage ??
-          'Account services are not available right now. Your local data is unaffected.'
+          localization.t('auth.accountUnavailable')
         }
       />
       <Button
-        label="Back to account options"
+        label={localization.t('auth.accountOptions')}
         onPress={() => router.replace('/(auth)/welcome')}
       />
       <Button
-        label="Continue locally"
+        label={localization.t('auth.localTitle')}
         onPress={() => router.replace('/(tabs)')}
         variant="ghost"
       />

@@ -2,7 +2,7 @@
 
 Planora is a calm personal planning and productivity tracker for Android and iOS. The application connects daily focus, forward planning, long-term goals, and personal reflection through a clear mobile experience.
 
-This repository contains the Phase 1 application foundation, Phase 2 offline domain and local storage foundation, and Phase 3 optional onboarding and account foundation. Planning-data synchronization, notifications, payments, and complete planning workflows remain outside the current scope.
+This repository contains the completed Phase 1–4 foundations and the Phase 5 local Planner, scheduling, refined Today dashboard, and localization implementation. Goals, insights, planning-data synchronization, notifications, calendar-provider integrations, payments, and premium features remain outside the current scope.
 
 ## Foundation features
 
@@ -24,6 +24,20 @@ This repository contains the Phase 1 application foundation, Phase 2 offline dom
 - Email-and-password account, verification, and recovery foundations
 - Secure native session storage separated from the planning database
 - Minimal remote profiles with protected account routes and own-row authorization
+- Authentication-first cold launch with a clear local-only path
+- One idempotent personal workspace for each completed local profile
+- Local quick capture, task editing, priorities, due dates, and lifecycle actions
+- Time-zone-aware Today grouping, progress, overdue handling, and refresh
+- Daily and weekly routines with completed, skipped, corrected, and undone check-ins
+- Compact Today dashboard with workload context, next-up time blocks, agenda preview, and quieter completed work
+- Day and mobile-first week Planner views with local date navigation and current-time context
+- Revision-safe plan-block creation, editing, rescheduling, completion, cancellation, unlinking, and soft deletion
+- Task scheduling that keeps task deadlines and lifecycle independent from working-time blocks
+- Configurable daily capacity, overlap explanations, and unscheduled-task counts
+- Bounded daily and selected-weekday plan-block recurrence with preserved completed history
+- English, Amharic, Spanish, French, and Arabic interface catalogs with persisted per-profile selection
+- Locale-aware dates, times, numbers, durations, pluralization, and RTL-aware presentation
+- Bundled Noto Sans Latin, Arabic, and Ethiopic fonts under the SIL Open Font License
 
 ## Requirements
 
@@ -52,7 +66,7 @@ EXPO_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 ```
 
-Never place a service-role key, database password, or other privileged credential in an Expo public variable. When these values are absent, Planora starts normally in local-only mode.
+Never place a service-role key, database password, or other privileged credential in an Expo public variable. When these values are absent or invalid, account actions are unavailable on the opening screen while Continue locally remains active.
 
 Apply `supabase/migrations/202608040001_account_profiles.sql` through the authorized Supabase migration workflow for the project. Add `planora://callback` to the allowed authentication redirect URLs. For Expo Go testing, also add the development callback shown by the running application environment.
 
@@ -97,6 +111,8 @@ src/
 
 Routes remain thin and delegate presentation to feature modules. Shared visual rules live in the theme and component layers.
 
+Phase 4 feature modules live under `src/features/today`, `src/features/tasks`, `src/features/routines`, and `src/features/workspace`. Phase 5 adds `src/features/planner`, `src/features/localization`, and planning preferences under `src/features/settings`. Planner block editors use a dedicated route group while the five-tab shell remains unchanged. Goals and Insights retain localized placeholders.
+
 `supabase/migrations/` contains versioned remote profile and authorization schema. Authentication sessions do not use SQLite.
 
 ## Verification
@@ -108,6 +124,9 @@ npm run typecheck
 npm run lint
 npm run test:phase2
 npm run test:phase3
+npm run test:phase4
+npm run test:phase5
+npm run validate:translations
 npm run doctor
 ```
 
@@ -123,4 +142,4 @@ To test live account behavior, use a non-production Supabase project with email 
 
 ## Product specification
 
-The product vision and phase scope are documented in [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md). Local persistence is described in [docs/OFFLINE_ARCHITECTURE.md](docs/OFFLINE_ARCHITECTURE.md), and optional account boundaries are described in [docs/AUTH_ARCHITECTURE.md](docs/AUTH_ARCHITECTURE.md).
+The product vision and phase scope are documented in [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md). Local persistence is described in [docs/OFFLINE_ARCHITECTURE.md](docs/OFFLINE_ARCHITECTURE.md), account boundaries in [docs/AUTH_ARCHITECTURE.md](docs/AUTH_ARCHITECTURE.md), daily workflows in [docs/PHASE4_ARCHITECTURE.md](docs/PHASE4_ARCHITECTURE.md), Planner behavior in [docs/PHASE5_ARCHITECTURE.md](docs/PHASE5_ARCHITECTURE.md), and language behavior in [docs/LOCALIZATION_ARCHITECTURE.md](docs/LOCALIZATION_ARCHITECTURE.md).

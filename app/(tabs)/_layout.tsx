@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { type ComponentProps } from 'react';
 
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useLocalization } from '@/providers/localization-provider';
 import type { MainTabName } from '@/types/navigation';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
@@ -17,6 +18,7 @@ const TAB_ICONS: Record<MainTabName, IconName> = {
 
 export default function TabLayout() {
   const theme = useAppTheme();
+  const localization = useLocalization();
 
   return (
     <Tabs
@@ -35,6 +37,7 @@ export default function TabLayout() {
         ),
         tabBarLabelStyle: {
           fontSize: 12,
+          fontFamily: theme.typography.caption.fontFamily,
           fontWeight: '600',
           marginBottom: 2,
         },
@@ -46,11 +49,11 @@ export default function TabLayout() {
         },
       })}
     >
-      <Tabs.Screen name="index" options={{ title: 'Today' }} />
-      <Tabs.Screen name="planner" options={{ title: 'Planner' }} />
-      <Tabs.Screen name="goals" options={{ title: 'Goals' }} />
-      <Tabs.Screen name="insights" options={{ title: 'Insights' }} />
-      <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
+      <Tabs.Screen name="index" options={{ title: localization.t('tabs.today') }} />
+      <Tabs.Screen name="planner" options={{ title: localization.t('tabs.planner') }} />
+      <Tabs.Screen name="goals" options={{ title: localization.t('tabs.goals') }} />
+      <Tabs.Screen name="insights" options={{ title: localization.t('tabs.insights') }} />
+      <Tabs.Screen name="settings" options={{ title: localization.t('tabs.settings') }} />
     </Tabs>
   );
 }

@@ -60,6 +60,9 @@ export class OnboardingService {
         themePreference: 'system',
         defaultTab: 'today',
         planningDayStartsAt: toLocalTime('06:00'),
+        languagePreference: 'system',
+        dailyPlanningCapacityMinutes: 480,
+        plannerView: 'day',
         onboardingVersion: CURRENT_ONBOARDING_VERSION,
         onboardingCompletedAt: completedAt,
       });

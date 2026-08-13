@@ -18,6 +18,7 @@ The storage layer owns SQLite connections, migrations, bound queries, row mappin
 - `Workspace` is the personal ownership boundary for planning data and a future synchronization scope.
 - `Task` models actionable work, lifecycle, priority, optional scheduling, and optional relationships.
 - `PlanBlock` represents a calendar-date interval in an explicit time zone.
+- `PlanBlockSeries` defines bounded daily or selected-weekday recurrence for independently revisioned plan-block occurrences.
 - `Routine` holds a daily or weekly schedule definition in an explicit time zone.
 - `RoutineCheckIn` records a routine outcome for one calendar date.
 - `Goal` represents a longer-term outcome and optional target date.
@@ -25,7 +26,7 @@ The storage layer owns SQLite connections, migrations, bound queries, row mappin
 - `Area` groups responsibilities or parts of life.
 - `Tag` provides lightweight workspace classification.
 - `Reflection` stores qualitative notes for a day, week, or goal context.
-- `AppSettings` stores device-facing planning and appearance choices for a profile.
+- `AppSettings` stores device-facing planning, appearance, language, capacity, and last-Planner-view choices for a profile.
 - `LocalChange` reserves revision and operation metadata for future reconciliation without implementing transport.
 
 Persisted domain entities have stable identifiers, creation and update timestamps, and an integer revision. User-owned entities also have nullable deletion timestamps. Status values are closed string unions and optional persisted fields use explicit `null` values.
@@ -51,6 +52,8 @@ No private user content is logged by the lifecycle, repositories, or error mappi
 Migrations are numbered, forward-only, and contiguous. Applied versions are stored in `schema_migrations`. Every unapplied migration runs in its own transaction and records its version in that same transaction. An interruption therefore leaves either the complete migration and tracking row or neither. Initialization resumes from the last committed version.
 
 Migration definitions contain only fixed schema statements. Failure is surfaced without an automatic destructive reset. Later phases must append migrations and must not edit versions already released.
+
+Migration 4 appends Planner recurrence ownership and indexes plus safe settings defaults for language, daily capacity, and Planner view. It contains no seed records and leaves released migrations 1–3 unchanged.
 
 ## Date and time conventions
 
@@ -96,8 +99,8 @@ Focused tests cover date and time validation, row round trips, migration orderin
 
 Test data is deterministic and lives only in the test process. Normal application startup creates schema metadata but no profiles, workspaces, tasks, or other fake records.
 
-## Phase 2 limitations
+## Foundation limitations
 
-Phase 2 supplies storage readiness and repository capabilities, not full task, planner, routine, goal, reflection, or settings workflows. It does not add accounts, remote synchronization, background jobs, reminders, payments, imports, exports, database reset controls, or user-facing deletion controls.
+Phase 2 supplies storage readiness and repository capabilities. Phases 3–5 use that boundary for accounts, local task and routine workflows, Planner scheduling, recurrence, and settings without adding planning synchronization. Goal, reflection, remote synchronization, background jobs, reminders, payments, imports, exports, database reset controls, and user-facing purge controls remain outside the current implementation.
 
 The local database uses the platform-provided SQLite storage behavior. Phase 2 does not add application-level at-rest encryption, and the interface makes no encryption claim.

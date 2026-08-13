@@ -1,6 +1,9 @@
 import { type PropsWithChildren } from 'react';
 import {
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
+  RefreshControl,
   StyleSheet,
   View,
   type StyleProp,
@@ -12,6 +15,7 @@ import {
 } from 'react-native-safe-area-context';
 
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useLocalization } from '@/providers/localization-provider';
 import { MAX_CONTENT_WIDTH } from '@/utils/layout';
 
 type ScreenProps = PropsWithChildren<{
@@ -19,6 +23,8 @@ type ScreenProps = PropsWithChildren<{
   safeAreaEdges?: Edge[];
   contentStyle?: StyleProp<ViewStyle>;
   testID?: string;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }>;
 
 export function Screen({
@@ -27,8 +33,11 @@ export function Screen({
   safeAreaEdges = ['top', 'right', 'bottom', 'left'],
   contentStyle,
   testID,
+  refreshing = false,
+  onRefresh,
 }: ScreenProps) {
   const theme = useAppTheme();
+  const localization = useLocalization();
   const innerStyle = [
     styles.inner,
     { paddingHorizontal: theme.spacing.xl },
@@ -38,27 +47,51 @@ export function Screen({
   return (
     <SafeAreaView
       edges={safeAreaEdges}
-      style={[styles.safeArea, { backgroundColor: theme.colors.background }]}
+      style={[
+        styles.safeArea,
+        {
+          backgroundColor: theme.colors.background,
+          direction: localization.direction,
+        },
+      ]}
       testID={testID}
     >
-      {scroll ? (
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          contentInsetAdjustmentBehavior="never"
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={innerStyle}>{children}</View>
-        </ScrollView>
-      ) : (
-        <View style={[styles.staticContent, ...innerStyle]}>{children}</View>
-      )}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flex}
+      >
+        {scroll ? (
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            contentInsetAdjustmentBehavior="never"
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
+            refreshControl={
+              onRefresh ? (
+                <RefreshControl
+                  colors={[theme.colors.primary]}
+                  onRefresh={onRefresh}
+                  refreshing={refreshing}
+                  tintColor={theme.colors.primary}
+                />
+              ) : undefined
+            }
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={innerStyle}>{children}</View>
+          </ScrollView>
+        ) : (
+          <View style={[styles.staticContent, ...innerStyle]}>{children}</View>
+        )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   safeArea: {
     flex: 1,
   },

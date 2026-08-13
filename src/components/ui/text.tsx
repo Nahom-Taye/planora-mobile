@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useLocalization } from '@/providers/localization-provider';
 import type { ColorToken } from '@/theme';
 import type { TypographyVariant } from '@/theme/tokens';
 
@@ -22,12 +23,17 @@ export function Text({
   ...props
 }: TextProps) {
   const theme = useAppTheme();
+  const localization = useLocalization();
 
   return (
     <NativeText
       style={[
         theme.typography[variant],
-        { color: theme.colors[tone], textAlign: align },
+        {
+          color: theme.colors[tone],
+          textAlign: align ?? 'left',
+          writingDirection: localization.direction,
+        },
         style,
       ]}
       {...props}

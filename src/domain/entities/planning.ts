@@ -5,6 +5,7 @@ import type {
   Instant,
   LocalTime,
   TimeZone,
+  Weekday,
 } from './common';
 
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
@@ -26,6 +27,8 @@ export type Task = EntityMetadata & {
 };
 
 export type PlanBlockStatus = 'planned' | 'completed' | 'cancelled';
+export type RecurrenceFrequency = 'daily' | 'weekly';
+export type PlanBlockSeriesStatus = 'active' | 'paused';
 
 export type PlanBlock = EntityMetadata & {
   workspaceId: EntityId;
@@ -38,4 +41,24 @@ export type PlanBlock = EntityMetadata & {
   status: PlanBlockStatus;
   taskId: EntityId | null;
   routineId: EntityId | null;
+  seriesId: EntityId | null;
+  occurrenceDate: CalendarDate | null;
+  isRecurrenceException: boolean;
+};
+
+export type PlanBlockSeries = EntityMetadata & {
+  workspaceId: EntityId;
+  title: string;
+  notes: string | null;
+  startDate: CalendarDate;
+  startTime: LocalTime;
+  endTime: LocalTime;
+  timeZone: TimeZone;
+  frequency: RecurrenceFrequency;
+  interval: number;
+  weekdays: Weekday[];
+  endDate: CalendarDate | null;
+  taskId: EntityId | null;
+  routineId: EntityId | null;
+  status: PlanBlockSeriesStatus;
 };

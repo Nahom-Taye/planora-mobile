@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { BrandWordmark } from '@/components/brand';
 import { Card, EmptyState, Screen, SectionHeader } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useLocalization } from '@/providers/localization-provider';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -24,6 +25,7 @@ export function FeaturePlaceholder({
   emptyDescription,
 }: FeaturePlaceholderProps) {
   const theme = useAppTheme();
+  const localization = useLocalization();
 
   return (
     <Screen safeAreaEdges={['top', 'right', 'left']} testID={`${title.toLowerCase()}-screen`}>
@@ -31,7 +33,7 @@ export function FeaturePlaceholder({
       <View style={{ height: theme.spacing.xxxl }} />
       <SectionHeader
         description={description}
-        eyebrow="YOUR SPACE"
+        eyebrow={localization.t('settings.eyebrow')}
         title={title}
       />
       <Card style={{ marginTop: theme.spacing.xxl }}>

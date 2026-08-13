@@ -6,6 +6,7 @@ import type {
   LocalAccountLink,
   Milestone,
   PlanBlock,
+  PlanBlockSeries,
   Reflection,
   Routine,
   RoutineCheckIn,
@@ -61,6 +62,16 @@ export type WorkspaceEntityFilter<TStatus extends string | undefined = undefined
   workspaceId?: string;
   status?: TStatus;
 };
+export type PlanBlockFilter = WorkspaceEntityFilter<PlanBlock['status']> & {
+  fromDate?: string;
+  toDate?: string;
+  taskId?: string;
+  routineId?: string;
+  seriesId?: string;
+};
+export type PlanBlockSeriesFilter = WorkspaceEntityFilter<
+  PlanBlockSeries['status']
+>;
 export type ProfileFilter = { profileId?: string };
 export type RoutineCheckInFilter = {
   workspaceId?: string;
@@ -93,7 +104,11 @@ export type TaskRepository = EntityRepository<
 >;
 export type PlanBlockRepository = EntityRepository<
   PlanBlock,
-  WorkspaceEntityFilter<PlanBlock['status']>
+  PlanBlockFilter
+>;
+export type PlanBlockSeriesRepository = EntityRepository<
+  PlanBlockSeries,
+  PlanBlockSeriesFilter
 >;
 export type RoutineRepository = EntityRepository<
   Routine,
@@ -141,6 +156,7 @@ export type RepositoryScope = {
   workspaces: WorkspaceRepository;
   tasks: TaskRepository;
   planBlocks: PlanBlockRepository;
+  planBlockSeries: PlanBlockSeriesRepository;
   routines: RoutineRepository;
   routineCheckIns: RoutineCheckInRepository;
   goals: GoalRepository;

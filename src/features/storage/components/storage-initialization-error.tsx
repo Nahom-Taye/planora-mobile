@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { BrandWordmark } from '@/components/brand';
 import { Button, Card, Screen, Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useLocalization } from '@/providers/localization-provider';
 
 type StorageInitializationErrorProps = {
   message: string | null;
@@ -15,6 +16,7 @@ export function StorageInitializationError({
   onRetry,
 }: StorageInitializationErrorProps) {
   const theme = useAppTheme();
+  const localization = useLocalization();
 
   return (
     <Screen
@@ -46,16 +48,15 @@ export function StorageInitializationError({
           </View>
           <View style={{ gap: theme.spacing.sm }}>
             <Text align="center" variant="heading">
-              Local data needs another moment
+              {localization.t('storage.errorTitle')}
             </Text>
             <Text align="center" tone="textMuted">
-              {message ??
-                'Planora could not prepare local storage. Your existing data has not been removed.'}
+              {localization.message(message) || localization.t('errors.workspace')}
             </Text>
           </View>
           <Button
-            accessibilityLabel="Try preparing local storage again"
-            label="Try again"
+            accessibilityLabel={localization.t('storage.retryLabel')}
+            label={localization.t('common.retry')}
             onPress={() => void onRetry()}
             style={styles.button}
           />

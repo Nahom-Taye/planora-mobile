@@ -1,0 +1,42 @@
+import { sqlMigration } from './types.ts';
+
+export const plannerLocalizationMigration = sqlMigration(
+  4,
+  'planner_localization',
+  [
+    `ALTER TABLE app_settings ADD COLUMN language_preference TEXT NOT NULL DEFAULT 'system' CHECK (language_preference IN ('system', 'en', 'am', 'es', 'fr', 'ar'))`,
+    `ALTER TABLE app_settings ADD COLUMN daily_planning_capacity_minutes INTEGER NOT NULL DEFAULT 480 CHECK (daily_planning_capacity_minutes BETWEEN 30 AND 1440)`,
+    `ALTER TABLE app_settings ADD COLUMN planner_view TEXT NOT NULL DEFAULT 'day' CHECK (planner_view IN ('day', 'week'))`,
+    `CREATE TABLE plan_block_series (
+      id TEXT PRIMARY KEY NOT NULL,
+      workspace_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      notes TEXT,
+      start_date TEXT NOT NULL,
+      start_time TEXT NOT NULL,
+      end_time TEXT NOT NULL,
+      time_zone TEXT NOT NULL,
+      frequency TEXT NOT NULL CHECK (frequency IN ('daily', 'weekly')),
+      interval_count INTEGER NOT NULL CHECK (interval_count BETWEEN 1 AND 365),
+      weekdays_json TEXT NOT NULL,
+      end_date TEXT,
+      task_id TEXT,
+      routine_id TEXT,
+      status TEXT NOT NULL CHECK (status IN ('active', 'paused')),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      revision INTEGER NOT NULL CHECK (revision > 0),
+      deleted_at TEXT,
+      FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+      FOREIGN KEY (task_id) REFERENCES tasks(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+      FOREIGN KEY (routine_id) REFERENCES routines(id) ON UPDATE CASCADE ON DELETE RESTRICT
+    )`,
+    `ALTER TABLE plan_blocks ADD COLUMN series_id TEXT REFERENCES plan_block_series(id) ON UPDATE CASCADE ON DELETE RESTRICT`,
+    `ALTER TABLE plan_blocks ADD COLUMN occurrence_date TEXT`,
+    `ALTER TABLE plan_blocks ADD COLUMN recurrence_exception INTEGER NOT NULL DEFAULT 0 CHECK (recurrence_exception IN (0, 1))`,
+    `CREATE INDEX plan_block_series_workspace_idx ON plan_block_series(workspace_id, status, start_date, id) WHERE deleted_at IS NULL`,
+    `CREATE UNIQUE INDEX plan_block_series_occurrence_idx ON plan_blocks(series_id, occurrence_date) WHERE series_id IS NOT NULL AND occurrence_date IS NOT NULL`,
+    `CREATE INDEX plan_blocks_workspace_status_day_idx ON plan_blocks(workspace_id, status, date, start_time, id) WHERE deleted_at IS NULL`,
+    `CREATE INDEX plan_blocks_task_idx ON plan_blocks(workspace_id, task_id, date, id) WHERE task_id IS NOT NULL AND deleted_at IS NULL`,
+  ],
+);

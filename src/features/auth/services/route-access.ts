@@ -6,16 +6,21 @@ export function canAccessRoute(
   area: RouteArea,
   onboardingComplete: boolean,
   authStatus: AuthStatus,
+  continuedLocally = false,
 ) {
   if (area === 'recovery') {
     return true;
   }
 
   if (area === 'onboarding') {
-    return !onboardingComplete;
+    return (continuedLocally || isSignedIn(authStatus)) && !onboardingComplete;
   }
 
-  if (!onboardingComplete) {
+  if (area === 'auth') {
+    return !continuedLocally && !isSignedIn(authStatus);
+  }
+
+  if (!onboardingComplete || (!continuedLocally && !isSignedIn(authStatus))) {
     return false;
   }
 
@@ -23,5 +28,9 @@ export function canAccessRoute(
     return authStatus === 'signed_in' || authStatus === 'recovering';
   }
 
-  return area === 'tabs' || area === 'auth';
+  return area === 'tabs';
+}
+
+function isSignedIn(authStatus: AuthStatus) {
+  return authStatus === 'signed_in' || authStatus === 'recovering';
 }

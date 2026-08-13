@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Card, Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useLocalization } from '@/providers/localization-provider';
 import { useStorage } from '@/providers/storage-provider';
 
 type StatusRowProps = {
@@ -58,6 +59,7 @@ function StatusRow({ icon, label, value, isLast = false }: StatusRowProps) {
 export function DataStorageSection() {
   const theme = useAppTheme();
   const storage = useStorage();
+  const localization = useLocalization();
   const ready = storage.status === 'ready';
 
   return (
@@ -66,28 +68,28 @@ export function DataStorageSection() {
       style={{ gap: theme.spacing.md, marginTop: theme.spacing.xxl }}
     >
       <View style={{ gap: theme.spacing.xs }}>
-        <Text variant="heading">Data and storage</Text>
+        <Text variant="heading">{localization.t('storage.title')}</Text>
         <Text tone="textMuted" variant="caption">
-          Your planning foundation lives locally on this device.
+          {localization.t('storage.description')}
         </Text>
       </View>
       <Card padded={false}>
         <View style={styles.cardContent}>
           <StatusRow
             icon="phone-portrait-outline"
-            label="Local data"
-            value={ready ? 'Available on this device' : 'Preparing availability'}
+            label={localization.t('storage.localData')}
+            value={localization.t(ready ? 'storage.localReady' : 'storage.localPreparing')}
           />
           <StatusRow
             icon="cloud-offline-outline"
-            label="Offline readiness"
-            value={ready ? 'Ready for offline use' : 'Finishing setup'}
+            label={localization.t('storage.offline')}
+            value={localization.t(ready ? 'storage.offlineReady' : 'storage.offlinePreparing')}
           />
           <StatusRow
             icon="shield-checkmark-outline"
             isLast
-            label="Storage state"
-            value={ready ? 'Ready' : 'Preparing'}
+            label={localization.t('storage.state')}
+            value={localization.t(ready ? 'storage.ready' : 'storage.preparing')}
           />
         </View>
       </Card>

@@ -8,6 +8,7 @@ import {
   localChangeMapper,
   milestoneMapper,
   planBlockMapper,
+  planBlockSeriesMapper,
   reflectionMapper,
   routineCheckInMapper,
   routineMapper,
@@ -41,6 +42,11 @@ function createScope(
     planBlocks: new SqliteEntityRepository(
       executor,
       planBlockMapper,
+      dependencies,
+    ),
+    planBlockSeries: new SqliteEntityRepository(
+      executor,
+      planBlockSeriesMapper,
       dependencies,
     ),
     routines: new SqliteEntityRepository(executor, routineMapper, dependencies),
