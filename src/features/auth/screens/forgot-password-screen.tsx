@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { Button, Text } from '@/components/ui';
 import { useAccount } from '@/providers/account-provider';
+import { useLocalization } from '@/providers/localization-provider';
 
 import { AuthErrorSummary } from '../components/auth-error-summary';
 import { AuthScaffold } from '../components/auth-scaffold';
@@ -13,6 +14,7 @@ import { validateEmail } from '../services/auth-validation';
 export function ForgotPasswordScreen() {
   const router = useRouter();
   const account = useAccount();
+  const localization = useLocalization();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | undefined>();
 
@@ -31,19 +33,19 @@ export function ForgotPasswordScreen() {
 
   return (
     <AuthScaffold
-      description="Enter your email and we will request a recovery message without revealing whether an account exists."
-      eyebrow="ACCOUNT RECOVERY"
+      description={localization.t('auth.recoveryDescription')}
+      eyebrow={localization.t('auth.recoveryEyebrow')}
       icon="key-outline"
-      title="Reset your password"
+      title={localization.t('auth.recoveryTitle')}
     >
       <AuthErrorSummary message={account.errorMessage} />
       <AuthTextField
         autoCapitalize="none"
         autoComplete="email"
         autoCorrect={false}
-        error={error}
+        error={localization.message(error) || undefined}
         keyboardType="email-address"
-        label="Email"
+        label={localization.t('auth.email')}
         onChangeText={setEmail}
         onSubmitEditing={() => void submit()}
         returnKeyType="send"
@@ -51,11 +53,11 @@ export function ForgotPasswordScreen() {
         value={email}
       />
       <Text tone="textMuted" variant="caption">
-        For privacy, the confirmation screen is the same for every valid email format.
+        {localization.t('auth.recoveryPrivacy')}
       </Text>
       <Button
         disabled={!account.configured}
-        label="Send recovery instructions"
+        label={localization.t('auth.sendRecovery')}
         loading={account.isBusy}
         onPress={() => void submit()}
       />

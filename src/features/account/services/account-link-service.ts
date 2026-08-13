@@ -34,7 +34,7 @@ export class AccountLinkService {
     }
 
     const workspaces = await this.repositories.workspaces.list({
-      filter: { profileId: localProfileId },
+      filter: { profileId: localProfileId, status: 'active' },
       page: { limit: 1, offset: 0 },
     });
 

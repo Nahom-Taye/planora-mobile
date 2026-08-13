@@ -10,6 +10,7 @@ import {
 
 import { Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useLocalization } from '@/providers/localization-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
 
 type AuthTextFieldProps = TextInputProps & {
@@ -24,6 +25,7 @@ export const AuthTextField = forwardRef<TextInput, AuthTextFieldProps>(
     ref,
   ) {
     const theme = useAppTheme();
+    const localization = useLocalization();
     const [revealed, setRevealed] = useState(false);
     const errorId = `${label.toLowerCase().replace(/\s+/g, '-')}-error`;
 
@@ -57,8 +59,9 @@ export const AuthTextField = forwardRef<TextInput, AuthTextFieldProps>(
           />
           {password ? (
             <Pressable
-              accessibilityLabel={revealed ? 'Hide password' : 'Show password'}
+              accessibilityLabel={localization.t(revealed ? 'auth.hidePassword' : 'auth.showPassword')}
               accessibilityRole="button"
+              accessibilityState={{ selected: revealed }}
               onPress={() => setRevealed((value) => !value)}
               style={styles.visibility}
             >

@@ -193,7 +193,8 @@ test('account link rows map without exposing database formats', () => {
 });
 
 test('route decisions leave local tabs public and account routes protected', () => {
-  assert.equal(canAccessRoute('tabs', true, 'local_only'), true);
+  assert.equal(canAccessRoute('tabs', true, 'local_only', true), true);
+  assert.equal(canAccessRoute('auth', true, 'local_only'), true);
   assert.equal(canAccessRoute('account', true, 'signed_out'), false);
   assert.equal(canAccessRoute('account', true, 'signed_in'), true);
   assert.equal(canAccessRoute('tabs', false, 'signed_out'), false);
@@ -240,7 +241,7 @@ test('verification and recovery links preserve callback intent', () => {
 
 test('Phase 3 migration is forward-only after released migrations', () => {
   assert.deepEqual(
-    migrations.map((migration) => migration.version),
+    migrations.slice(0, 3).map((migration) => migration.version),
     [1, 2, 3],
   );
   assert.equal(migrations[2].name, 'account_foundation');

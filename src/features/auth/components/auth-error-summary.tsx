@@ -2,9 +2,11 @@ import { View } from 'react-native';
 
 import { Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useLocalization } from '@/providers/localization-provider';
 
 export function AuthErrorSummary({ message }: { message: string | null }) {
   const theme = useAppTheme();
+  const localization = useLocalization();
 
   if (!message) return null;
 
@@ -21,7 +23,7 @@ export function AuthErrorSummary({ message }: { message: string | null }) {
       }}
     >
       <Text tone="danger" variant="caption">
-        {message}
+        {localization.message(message)}
       </Text>
     </View>
   );

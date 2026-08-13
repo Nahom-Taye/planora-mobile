@@ -7,6 +7,7 @@ import type {
   LocalChange,
   Milestone,
   PlanBlock,
+  PlanBlockSeries,
   Reflection,
   Routine,
   RoutineCheckIn,
@@ -26,6 +27,8 @@ import type {
   LocalChangeFilter,
   AccountLinkFilter,
   MilestoneFilter,
+  PlanBlockFilter,
+  PlanBlockSeriesFilter,
   ProfileFilter,
   ReflectionFilter,
   RoutineCheckInFilter,
@@ -157,6 +160,25 @@ function routineScheduleValue(row: DatabaseRow): Routine['schedule'] {
   };
 }
 
+function weekdayArray(row: DatabaseRow, key: string): Weekday[] {
+  const value = jsonValue(row, key);
+
+  if (
+    !Array.isArray(value) ||
+    value.some(
+      (weekday) =>
+        typeof weekday !== 'number' ||
+        !Number.isInteger(weekday) ||
+        weekday < 0 ||
+        weekday > 6,
+    )
+  ) {
+    throw invalidRow();
+  }
+
+  return [...new Set(value)].sort((left, right) => left - right) as Weekday[];
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -271,6 +293,9 @@ export const appSettingsMapper: EntityMapper<AppSettings, ProfileFilter> = {
     'theme_preference',
     'default_tab',
     'planning_day_starts_at',
+    'language_preference',
+    'daily_planning_capacity_minutes',
+    'planner_view',
     'onboarding_version',
     'onboarding_completed_at',
   ],
@@ -281,6 +306,9 @@ export const appSettingsMapper: EntityMapper<AppSettings, ProfileFilter> = {
     theme_preference: entity.themePreference,
     default_tab: entity.defaultTab,
     planning_day_starts_at: entity.planningDayStartsAt,
+    language_preference: entity.languagePreference,
+    daily_planning_capacity_minutes: entity.dailyPlanningCapacityMinutes,
+    planner_view: entity.plannerView,
     onboarding_version: entity.onboardingVersion,
     onboarding_completed_at: entity.onboardingCompletedAt,
   }),
@@ -301,6 +329,15 @@ export const appSettingsMapper: EntityMapper<AppSettings, ProfileFilter> = {
       planningDayStartsAt: toLocalTime(
         stringValue(row, 'planning_day_starts_at'),
       ),
+      languagePreference: stringValue(
+        row,
+        'language_preference',
+      ) as AppSettings['languagePreference'],
+      dailyPlanningCapacityMinutes: numberValue(
+        row,
+        'daily_planning_capacity_minutes',
+      ),
+      plannerView: stringValue(row, 'planner_view') as AppSettings['plannerView'],
       onboardingVersion: numberValue(row, 'onboarding_version'),
       onboardingCompletedAt: onboardingCompletedAt
         ? toInstant(onboardingCompletedAt)
@@ -641,7 +678,7 @@ export const taskMapper: EntityMapper<
 
 export const planBlockMapper: EntityMapper<
   PlanBlock,
-  WorkspaceEntityFilter<PlanBlock['status']>
+  PlanBlockFilter
 > = {
   table: 'plan_blocks',
   columns: [
@@ -656,6 +693,9 @@ export const planBlockMapper: EntityMapper<
     'status',
     'task_id',
     'routine_id',
+    'series_id',
+    'occurrence_date',
+    'recurrence_exception',
   ],
   orderBy: 'date ASC, start_time ASC, id ASC',
   toRow: (entity) => ({
@@ -670,6 +710,9 @@ export const planBlockMapper: EntityMapper<
     status: entity.status,
     task_id: entity.taskId,
     routine_id: entity.routineId,
+    series_id: entity.seriesId,
+    occurrence_date: entity.occurrenceDate,
+    recurrence_exception: entity.isRecurrenceException ? 1 : 0,
   }),
   fromRow: (row) => ({
     ...metadataFromRow(row),
@@ -683,6 +726,94 @@ export const planBlockMapper: EntityMapper<
     status: stringValue(row, 'status') as PlanBlock['status'],
     taskId: nullableString(row, 'task_id'),
     routineId: nullableString(row, 'routine_id'),
+    seriesId: nullableString(row, 'series_id'),
+    occurrenceDate: nullableString(row, 'occurrence_date')
+      ? toCalendarDate(stringValue(row, 'occurrence_date'))
+      : null,
+    isRecurrenceException: numberValue(row, 'recurrence_exception') === 1,
+  }),
+  buildFilters: (filter) => {
+    const result = clauses([
+      ['workspace_id', filter?.workspaceId],
+      ['status', filter?.status],
+      ['task_id', filter?.taskId],
+      ['routine_id', filter?.routineId],
+      ['series_id', filter?.seriesId],
+    ]);
+
+    if (filter?.fromDate) {
+      result.push({ sql: 'date >= ?', parameters: [filter.fromDate] });
+    }
+
+    if (filter?.toDate) {
+      result.push({ sql: 'date <= ?', parameters: [filter.toDate] });
+    }
+
+    return result;
+  },
+};
+
+export const planBlockSeriesMapper: EntityMapper<
+  PlanBlockSeries,
+  PlanBlockSeriesFilter
+> = {
+  table: 'plan_block_series',
+  columns: [
+    ...metadataColumns,
+    'workspace_id',
+    'title',
+    'notes',
+    'start_date',
+    'start_time',
+    'end_time',
+    'time_zone',
+    'frequency',
+    'interval_count',
+    'weekdays_json',
+    'end_date',
+    'task_id',
+    'routine_id',
+    'status',
+  ],
+  orderBy: 'start_date ASC, start_time ASC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    title: entity.title,
+    notes: entity.notes,
+    start_date: entity.startDate,
+    start_time: entity.startTime,
+    end_time: entity.endTime,
+    time_zone: entity.timeZone,
+    frequency: entity.frequency,
+    interval_count: entity.interval,
+    weekdays_json: JSON.stringify(entity.weekdays),
+    end_date: entity.endDate,
+    task_id: entity.taskId,
+    routine_id: entity.routineId,
+    status: entity.status,
+  }),
+  fromRow: (row) => ({
+    ...metadataFromRow(row),
+    workspaceId: stringValue(row, 'workspace_id'),
+    title: stringValue(row, 'title'),
+    notes: nullableString(row, 'notes'),
+    startDate: toCalendarDate(stringValue(row, 'start_date')),
+    startTime: toLocalTime(stringValue(row, 'start_time')),
+    endTime: toLocalTime(stringValue(row, 'end_time')),
+    timeZone: toTimeZone(stringValue(row, 'time_zone')),
+    frequency: stringValue(
+      row,
+      'frequency',
+    ) as PlanBlockSeries['frequency'],
+    interval: numberValue(row, 'interval_count'),
+    weekdays: weekdayArray(row, 'weekdays_json'),
+    endDate: nullableString(row, 'end_date')
+      ? toCalendarDate(stringValue(row, 'end_date'))
+      : null,
+    taskId: nullableString(row, 'task_id'),
+    routineId: nullableString(row, 'routine_id'),
+    status: stringValue(row, 'status') as PlanBlockSeries['status'],
   }),
   buildFilters: (filter) =>
     clauses([

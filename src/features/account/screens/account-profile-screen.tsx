@@ -8,11 +8,13 @@ import { AuthTextField } from '@/features/auth/components/auth-text-field';
 import { validateDisplayName } from '@/features/auth/services/auth-validation';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAccount } from '@/providers/account-provider';
+import { useLocalization } from '@/providers/localization-provider';
 
 export function AccountProfileScreen() {
   const theme = useAppTheme();
   const router = useRouter();
   const account = useAccount();
+  const localization = useLocalization();
   const [displayName, setDisplayName] = useState(account.profile?.displayName ?? '');
   const [error, setError] = useState<string | undefined>();
 
@@ -39,16 +41,16 @@ export function AccountProfileScreen() {
 
   return (
     <AuthScaffold
-      description="This small account profile is separate from your local planning records."
-      eyebrow="ACCOUNT PROFILE"
+      description={localization.t('auth.profileDescription')}
+      eyebrow={localization.t('auth.profileEyebrow')}
       icon="person-circle-outline"
-      title="Edit profile"
+      title={localization.t('auth.editProfile')}
     >
       <AuthErrorSummary message={account.errorMessage} />
       <AuthTextField
         autoComplete="name"
-        error={error}
-        label="Display name"
+        error={localization.message(error) || undefined}
+        label={localization.t('auth.displayName')}
         onChangeText={setDisplayName}
         onSubmitEditing={() => void save()}
         returnKeyType="done"
@@ -56,12 +58,12 @@ export function AccountProfileScreen() {
         value={displayName}
       />
       <Card variant="subtle">
-        <Text variant="label">Profile scope</Text>
+        <Text variant="label">{localization.t('auth.profileScope')}</Text>
         <Text style={{ marginTop: theme.spacing.sm }} tone="textMuted" variant="caption">
-          Only display name, locale, and time zone belong to this remote profile. Tasks, goals, routines, reflections, and plans stay local.
+          {localization.t('auth.profileDescription')}
         </Text>
       </Card>
-      <Button label="Save profile" loading={account.isBusy} onPress={() => void save()} />
+      <Button label={localization.t('auth.saveProfile')} loading={account.isBusy} onPress={() => void save()} />
     </AuthScaffold>
   );
 }

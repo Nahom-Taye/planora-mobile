@@ -2,19 +2,21 @@
 
 ## Authentication boundaries
 
-Phase 3 adds an optional account boundary without changing the offline planning boundary. Route components use provider hooks and feature services. They do not import the Supabase client. The account gateway owns provider calls, the account provider owns application session state, and SQLite repositories own local profile linkage.
+Phase 3 adds an optional account boundary without changing the offline planning boundary. Phase 4 changes the signed-out cold-launch presentation without changing that boundary. Phase 5 localizes the complete account-entry and recovery presentation without changing session or remote-data semantics. Route components use provider hooks and feature services. They do not import the Supabase client. The account gateway owns provider calls, the account provider owns application session state, and SQLite repositories own local profile linkage.
 
 The remote boundary contains authentication and a minimal account profile only. Tasks, plan blocks, routines, check-ins, goals, milestones, areas, tags, reflections, workspaces, settings, and local change records are not sent remotely.
 
 ## Local-only mode
 
-Onboarding may be completed or skipped. Both choices create or update local settings and open the main tabs. Account configuration, connectivity, sign-in, and email verification never gate Today, Planner, Goals, Insights, or Settings.
+After branded initialization, a valid saved session opens the appropriate onboarding or main route. A signed-out cold launch opens the account-entry form. Continue locally grants access for the current application process and opens onboarding when incomplete or the main tabs when complete. The choice is intentionally not persisted, so a later signed-out cold launch offers account entry again. Backgrounding does not reset the in-memory local choice.
 
-When public account configuration is missing or invalid, startup resolves to local-only mode. Account actions explain that they are unavailable while local storage remains ready.
+Account configuration, connectivity, sign-in, and email verification never prevent the user from choosing local access. When public account configuration is missing or invalid, account actions explain that they are unavailable while Continue locally remains active.
+
+Account headings, fields, validation, confirmation dialogs, recovery instructions, and accessibility labels resolve through the active local profile language. Authored provider errors map to local catalog entries without logging addresses, passwords, callback material, or session values. Changing the interface language does not modify the remote profile locale or send a language preference to the account provider.
 
 ## Session lifecycle
 
-One configured client restores its persisted session during application startup and subscribes to authentication state changes. A valid persisted session may restore without a network request. Expired, revoked, corrupt, or unreadable state resolves safely to a signed-out experience without changing the planning database.
+One configured client restores its persisted session during application startup and subscribes to authentication state changes. The branded launch view remains visible until secure session restoration resolves, preventing a valid saved session from briefly showing account entry. A valid persisted session may restore without a network request. Expired, revoked, corrupt, or unreadable state resolves safely to account entry without changing the planning database.
 
 Automatic refresh starts only while the application is active and stops when it becomes inactive. Subscriptions and refresh behavior are cleaned up with the provider lifecycle. Duplicate form submissions are rejected while an account operation is active.
 
@@ -37,7 +39,7 @@ The URL must use HTTPS and the Supabase project hostname. Placeholder, missing, 
 
 ## Route protection
 
-Expo Router route groups separate onboarding, public account screens, main tabs, protected account screens, and recovery callbacks. Protected routes use runtime session state for navigation control. The main tabs depend only on onboarding completion. Account profile routes require an active account session.
+Expo Router route groups separate onboarding, public account screens, main tabs, task editors, routine editors, protected account screens, and recovery callbacks. Protected routes use runtime session and local-entry state for navigation control. Main and editor routes require onboarding completion plus a valid session or the current-process Continue locally choice. Account profile routes require an active account session.
 
 Client route protection is not authorization. The database policies remain responsible for every remote profile operation.
 
@@ -63,7 +65,7 @@ Sign-in creates or refreshes the link. Sign-out marks the link as unlinked. Neit
 
 The application scheme is `planora`. The production recovery callback is `planora://callback`. Expo Go development uses the callback produced by Expo Linking for the active development URL.
 
-The callback handler accepts a one-time authorization code, verification token hash, recovery token hash, or provider recovery session. Private callback values are consumed in memory and are not written to route parameters, logs, or SQLite. Valid email verification returns to the main application, while valid recovery state opens the password-reset screen. Invalid or expired links lead to a recoverable request-new-link path.
+The callback handler accepts a one-time authorization code, verification token hash, recovery token hash, or provider recovery session. Private callback values are consumed in memory and are not written to route parameters, logs, or SQLite. Valid email verification returns to onboarding when needed or the main application, while valid recovery state opens the password-reset screen. Invalid or expired links lead to a recoverable request-new-link path. Continue locally from callback recovery follows the same onboarding decision as the opening screen.
 
 The Supabase project URL configuration must allow the production callback and the development callback used during testing.
 
@@ -73,7 +75,7 @@ SQLite remains the immediate source of truth. Local-only startup does not contac
 
 ## Sign-out behavior
 
-Sign-out clears local authentication session material, removes the active account state, and marks the local account link as unlinked. Local profiles, workspaces, and planning records remain on the device. Phase 3 does not implement remote planning-data deletion because it does not upload planning data.
+Sign-out clears local authentication session material, removes the active account state, marks the local account link as unlinked, and returns to account entry. Local profiles, workspaces, and planning records remain on the device. Sign-out does not implement remote planning-data deletion because planning data is not uploaded.
 
 ## Privacy limitations
 
@@ -87,4 +89,4 @@ A configured test project is required to verify signup, email confirmation, sign
 
 ## Phase 3 limitations
 
-Phase 3 provides optional onboarding, email-and-password account foundations, recovery, minimal profiles, route protection, and authorization policies. It does not implement social sign-in, phone sign-in, biometrics, anonymous provider accounts, planning-data synchronization, tasks, planning workflows, goals, insights, notifications, payments, export, or full account deletion.
+Phase 3 provides onboarding, email-and-password account foundations, recovery, minimal profiles, route protection, and authorization policies. Phase 4 adds an authentication-first opening decision, and Phase 5 localizes its presentation, but neither adds a new account provider type or remote planning boundary. Social sign-in, phone sign-in, biometrics, anonymous provider accounts, planning-data synchronization, goals, insights, notifications, payments, export, and full account deletion remain excluded.

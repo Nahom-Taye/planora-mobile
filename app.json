@@ -29,7 +29,17 @@
         }
       ],
       "expo-sqlite",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": ["en", "am", "es", "fr", "ar"],
+            "android": ["en", "am", "es", "fr", "ar"]
+          },
+          "supportsRTL": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -5,6 +5,9 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card, Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAccount } from '@/providers/account-provider';
+import { useAppEntry } from '@/providers/app-entry-provider';
+import { useOnboarding } from '@/providers/onboarding-provider';
+import { useLocalization } from '@/providers/localization-provider';
 
 import { AuthScaffold } from '../components/auth-scaffold';
 
@@ -12,27 +15,37 @@ export function AuthWelcomeScreen() {
   const theme = useAppTheme();
   const router = useRouter();
   const account = useAccount();
+  const appEntry = useAppEntry();
+  const onboarding = useOnboarding();
+  const localization = useLocalization();
 
   return (
     <AuthScaffold
-      description="Keep using Planora locally, or add an account for a small profile and account recovery. Planning content stays on this device."
+      description={localization.t('auth.chooseDescription')}
       icon="person-circle-outline"
       showBack
-      title="Choose what fits today"
+      title={localization.t('auth.chooseTitle')}
     >
       <Card variant="accent">
         <View style={[styles.option, { gap: theme.spacing.lg }]}>
           <Ionicons color={theme.colors.accent} name="phone-portrait-outline" size={30} />
           <View style={styles.copy}>
-            <Text variant="heading">Continue locally</Text>
+            <Text variant="heading">{localization.t('auth.localTitle')}</Text>
             <Text tone="textMuted" variant="caption">
-              No account is required. Your existing local planning data remains ready offline.
+              {localization.t('auth.localDescription')}
             </Text>
           </View>
         </View>
         <Button
-          label="Return to Planora"
-          onPress={() => router.replace('/(tabs)')}
+          label={localization.t('auth.localTitle')}
+          onPress={() => {
+            appEntry.continueLocally();
+            router.replace(
+              onboarding.status === 'complete'
+                ? '/(tabs)'
+                : '/(onboarding)/onboarding',
+            );
+          }}
           style={{ marginTop: theme.spacing.lg }}
         />
       </Card>
@@ -41,9 +54,9 @@ export function AuthWelcomeScreen() {
         <View style={[styles.option, { gap: theme.spacing.lg }]}>
           <Ionicons color={theme.colors.primary} name="person-add-outline" size={30} />
           <View style={styles.copy}>
-            <Text variant="heading">Optional account</Text>
+            <Text variant="heading">{localization.t('auth.accountTitle')}</Text>
             <Text tone="textMuted" variant="caption">
-              Create a profile or sign in. This does not upload, merge, or replace local planning records.
+              {localization.t('auth.accountDescription')}
             </Text>
           </View>
         </View>
@@ -54,19 +67,19 @@ export function AuthWelcomeScreen() {
             tone="warning"
             variant="caption"
           >
-            Account services are not configured in this build. Local-only use remains available.
+            {localization.t('auth.accountUnavailable')}
           </Text>
         ) : null}
         <View style={[styles.actions, { gap: theme.spacing.md, marginTop: theme.spacing.lg }]}>
           <Button
             disabled={!account.configured}
-            label="Create account"
+            label={localization.t('auth.createAccount')}
             onPress={() => router.push('/(auth)/create-account')}
             style={styles.flex}
           />
           <Button
             disabled={!account.configured}
-            label="Sign in"
+            label={localization.t('auth.signIn')}
             onPress={() => router.push('/(auth)/sign-in')}
             style={styles.flex}
             variant="secondary"

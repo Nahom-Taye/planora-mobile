@@ -5,6 +5,9 @@ import { TextInput, View } from 'react-native';
 import { Button, Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAccount } from '@/providers/account-provider';
+import { useAppEntry } from '@/providers/app-entry-provider';
+import { useLocalization } from '@/providers/localization-provider';
+import { useOnboarding } from '@/providers/onboarding-provider';
 
 import { AuthErrorSummary } from '../components/auth-error-summary';
 import { AuthScaffold } from '../components/auth-scaffold';
@@ -19,6 +22,9 @@ export function SignInScreen() {
   const theme = useAppTheme();
   const router = useRouter();
   const account = useAccount();
+  const appEntry = useAppEntry();
+  const localization = useLocalization();
+  const onboarding = useOnboarding();
   const passwordRef = useRef<TextInput>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,34 +38,46 @@ export function SignInScreen() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
     const result = await account.signIn(email, password);
-    if (result.ok) router.replace('/(tabs)');
+    if (result.ok) {
+      router.replace(
+        onboarding.status === 'complete'
+          ? '/(tabs)'
+          : '/(onboarding)/onboarding',
+      );
+    }
   };
 
   return (
     <AuthScaffold
-      description="Sign in to your optional Planora account. Your local planning space remains separate and available."
+      description={localization.t('auth.signInDescription')}
       icon="log-in-outline"
-      title="Welcome back"
+      showBack={false}
+      title={localization.t('auth.signInTitle')}
     >
       <AuthErrorSummary message={account.errorMessage} />
+      {!account.configured ? (
+        <Text accessibilityLiveRegion="polite" tone="warning" variant="caption">
+          {localization.t('auth.accountUnavailable')}
+        </Text>
+      ) : null}
       <AuthTextField
         autoCapitalize="none"
         autoComplete="email"
         autoCorrect={false}
-        error={errors.email}
+        error={localization.message(errors.email) || undefined}
         keyboardType="email-address"
-        label="Email"
+        label={localization.t('auth.email')}
         onChangeText={setEmail}
         onSubmitEditing={() => passwordRef.current?.focus()}
-        placeholder="you@example.com"
+        placeholder={localization.t('auth.emailPlaceholder')}
         returnKeyType="next"
         textContentType="emailAddress"
         value={email}
       />
       <AuthTextField
         autoComplete="current-password"
-        error={errors.password}
-        label="Password"
+        error={localization.message(errors.password) || undefined}
+        label={localization.t('auth.password')}
         onChangeText={setPassword}
         onSubmitEditing={() => void submit()}
         password
@@ -70,21 +88,35 @@ export function SignInScreen() {
       />
       <Button
         disabled={!account.configured}
-        label="Sign in"
+        label={localization.t('auth.signIn')}
         loading={account.isBusy}
         onPress={() => void submit()}
       />
       <Button
-        label="Forgot password?"
+        disabled={!account.configured}
+        label={localization.t('auth.forgotPassword')}
         onPress={() => router.push('/(auth)/forgot-password')}
         variant="ghost"
       />
+      <Button
+        label={localization.t('auth.localTitle')}
+        onPress={() => {
+          appEntry.continueLocally();
+          router.replace(
+            onboarding.status === 'complete'
+              ? '/(tabs)'
+              : '/(onboarding)/onboarding',
+          );
+        }}
+        variant="secondary"
+      />
       <View style={{ alignItems: 'center', gap: theme.spacing.sm }}>
         <Text tone="textMuted" variant="caption">
-          New to account features?
+          {localization.t('auth.newToAccount')}
         </Text>
         <Button
-          label="Create an account"
+          disabled={!account.configured}
+          label={localization.t('auth.createInstead')}
           onPress={() => router.replace('/(auth)/create-account')}
           variant="secondary"
         />

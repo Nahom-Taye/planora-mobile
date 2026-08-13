@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useLocalization } from '@/providers/localization-provider';
 
 import { BrandWordmark } from './brand-wordmark';
 
@@ -11,13 +12,14 @@ type BrandedLaunchScreenProps = {
 };
 
 export function BrandedLaunchScreen({
-  message = 'Make space for what matters.',
+  message,
 }: BrandedLaunchScreenProps) {
   const theme = useAppTheme();
+  const localization = useLocalization();
 
   return (
     <SafeAreaView
-      accessibilityLabel="Planora is starting"
+      accessibilityLabel={localization.t('launch.starting')}
       accessibilityRole="progressbar"
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
@@ -42,7 +44,7 @@ export function BrandedLaunchScreen({
           align="center"
           tone="textMuted"
         >
-          {message}
+          {message ?? localization.t('launch.tagline')}
         </Text>
       </View>
       <ActivityIndicator color={theme.colors.accent} style={styles.indicator} />

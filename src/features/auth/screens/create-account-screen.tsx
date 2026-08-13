@@ -5,6 +5,9 @@ import { TextInput } from 'react-native';
 
 import { Button, Text } from '@/components/ui';
 import { useAccount } from '@/providers/account-provider';
+import { useAppEntry } from '@/providers/app-entry-provider';
+import { useLocalization } from '@/providers/localization-provider';
+import { useOnboarding } from '@/providers/onboarding-provider';
 
 import { AuthErrorSummary } from '../components/auth-error-summary';
 import { AuthScaffold } from '../components/auth-scaffold';
@@ -20,6 +23,9 @@ import {
 export function CreateAccountScreen() {
   const router = useRouter();
   const account = useAccount();
+  const appEntry = useAppEntry();
+  const localization = useLocalization();
+  const onboarding = useOnboarding();
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmRef = useRef<TextInput>(null);
@@ -56,24 +62,28 @@ export function CreateAccountScreen() {
 
     if (!result.ok) return;
     router.replace(
-      result.requiresEmailVerification ? '/(auth)/check-email' : '/(tabs)',
+      result.requiresEmailVerification
+        ? '/(auth)/check-email'
+        : onboarding.status === 'complete'
+          ? '/(tabs)'
+          : '/(onboarding)/onboarding',
     );
   };
 
   return (
     <AuthScaffold
-      description="Create a minimal account profile for sign-in and recovery. Planning content is not sent to the account service."
+      description={localization.t('auth.createDescription')}
       icon="person-add-outline"
-      title="Create your account"
+      title={localization.t('auth.createTitle')}
     >
       <AuthErrorSummary message={account.errorMessage} />
       <AuthTextField
         autoComplete="name"
-        error={errors.displayName}
-        label="Display name"
+        error={localization.message(errors.displayName) || undefined}
+        label={localization.t('auth.displayName')}
         onChangeText={setDisplayName}
         onSubmitEditing={() => emailRef.current?.focus()}
-        placeholder="How you want to be addressed"
+        placeholder={localization.t('auth.displayNamePlaceholder')}
         returnKeyType="next"
         textContentType="name"
         value={displayName}
@@ -82,9 +92,9 @@ export function CreateAccountScreen() {
         autoCapitalize="none"
         autoComplete="email"
         autoCorrect={false}
-        error={errors.email}
+        error={localization.message(errors.email) || undefined}
         keyboardType="email-address"
-        label="Email"
+        label={localization.t('auth.email')}
         onChangeText={setEmail}
         onSubmitEditing={() => passwordRef.current?.focus()}
         ref={emailRef}
@@ -94,8 +104,8 @@ export function CreateAccountScreen() {
       />
       <AuthTextField
         autoComplete="new-password"
-        error={errors.password}
-        label="Password"
+        error={localization.message(errors.password) || undefined}
+        label={localization.t('auth.password')}
         onChangeText={setPassword}
         onSubmitEditing={() => confirmRef.current?.focus()}
         password
@@ -106,8 +116,8 @@ export function CreateAccountScreen() {
       />
       <AuthTextField
         autoComplete="new-password"
-        error={errors.confirmPassword}
-        label="Confirm password"
+        error={localization.message(errors.confirmPassword) || undefined}
+        label={localization.t('auth.confirmPassword')}
         onChangeText={setConfirmPassword}
         onSubmitEditing={() => void submit()}
         password
@@ -117,18 +127,30 @@ export function CreateAccountScreen() {
         value={confirmPassword}
       />
       <Text tone="textMuted" variant="caption">
-        Your password is sent securely to the account provider and is never stored in Planora&apos;s local planning database.
+        {localization.t('auth.passwordPrivacy')}
       </Text>
       <Button
         disabled={!account.configured}
-        label="Create account"
+        label={localization.t('auth.createAccount')}
         loading={account.isBusy}
         onPress={() => void submit()}
       />
       <Button
-        label="Already have an account? Sign in"
+        label={localization.t('auth.alreadyAccount')}
         onPress={() => router.replace('/(auth)/sign-in')}
         variant="ghost"
+      />
+      <Button
+        label={localization.t('auth.localTitle')}
+        onPress={() => {
+          appEntry.continueLocally();
+          router.replace(
+            onboarding.status === 'complete'
+              ? '/(tabs)'
+              : '/(onboarding)/onboarding',
+          );
+        }}
+        variant="secondary"
       />
     </AuthScaffold>
   );

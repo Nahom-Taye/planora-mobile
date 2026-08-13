@@ -6,49 +6,51 @@ import { AccessibilityInfo, Pressable, StyleSheet, View } from 'react-native';
 import { BrandWordmark } from '@/components/brand';
 import { Button, Card, Screen, Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useLocalization } from '@/providers/localization-provider';
 import { useOnboarding } from '@/providers/onboarding-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
-
-const pages = [
-  {
-    eyebrow: 'A CALMER START',
-    title: 'Your day, with room to breathe',
-    description:
-      'Planora gives Today, Planner, Goals, Insights, and Settings a quiet home while each planning feature is built with care.',
-    icon: 'sunny-outline' as const,
-    detail: 'Explore the existing planning spaces without creating an account.',
-  },
-  {
-    eyebrow: 'LOCAL BY DEFAULT',
-    title: 'Ready when the network is not',
-    description:
-      'Your planning foundation is stored on this device and remains available offline. Local actions never wait for an account service.',
-    icon: 'cloud-offline-outline' as const,
-    detail: 'Local data survives app restarts and stays separate from account sessions.',
-  },
-  {
-    eyebrow: 'YOUR CHOICE',
-    title: 'An account is optional',
-    description:
-      'Create an account for profile and recovery access, or continue locally. Phase 3 does not upload or synchronize planning content.',
-    icon: 'person-circle-outline' as const,
-    detail: 'You can sign in later from Settings without changing local identifiers.',
-  },
-];
 
 export function OnboardingScreen() {
   const theme = useAppTheme();
   const router = useRouter();
   const onboarding = useOnboarding();
+  const localization = useLocalization();
+  const pages = [
+    {
+      eyebrow: localization.t('onboarding.pageOneEyebrow'),
+      title: localization.t('onboarding.pageOneTitle'),
+      description: localization.t('onboarding.pageOneDescription'),
+      icon: 'sunny-outline' as const,
+      detail: localization.t('onboarding.pageOneDetail'),
+    },
+    {
+      eyebrow: localization.t('onboarding.pageTwoEyebrow'),
+      title: localization.t('onboarding.pageTwoTitle'),
+      description: localization.t('onboarding.pageTwoDescription'),
+      icon: 'cloud-offline-outline' as const,
+      detail: localization.t('onboarding.pageTwoDetail'),
+    },
+    {
+      eyebrow: localization.t('onboarding.pageThreeEyebrow'),
+      title: localization.t('onboarding.pageThreeTitle'),
+      description: localization.t('onboarding.pageThreeDescription'),
+      icon: 'person-circle-outline' as const,
+      detail: localization.t('onboarding.pageThreeDetail'),
+    },
+  ];
   const [pageIndex, setPageIndex] = useState(0);
   const page = pages[pageIndex];
   const isLast = pageIndex === pages.length - 1;
 
   useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
-      `Step ${pageIndex + 1} of ${pages.length}. ${page.title}`,
+      localization.t('onboarding.stepAnnouncement', {
+        current: localization.formatNumber(pageIndex + 1),
+        total: localization.formatNumber(pages.length),
+        title: page.title,
+      }),
     );
-  }, [page.title, pageIndex]);
+  }, [localization, page.title, pageIndex, pages.length]);
 
   const finish = async (skip: boolean) => {
     const succeeded = skip
@@ -67,7 +69,7 @@ export function OnboardingScreen() {
       <View style={styles.topRow}>
         <BrandWordmark compact markSize={34} />
         <Pressable
-          accessibilityLabel={onboarding.isReviewing ? 'Close onboarding' : 'Skip onboarding'}
+          accessibilityLabel={localization.t(onboarding.isReviewing ? 'onboarding.close' : 'onboarding.skip')}
           accessibilityRole="button"
           onPress={() => {
             if (onboarding.isReviewing) closeReview();
@@ -79,7 +81,7 @@ export function OnboardingScreen() {
           ]}
         >
           <Text tone="textMuted" variant="label">
-            {onboarding.isReviewing ? 'Close' : 'Skip'}
+            {localization.t(onboarding.isReviewing ? 'common.close' : 'common.skip')}
           </Text>
         </Pressable>
       </View>
@@ -102,7 +104,10 @@ export function OnboardingScreen() {
           />
         ))}
         <Text style={styles.progressText} tone="textMuted" variant="caption">
-          Step {pageIndex + 1} of {pages.length}
+          {localization.t('onboarding.step', {
+            current: localization.formatNumber(pageIndex + 1),
+            total: localization.formatNumber(pages.length),
+          })}
         </Text>
       </View>
 
@@ -147,7 +152,7 @@ export function OnboardingScreen() {
       <View accessibilityLiveRegion="polite" style={styles.errorArea}>
         {onboarding.errorMessage ? (
           <Text align="center" tone="danger" variant="caption">
-            {onboarding.errorMessage}
+            {localization.message(onboarding.errorMessage)}
           </Text>
         ) : null}
       </View>
@@ -155,13 +160,13 @@ export function OnboardingScreen() {
       <View style={[styles.actions, { gap: theme.spacing.md }]}>
         {pageIndex > 0 ? (
           <Button
-            label="Back"
+            label={localization.t('common.back')}
             onPress={() => setPageIndex((value) => value - 1)}
             variant="secondary"
           />
         ) : null}
         <Button
-          label={isLast ? (onboarding.isReviewing ? 'Done' : 'Start locally') : 'Continue'}
+          label={localization.t(isLast ? (onboarding.isReviewing ? 'common.done' : 'onboarding.startLocally') : 'common.continue')}
           loading={onboarding.isSaving}
           onPress={() => {
             if (!isLast) setPageIndex((value) => value + 1);
