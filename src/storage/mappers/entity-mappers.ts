@@ -1,5 +1,7 @@
 import type {
   AppSettings,
+  DeviceCalendarEvent,
+  DeviceNotificationSchedule,
   LocalAccountLink,
   Area,
   EntityMetadata,
@@ -10,6 +12,7 @@ import type {
   PlanBlock,
   PlanBlockSeries,
   Reflection,
+  ReminderIntent,
   Routine,
   RoutineCheckIn,
   Tag,
@@ -27,12 +30,15 @@ import {
 import type {
   LocalChangeFilter,
   AccountLinkFilter,
+  DeviceCalendarEventFilter,
+  DeviceNotificationScheduleFilter,
   GoalRoutineLinkFilter,
   MilestoneFilter,
   PlanBlockFilter,
   PlanBlockSeriesFilter,
   ProfileFilter,
   ReflectionFilter,
+  ReminderIntentFilter,
   RoutineCheckInFilter,
   WorkspaceEntityFilter,
   WorkspaceFilter,
@@ -160,6 +166,14 @@ function routineScheduleValue(row: DatabaseRow): Routine['schedule'] {
     time,
     weekdays: [...new Set(value.weekdays)] as Weekday[],
   };
+}
+
+function nullableNumber(row: DatabaseRow, key: string): number | null {
+  const value = row[key];
+
+  if (value === null) return null;
+  if (typeof value !== 'number') throw invalidRow();
+  return value;
 }
 
 function weekdayArray(row: DatabaseRow, key: string): Weekday[] {
@@ -300,6 +314,12 @@ export const appSettingsMapper: EntityMapper<AppSettings, ProfileFilter> = {
     'planner_view',
     'insights_view',
     'insights_range',
+    'notification_titles_enabled',
+    'quiet_hours_enabled',
+    'quiet_hours_start',
+    'quiet_hours_end',
+    'device_calendar_id',
+    'device_calendar_name',
     'onboarding_version',
     'onboarding_completed_at',
   ],
@@ -315,6 +335,12 @@ export const appSettingsMapper: EntityMapper<AppSettings, ProfileFilter> = {
     planner_view: entity.plannerView,
     insights_view: entity.insightsView,
     insights_range: entity.insightsRange,
+    notification_titles_enabled: entity.notificationTitlesEnabled ? 1 : 0,
+    quiet_hours_enabled: entity.quietHoursEnabled ? 1 : 0,
+    quiet_hours_start: entity.quietHoursStart,
+    quiet_hours_end: entity.quietHoursEnd,
+    device_calendar_id: entity.deviceCalendarId,
+    device_calendar_name: entity.deviceCalendarName,
     onboarding_version: entity.onboardingVersion,
     onboarding_completed_at: entity.onboardingCompletedAt,
   }),
@@ -346,6 +372,13 @@ export const appSettingsMapper: EntityMapper<AppSettings, ProfileFilter> = {
       plannerView: stringValue(row, 'planner_view') as AppSettings['plannerView'],
       insightsView: stringValue(row, 'insights_view') as AppSettings['insightsView'],
       insightsRange: stringValue(row, 'insights_range') as AppSettings['insightsRange'],
+      notificationTitlesEnabled:
+        numberValue(row, 'notification_titles_enabled') === 1,
+      quietHoursEnabled: numberValue(row, 'quiet_hours_enabled') === 1,
+      quietHoursStart: toLocalTime(stringValue(row, 'quiet_hours_start')),
+      quietHoursEnd: toLocalTime(stringValue(row, 'quiet_hours_end')),
+      deviceCalendarId: nullableString(row, 'device_calendar_id'),
+      deviceCalendarName: nullableString(row, 'device_calendar_name'),
       onboardingVersion: numberValue(row, 'onboarding_version'),
       onboardingCompletedAt: onboardingCompletedAt
         ? toInstant(onboardingCompletedAt)
@@ -932,6 +965,148 @@ export const reflectionMapper: EntityMapper<Reflection, ReflectionFilter> = {
 
     return result;
   },
+};
+
+export const reminderIntentMapper: EntityMapper<
+  ReminderIntent,
+  ReminderIntentFilter
+> = {
+  table: 'reminder_intents',
+  columns: [
+    ...metadataColumns,
+    'workspace_id',
+    'entity_type',
+    'entity_id',
+    'trigger_kind',
+    'offset_minutes',
+    'absolute_at',
+    'enabled',
+  ],
+  orderBy: 'updated_at ASC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    entity_type: entity.entityType,
+    entity_id: entity.entityId,
+    trigger_kind: entity.triggerKind,
+    offset_minutes: entity.offsetMinutes,
+    absolute_at: entity.absoluteAt,
+    enabled: entity.enabled ? 1 : 0,
+  }),
+  fromRow: (row) => {
+    const absoluteAt = nullableString(row, 'absolute_at');
+    return {
+      ...metadataFromRow(row),
+      workspaceId: stringValue(row, 'workspace_id'),
+      entityType: stringValue(row, 'entity_type') as ReminderIntent['entityType'],
+      entityId: stringValue(row, 'entity_id'),
+      triggerKind: stringValue(row, 'trigger_kind') as ReminderIntent['triggerKind'],
+      offsetMinutes: nullableNumber(row, 'offset_minutes'),
+      absoluteAt: absoluteAt ? toInstant(absoluteAt) : null,
+      enabled: numberValue(row, 'enabled') === 1,
+    };
+  },
+  buildFilters: (filter) =>
+    clauses([
+      ['workspace_id', filter?.workspaceId],
+      ['entity_type', filter?.entityType],
+      ['entity_id', filter?.entityId],
+      ['enabled', filter?.enabled === undefined ? undefined : filter.enabled ? 1 : 0],
+    ]),
+};
+
+export const deviceNotificationScheduleMapper: EntityMapper<
+  DeviceNotificationSchedule,
+  DeviceNotificationScheduleFilter
+> = {
+  table: 'device_notification_schedules',
+  columns: [
+    ...metadataColumns,
+    'workspace_id',
+    'reminder_intent_id',
+    'occurrence_key',
+    'notification_identifier',
+    'scheduled_for',
+    'state',
+    'reason',
+    'source_revision',
+  ],
+  orderBy: 'scheduled_for ASC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    reminder_intent_id: entity.reminderIntentId,
+    occurrence_key: entity.occurrenceKey,
+    notification_identifier: entity.notificationIdentifier,
+    scheduled_for: entity.scheduledFor,
+    state: entity.state,
+    reason: entity.reason,
+    source_revision: entity.sourceRevision,
+  }),
+  fromRow: (row) => {
+    const scheduledFor = nullableString(row, 'scheduled_for');
+    return {
+      ...metadataFromRow(row),
+      workspaceId: stringValue(row, 'workspace_id'),
+      reminderIntentId: stringValue(row, 'reminder_intent_id'),
+      occurrenceKey: stringValue(row, 'occurrence_key'),
+      notificationIdentifier: nullableString(row, 'notification_identifier'),
+      scheduledFor: scheduledFor ? toInstant(scheduledFor) : null,
+      state: stringValue(row, 'state') as DeviceNotificationSchedule['state'],
+      reason: nullableString(row, 'reason'),
+      sourceRevision: numberValue(row, 'source_revision'),
+    };
+  },
+  buildFilters: (filter) =>
+    clauses([
+      ['workspace_id', filter?.workspaceId],
+      ['reminder_intent_id', filter?.reminderIntentId],
+      ['state', filter?.state],
+    ]),
+};
+
+export const deviceCalendarEventMapper: EntityMapper<
+  DeviceCalendarEvent,
+  DeviceCalendarEventFilter
+> = {
+  table: 'device_calendar_events',
+  columns: [
+    ...metadataColumns,
+    'workspace_id',
+    'plan_block_id',
+    'calendar_id',
+    'event_id',
+    'source_revision',
+    'source_fingerprint',
+    'state',
+  ],
+  orderBy: 'updated_at ASC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    plan_block_id: entity.planBlockId,
+    calendar_id: entity.calendarId,
+    event_id: entity.eventId,
+    source_revision: entity.sourceRevision,
+    source_fingerprint: entity.sourceFingerprint,
+    state: entity.state,
+  }),
+  fromRow: (row) => ({
+    ...metadataFromRow(row),
+    workspaceId: stringValue(row, 'workspace_id'),
+    planBlockId: stringValue(row, 'plan_block_id'),
+    calendarId: stringValue(row, 'calendar_id'),
+    eventId: stringValue(row, 'event_id'),
+    sourceRevision: numberValue(row, 'source_revision'),
+    sourceFingerprint: stringValue(row, 'source_fingerprint'),
+    state: stringValue(row, 'state') as DeviceCalendarEvent['state'],
+  }),
+  buildFilters: (filter) =>
+    clauses([
+      ['workspace_id', filter?.workspaceId],
+      ['plan_block_id', filter?.planBlockId],
+      ['state', filter?.state],
+    ]),
 };
 
 export const localChangeMapper: EntityMapper<LocalChange, LocalChangeFilter> = {

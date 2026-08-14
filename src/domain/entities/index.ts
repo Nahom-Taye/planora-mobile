@@ -5,4 +5,5 @@ export * from './identity.ts';
 export * from './local-change.ts';
 export * from './organization.ts';
 export * from './planning.ts';
+export * from './reminders.ts';
 export * from './routines.ts';

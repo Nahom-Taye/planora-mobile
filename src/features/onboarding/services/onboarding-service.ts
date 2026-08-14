@@ -65,6 +65,12 @@ export class OnboardingService {
         plannerView: 'day',
         insightsView: 'summary',
         insightsRange: '7d',
+        notificationTitlesEnabled: false,
+        quietHoursEnabled: false,
+        quietHoursStart: toLocalTime('22:00'),
+        quietHoursEnd: toLocalTime('07:00'),
+        deviceCalendarId: null,
+        deviceCalendarName: null,
         onboardingVersion: CURRENT_ONBOARDING_VERSION,
         onboardingCompletedAt: completedAt,
       });

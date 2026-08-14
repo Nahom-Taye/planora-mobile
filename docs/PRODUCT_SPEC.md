@@ -27,7 +27,7 @@ Planora is not intended to replace team project-management, clinical treatment, 
 
 ## Product capability map
 
-The following list distinguishes the local functionality delivered through Phase 7 from later product direction.
+The following list distinguishes the local functionality delivered through Phase 8 from later product direction.
 
 - A focused Today view for priorities, local tasks, scheduled routines, next-up blocks, and a compact agenda preview.
 - A local day and week Planner with revision-safe time blocks, rescheduling, capacity awareness, overlap explanations, and bounded recurrence.
@@ -37,7 +37,8 @@ The following list distinguishes the local functionality delivered through Phase
 - Routines and habit check-ins with flexible schedules. Streak presentation remains future work.
 - Search, filters, quick capture, and reusable planning templates.
 - Local insight summaries, equal-period trends, workload and routine context, calm explanations, and daily, weekly, and goal reflections.
-- Configurable reminders and notification quiet hours.
+- Opt-in local reminders, notification quiet hours, privacy-preserving content, and safe notification navigation.
+- Optional one-way export of eligible plan blocks to a selected writable device calendar.
 - Cross-device accounts and sync through a future backend phase.
 - Data export, account deletion, privacy controls, and transparent sync status.
 - Optional paid capabilities only after the core experience is stable and useful.
@@ -66,7 +67,8 @@ Planora
     ├── Appearance and accessibility
     ├── Language and text direction
     ├── Planning preferences
-    ├── Notifications (future)
+    ├── Reminders, notification privacy, and quiet hours
+    ├── Device calendar destination
     ├── Optional account profile and recovery
     ├── Planning synchronization (future)
     └── Privacy and data controls (future)
@@ -139,8 +141,8 @@ Every persisted entity should use stable identifiers, creation and update timest
 5. **Planner and scheduling:** Add day and week planning, plan blocks, capacity cues, recurrence rules, and resilient rescheduling.
 6. **Goals and milestones:** Connect outcomes to milestones, routines, and actionable work with flexible progress models.
 7. **Insights and reflection:** Deliver privacy-conscious summaries, trend explanations, workload signals, and qualitative reflections without manipulative scoring.
-8. **Reminders and integrations:** Add opt-in notifications, quiet hours, deep links, calendar interoperability where appropriate, and robust permission education.
+8. **Reminders and integrations:** Add opt-in local notifications, quiet hours, validated navigation, one-way device-calendar interoperability, and robust permission education.
 9. **Sync quality and premium capabilities:** Harden multi-device reconciliation, export and deletion, observability, restore flows, and only then introduce clearly valuable optional paid capabilities.
 10. **Release hardening and launch:** Complete accessibility audits, privacy and security review, performance profiling, recovery testing, store assets, beta feedback, production monitoring, and staged Android/iOS release.
 
-Each phase requires its own acceptance criteria and verification plan before work begins. Phase 7 adds privacy-conscious local summaries, deterministic equal-period comparisons, workload and routine context, established goal progress context, and revision-safe reflections while preserving the local storage boundary. Remote planning synchronization, calendar-provider integrations, notifications, payments, sharing, collaboration, and premium features remain excluded.
+Each phase requires its own acceptance criteria and verification plan before work begins. Phase 8 preserves the local storage boundary while adding permission-gated local reminders, deterministic bounded reconciliation, generic notification content by default, safe destination validation, and explicit one-way calendar export. Remote planning synchronization, calendar import, remote push, payments, sharing, collaboration, and premium features remain excluded.

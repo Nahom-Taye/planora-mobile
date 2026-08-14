@@ -9,6 +9,7 @@ import { useLocalization } from '@/providers/localization-provider';
 
 import { LanguageSettingsSection } from '../components/language-settings-section';
 import { PlanningPreferencesSection } from '../components/planning-preferences-section';
+import { ReminderCalendarSettingsSection } from '../components/reminder-calendar-settings-section';
 
 export function SettingsScreen() {
   const theme = useAppTheme();
@@ -25,6 +26,7 @@ export function SettingsScreen() {
       />
       <LanguageSettingsSection />
       <PlanningPreferencesSection />
+      <ReminderCalendarSettingsSection />
       <AccountSettingsSection />
       <DataStorageSection />
     </Screen>

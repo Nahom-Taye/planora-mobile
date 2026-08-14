@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { Button, Card, Screen, Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { ReminderAction } from '@/features/reminders/components/reminder-action';
 import { useLocalization } from '@/providers/localization-provider';
 import { usePlanning } from '@/providers/planning-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
@@ -84,6 +85,11 @@ export function RoutineEditorScreen({ create = false }: { create?: boolean }) {
           routine={routine ?? undefined}
         />
       )}
+      {routine ? (
+        <View style={{ marginTop: theme.spacing.xl }}>
+          <ReminderAction entityId={routine.id} entityType="routine" />
+        </View>
+      ) : null}
       {planning.errorMessage ? (
         <Text accessibilityLiveRegion="polite" style={{ marginTop: theme.spacing.lg }} tone="danger">
           {localization.message(planning.errorMessage)}

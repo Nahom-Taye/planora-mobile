@@ -10,6 +10,7 @@ import {
 
 import { Button, Card, Screen, Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { ReminderAction } from '@/features/reminders/components/reminder-action';
 import { useGoals } from '@/providers/goal-provider';
 import { useLocalization } from '@/providers/localization-provider';
 import { usePlanning } from '@/providers/planning-provider';
@@ -164,6 +165,7 @@ export function TaskEditorScreen({ create = false }: TaskEditorScreenProps) {
         <Card style={{ marginTop: theme.spacing.xxl }} variant="subtle">
           <Text variant="label">{localization.t('tasks.actions')}</Text>
           <View style={[styles.actions, { gap: theme.spacing.sm }]}>
+            <ReminderAction entityId={task.id} entityType="task" />
             {task.status === 'pending' || task.status === 'in_progress' ? (
               <>
                 <Action

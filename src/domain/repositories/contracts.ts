@@ -1,6 +1,8 @@
 import type {
   AppSettings,
   Area,
+  DeviceCalendarEvent,
+  DeviceNotificationSchedule,
   Goal,
   GoalRoutineLink,
   LocalChange,
@@ -9,6 +11,7 @@ import type {
   PlanBlock,
   PlanBlockSeries,
   Reflection,
+  ReminderIntent,
   Routine,
   RoutineCheckIn,
   Tag,
@@ -93,6 +96,22 @@ export type ReflectionFilter = {
   fromDate?: string;
   toDate?: string;
 };
+export type ReminderIntentFilter = {
+  workspaceId?: string;
+  entityType?: ReminderIntent['entityType'];
+  entityId?: string;
+  enabled?: boolean;
+};
+export type DeviceNotificationScheduleFilter = {
+  workspaceId?: string;
+  reminderIntentId?: string;
+  state?: DeviceNotificationSchedule['state'];
+};
+export type DeviceCalendarEventFilter = {
+  workspaceId?: string;
+  planBlockId?: string;
+  state?: DeviceCalendarEvent['state'];
+};
 export type LocalChangeFilter = {
   entityType?: LocalChange['entityType'];
   state?: LocalChange['state'];
@@ -140,6 +159,18 @@ export type AreaRepository = EntityRepository<
 >;
 export type TagRepository = EntityRepository<Tag, WorkspaceEntityFilter>;
 export type ReflectionRepository = EntityRepository<Reflection, ReflectionFilter>;
+export type ReminderIntentRepository = EntityRepository<
+  ReminderIntent,
+  ReminderIntentFilter
+>;
+export type DeviceNotificationScheduleRepository = EntityRepository<
+  DeviceNotificationSchedule,
+  DeviceNotificationScheduleFilter
+>;
+export type DeviceCalendarEventRepository = EntityRepository<
+  DeviceCalendarEvent,
+  DeviceCalendarEventFilter
+>;
 export type AppSettingsRepository = EntityRepository<AppSettings, ProfileFilter>;
 export type AccountLinkRepository = EntityRepository<
   LocalAccountLink,
@@ -176,6 +207,9 @@ export type RepositoryScope = {
   areas: AreaRepository;
   tags: TagRepository;
   reflections: ReflectionRepository;
+  reminderIntents: ReminderIntentRepository;
+  deviceNotificationSchedules: DeviceNotificationScheduleRepository;
+  deviceCalendarEvents: DeviceCalendarEventRepository;
   appSettings: AppSettingsRepository;
   accountLinks: AccountLinkRepository;
   localChanges: LocalChangeRepository;

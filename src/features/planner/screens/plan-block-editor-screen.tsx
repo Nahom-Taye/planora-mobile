@@ -5,6 +5,8 @@ import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-nat
 import { Button, Card, Screen, Text } from '@/components/ui';
 import { toCalendarDate } from '@/domain/entities';
 import { PlanBlockForm } from '@/features/planner/components/plan-block-form';
+import { CalendarExportSection } from '@/features/calendar/components/calendar-export-section';
+import { ReminderAction } from '@/features/reminders/components/reminder-action';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useLocalization } from '@/providers/localization-provider';
 import { usePlanner } from '@/providers/planner-provider';
@@ -151,7 +153,12 @@ export function PlanBlockEditorScreen({ create = false }: { create?: boolean }) 
       )}
 
       {block ? (
-        <Card style={{ marginTop: theme.spacing.xxl }} variant="subtle">
+        <>
+        <View style={{ marginTop: theme.spacing.xxl }}>
+          <ReminderAction entityId={block.id} entityType="plan_block" />
+        </View>
+        <CalendarExportSection block={block} />
+        <Card style={{ marginTop: theme.spacing.xl }} variant="subtle">
           <View style={{ gap: theme.spacing.sm }}>
             {block.status === 'planned' ? (
               <Button
@@ -187,6 +194,7 @@ export function PlanBlockEditorScreen({ create = false }: { create?: boolean }) 
             />
           </View>
         </Card>
+        </>
       ) : null}
 
       {planner.errorMessage ? (

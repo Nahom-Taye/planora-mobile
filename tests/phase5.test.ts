@@ -507,7 +507,7 @@ test('routine weekday lists use localized fallback conjunctions without a list f
 
 test('language, capacity, and Planner view preferences persist revision-safely', async () => {
   const settings: AppSettings = {
-    ...metadata('settings-1'), profileId: 'profile-1', themePreference: 'system', defaultTab: 'today', planningDayStartsAt: toLocalTime('06:00'), languagePreference: 'system', dailyPlanningCapacityMinutes: 480, plannerView: 'day', insightsView: 'summary', insightsRange: '7d', onboardingVersion: 1, onboardingCompletedAt: instant,
+    ...metadata('settings-1'), profileId: 'profile-1', themePreference: 'system', defaultTab: 'today', planningDayStartsAt: toLocalTime('06:00'), languagePreference: 'system', dailyPlanningCapacityMinutes: 480, plannerView: 'day', insightsView: 'summary', insightsRange: '7d', notificationTitlesEnabled: false, quietHoursEnabled: false, quietHoursStart: toLocalTime('22:00'), quietHoursEnd: toLocalTime('07:00'), deviceCalendarId: null, deviceCalendarName: null, onboardingVersion: 1, onboardingCompletedAt: instant,
   };
   const { store } = createStore({ settings: [settings] });
   const service = new PlanningPreferencesService(store);
@@ -561,7 +561,7 @@ test('Phase 5 rows map every settings, block, and recurrence field', () => {
     isRecurrenceException: true,
   });
   const settings: AppSettings = {
-    ...metadata('settings-1'), profileId: 'profile-1', themePreference: 'dark', defaultTab: 'planner', planningDayStartsAt: toLocalTime('07:00'), languagePreference: 'fr', dailyPlanningCapacityMinutes: 390, plannerView: 'week', insightsView: 'trends', insightsRange: '4w', onboardingVersion: 1, onboardingCompletedAt: instant,
+    ...metadata('settings-1'), profileId: 'profile-1', themePreference: 'dark', defaultTab: 'planner', planningDayStartsAt: toLocalTime('07:00'), languagePreference: 'fr', dailyPlanningCapacityMinutes: 390, plannerView: 'week', insightsView: 'trends', insightsRange: '4w', notificationTitlesEnabled: true, quietHoursEnabled: true, quietHoursStart: toLocalTime('21:30'), quietHoursEnd: toLocalTime('06:30'), deviceCalendarId: 'calendar-1', deviceCalendarName: 'Personal', onboardingVersion: 1, onboardingCompletedAt: instant,
   };
   assert.deepEqual(planBlockSeriesMapper.fromRow(planBlockSeriesMapper.toRow(series)), series);
   assert.deepEqual(planBlockMapper.fromRow(planBlockMapper.toRow(occurrence)), occurrence);
