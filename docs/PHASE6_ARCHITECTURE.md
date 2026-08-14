@@ -57,6 +57,10 @@ Migration 5 is additive, atomic, forward-only, non-destructive, and seed-free. I
 
 Existing goals receive safe milestone-progress and zero-manual-progress defaults. Released migrations 1–4 are not edited. Normal initialization upgrades an existing database transactionally and never resets it. Every Phase 6 view and mutation operates locally after initialization and survives application restart without a network connection. No planning table or synchronization transport is added remotely.
 
+## Phase 7 integration
+
+Phase 7 reads Phase 6 goals, milestones, and linked tasks through workspace-scoped repositories and calls the established pure goal-progress calculation. Insights does not replace a goal's selected progress method and never mutates goal, milestone, task, or routine state. Goal detail adds one restrained route into a goal reflection form; that form validates the goal against the active workspace and stores only a local `Reflection`. Migration 5 and all Phase 6 progress rules remain unchanged.
+
 ## Localization and bidirectional layout
 
 Every Phase 6 interface, validation, error, confirmation, and accessibility string is present in the English, Amharic, Spanish, French, and Arabic catalogs with identical keys and placeholders. Dates, counts, numbers, and percentages use the selected locale. User-created titles, descriptions, motivation, notes, task text, and routine text are never translated.

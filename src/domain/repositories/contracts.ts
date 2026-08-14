@@ -89,6 +89,7 @@ export type GoalRoutineLinkFilter = {
 export type ReflectionFilter = {
   workspaceId?: string;
   scope?: Reflection['scope'];
+  scopeId?: string;
   fromDate?: string;
   toDate?: string;
 };

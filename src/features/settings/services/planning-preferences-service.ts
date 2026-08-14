@@ -1,5 +1,7 @@
 import type {
   AppSettings,
+  InsightsRange,
+  InsightsView,
   LanguagePreference,
   PlannerView,
 } from '../../../domain/entities/index.ts';
@@ -42,6 +44,18 @@ export class PlanningPreferencesService {
     return this.repositories.appSettings.update(settings.id, {
       expectedRevision: settings.revision,
       plannerView,
+    });
+  }
+
+  async setInsightsPreferences(
+    settings: AppSettings,
+    insightsView: InsightsView,
+    insightsRange: InsightsRange,
+  ) {
+    return this.repositories.appSettings.update(settings.id, {
+      expectedRevision: settings.revision,
+      insightsView,
+      insightsRange,
     });
   }
 }

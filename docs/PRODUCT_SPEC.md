@@ -27,7 +27,7 @@ Planora is not intended to replace team project-management, clinical treatment, 
 
 ## Product capability map
 
-The following list distinguishes the local functionality delivered through Phase 6 from later product direction.
+The following list distinguishes the local functionality delivered through Phase 7 from later product direction.
 
 - A focused Today view for priorities, local tasks, scheduled routines, next-up blocks, and a compact agenda preview.
 - A local day and week Planner with revision-safe time blocks, rescheduling, capacity awareness, overlap explanations, and bounded recurrence.
@@ -36,7 +36,7 @@ The following list distinguishes the local functionality delivered through Phase
 - Goals with explicit lifecycle, flexible progress, ordered milestones, supporting routines, and linked next actions.
 - Routines and habit check-ins with flexible schedules. Streak presentation remains future work.
 - Search, filters, quick capture, and reusable planning templates.
-- Insight summaries for completion patterns, workload balance, and reflections.
+- Local insight summaries, equal-period trends, workload and routine context, calm explanations, and daily, weekly, and goal reflections.
 - Configurable reminders and notification quiet hours.
 - Cross-device accounts and sync through a future backend phase.
 - Data export, account deletion, privacy controls, and transparent sync status.
@@ -61,7 +61,7 @@ Planora
 ├── Insights
 │   ├── Summary
 │   ├── Trends
-│   └── Reflections (future)
+│   └── Reflections
 └── Settings
     ├── Appearance and accessibility
     ├── Language and text direction
@@ -89,7 +89,7 @@ Phase 2 defines the local domain models and storage. Phases 4–6 expose task, r
 - **Milestone:** an ordered checkpoint belonging to a goal.
 - **Area:** an optional life or responsibility category used for organization.
 - **Tag:** a lightweight user-defined classification.
-- **Reflection:** a dated qualitative note attached to a day, week, goal, or insight period.
+- **Reflection:** a revisioned qualitative note attached to one local day, normalized local week, or workspace-owned goal.
 - **LocalChange:** local revision, deletion, and queue metadata reserved for future reconciliation.
 
 Every persisted entity should use stable identifiers, creation and update timestamps, and explicit version or conflict metadata where sync requires it. Deletion behavior must be designed before remote synchronization is introduced.
@@ -143,4 +143,4 @@ Every persisted entity should use stable identifiers, creation and update timest
 9. **Sync quality and premium capabilities:** Harden multi-device reconciliation, export and deletion, observability, restore flows, and only then introduce clearly valuable optional paid capabilities.
 10. **Release hardening and launch:** Complete accessibility audits, privacy and security review, performance profiling, recovery testing, store assets, beta feedback, production monitoring, and staged Android/iOS release.
 
-Each phase requires its own acceptance criteria and verification plan before work begins. Phase 6 adds local goal lifecycle, milestones, flexible progress, task relationships, routine relationships, and compact daily-planning context while preserving optional accounts and the local storage boundary. Insights, reflections, remote planning synchronization, calendar-provider integrations, notifications, payments, and premium features remain excluded.
+Each phase requires its own acceptance criteria and verification plan before work begins. Phase 7 adds privacy-conscious local summaries, deterministic equal-period comparisons, workload and routine context, established goal progress context, and revision-safe reflections while preserving the local storage boundary. Remote planning synchronization, calendar-provider integrations, notifications, payments, sharing, collaboration, and premium features remain excluded.

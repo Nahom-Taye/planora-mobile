@@ -17,6 +17,7 @@ import { AccountProvider, useAccount } from '@/providers/account-provider';
 import { AppEntryProvider, useAppEntry } from '@/providers/app-entry-provider';
 import { LocalizationProvider, useLocalization } from '@/providers/localization-provider';
 import { GoalProvider } from '@/providers/goal-provider';
+import { InsightsProvider } from '@/providers/insights-provider';
 import { OnboardingProvider, useOnboarding } from '@/providers/onboarding-provider';
 import { PlanningProvider } from '@/providers/planning-provider';
 import { PlannerProvider } from '@/providers/planner-provider';
@@ -146,6 +147,7 @@ function RootNavigator() {
           <Stack.Screen name="(routines)" />
           <Stack.Screen name="(planner)" />
           <Stack.Screen name="(goals)" />
+          <Stack.Screen name="(insights)" />
         </Stack.Protected>
         <Stack.Protected guard={!accountAvailable}>
           <Stack.Screen name="(auth)" />
@@ -194,7 +196,9 @@ function StorageBackedApplication() {
             <PlanningProvider repositories={storage.repositories}>
               <GoalProvider repositories={storage.repositories}>
                 <PlannerProvider repositories={storage.repositories}>
-                  <RootNavigator />
+                  <InsightsProvider repositories={storage.repositories}>
+                    <RootNavigator />
+                  </InsightsProvider>
                 </PlannerProvider>
               </GoalProvider>
             </PlanningProvider>
