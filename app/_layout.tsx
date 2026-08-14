@@ -16,6 +16,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { AccountProvider, useAccount } from '@/providers/account-provider';
 import { AppEntryProvider, useAppEntry } from '@/providers/app-entry-provider';
 import { LocalizationProvider, useLocalization } from '@/providers/localization-provider';
+import { GoalProvider } from '@/providers/goal-provider';
 import { OnboardingProvider, useOnboarding } from '@/providers/onboarding-provider';
 import { PlanningProvider } from '@/providers/planning-provider';
 import { PlannerProvider } from '@/providers/planner-provider';
@@ -144,6 +145,7 @@ function RootNavigator() {
           <Stack.Screen name="(tasks)" />
           <Stack.Screen name="(routines)" />
           <Stack.Screen name="(planner)" />
+          <Stack.Screen name="(goals)" />
         </Stack.Protected>
         <Stack.Protected guard={!accountAvailable}>
           <Stack.Screen name="(auth)" />
@@ -190,9 +192,11 @@ function StorageBackedApplication() {
         <AppEntryProvider>
           <WorkspaceProvider repositories={storage.repositories}>
             <PlanningProvider repositories={storage.repositories}>
-              <PlannerProvider repositories={storage.repositories}>
-                <RootNavigator />
-              </PlannerProvider>
+              <GoalProvider repositories={storage.repositories}>
+                <PlannerProvider repositories={storage.repositories}>
+                  <RootNavigator />
+                </PlannerProvider>
+              </GoalProvider>
             </PlanningProvider>
           </WorkspaceProvider>
         </AppEntryProvider>

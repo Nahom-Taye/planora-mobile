@@ -12,7 +12,9 @@ import type {
 } from '@/domain/entities';
 import type { PlanBlockDraft } from '@/features/planner/services/plan-block-validation';
 import type { RecurrenceDraft } from '@/features/planner/services/recurrence';
+import { goalForTask } from '@/features/goals/services/goal-task-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useGoals } from '@/providers/goal-provider';
 import { useLocalization } from '@/providers/localization-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
 
@@ -48,6 +50,7 @@ export function PlanBlockForm({
 }) {
   const theme = useAppTheme();
   const localization = useLocalization();
+  const goals = useGoals();
   const [title, setTitle] = useState(block?.title ?? initialTitle ?? '');
   const [notes, setNotes] = useState(block?.notes ?? '');
   const [date, setDate] = useState(block?.date ?? initialDate);
@@ -205,7 +208,15 @@ export function PlanBlockForm({
           setTaskId(value);
           if (value) setRoutineId(null);
         }}
-        options={tasks.map((task) => ({ id: task.id, title: task.title }))}
+        options={tasks.map((task) => {
+          const goal = goalForTask(task, goals.goals);
+          return {
+            id: task.id,
+            title: goal
+              ? `${task.title} · ${localization.t('goals.linkedGoal', { title: goal.title })}`
+              : task.title,
+          };
+        })}
         value={taskId}
       />
       <LinkChoices

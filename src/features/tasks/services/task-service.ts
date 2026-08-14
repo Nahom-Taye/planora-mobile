@@ -52,8 +52,19 @@ export class TaskService {
     });
   }
 
-  async create(workspaceId: string, draft: TaskDraft, timeZone: TimeZone) {
+  async create(
+    workspaceId: string,
+    draft: TaskDraft,
+    timeZone: TimeZone,
+    goalId: string | null = null,
+  ) {
     const value = validDraft(draft);
+    if (goalId) {
+      const goal = await this.repositories.goals.getById(goalId);
+      if (!goal || goal.workspaceId !== workspaceId) {
+        throw new TaskValidationError({ goalId: 'Choose an available goal from this workspace.' });
+      }
+    }
     return this.repositories.tasks.create({
       workspaceId,
       ...value,
@@ -61,7 +72,7 @@ export class TaskService {
       completedAt:
         value.status === 'completed' ? toInstant(this.now()) : null,
       areaId: null,
-      goalId: null,
+      goalId,
       parentTaskId: null,
     });
   }

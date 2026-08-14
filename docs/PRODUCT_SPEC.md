@@ -27,13 +27,13 @@ Planora is not intended to replace team project-management, clinical treatment, 
 
 ## Product capability map
 
-The following list distinguishes the local functionality delivered through Phase 5 from later product direction.
+The following list distinguishes the local functionality delivered through Phase 6 from later product direction.
 
 - A focused Today view for priorities, local tasks, scheduled routines, next-up blocks, and a compact agenda preview.
 - A local day and week Planner with revision-safe time blocks, rescheduling, capacity awareness, overlap explanations, and bounded recurrence.
 - Tasks with status, priority, due dates, notes, daily grouping, and optional scheduling into independent working-time blocks.
 - Five offline interface languages with profile persistence, locale-aware formatting, bundled script-appropriate fonts, and Arabic RTL support.
-- Goals connected to milestones, habits, and next actions.
+- Goals with explicit lifecycle, flexible progress, ordered milestones, supporting routines, and linked next actions.
 - Routines and habit check-ins with flexible schedules. Streak presentation remains future work.
 - Search, filters, quick capture, and reusable planning templates.
 - Insight summaries for completion patterns, workload balance, and reflections.
@@ -57,7 +57,7 @@ Planora
 ├── Goals
 │   ├── Goal list
 │   ├── Goal detail
-│   └── Milestones (future)
+│   └── Milestones and supporting work
 ├── Insights
 │   ├── Summary
 │   ├── Trends
@@ -76,7 +76,7 @@ The five primary destinations remain visible in bottom navigation. Creation and 
 
 ## Core data entities
 
-Phase 2 defines the local domain models and storage. Phases 4 and 5 expose task, routine, check-in, plan-block, and recurrence-series workflows while later feature entities remain foundations only.
+Phase 2 defines the local domain models and storage. Phases 4–6 expose task, routine, check-in, plan-block, recurrence-series, goal, milestone, and goal-relationship workflows while later feature entities remain foundations only.
 
 - **UserProfile:** display preferences, locale, time zone, week start, and accessibility settings.
 - **Workspace:** the personal data boundary and future sync scope.
@@ -143,4 +143,4 @@ Every persisted entity should use stable identifiers, creation and update timest
 9. **Sync quality and premium capabilities:** Harden multi-device reconciliation, export and deletion, observability, restore flows, and only then introduce clearly valuable optional paid capabilities.
 10. **Release hardening and launch:** Complete accessibility audits, privacy and security review, performance profiling, recovery testing, store assets, beta feedback, production monitoring, and staged Android/iOS release.
 
-Each phase requires its own acceptance criteria and verification plan before work begins. Phase 5 adds local day and week scheduling, capacity and overlap cues, bounded plan-block recurrence, a compact Today agenda, and five interface languages while preserving optional accounts and the local storage boundary. Goal workflows, insight workflows, remote planning synchronization, calendar-provider integrations, notifications, payments, and premium features remain excluded.
+Each phase requires its own acceptance criteria and verification plan before work begins. Phase 6 adds local goal lifecycle, milestones, flexible progress, task relationships, routine relationships, and compact daily-planning context while preserving optional accounts and the local storage boundary. Insights, reflections, remote planning synchronization, calendar-provider integrations, notifications, payments, and premium features remain excluded.

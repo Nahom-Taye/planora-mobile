@@ -41,6 +41,11 @@ const messageKeys = new Map<string, TranslationKey>([
   ['Enter a task title.', 'validation.taskTitle'],
   ['Enter a block title.', 'validation.blockTitle'],
   ['Enter a routine title.', 'validation.routineTitle'],
+  ['Enter a goal title.', 'validation.goalTitle'],
+  ['Enter a milestone title.', 'validation.milestoneTitle'],
+  ['Enter a whole percentage from 0 through 100.', 'validation.percentage'],
+  ['Choose an active area from this workspace.', 'validation.activeArea'],
+  ['Choose an available goal from this workspace.', 'validation.availableGoal'],
   ['Use 200 characters or fewer.', 'validation.titleLength'],
   ['Use 4,000 characters or fewer.', 'validation.notesLength'],
   ['Use a valid date in YYYY-MM-DD format.', 'validation.date'],
@@ -82,6 +87,15 @@ const messageKeys = new Map<string, TranslationKey>([
   ['This schedule changed before your update was saved. Refresh and try again.', 'errors.scheduleRevision'],
   ['That schedule change could not be saved. Refresh and try again.', 'errors.scheduleSave'],
   ['Planora could not refresh this day. Your saved local data is unchanged.', 'errors.refreshDay'],
+  ['Planora could not refresh goals. Saved local data is unchanged.', 'errors.goalsRefresh'],
+  ['This goal changed before your update was saved. Refresh and try again.', 'errors.goalRevision'],
+  ['That goal change could not be saved. Refresh and try again.', 'errors.goalSave'],
+  ['The goal is no longer available.', 'errors.goalUnavailable'],
+  ['Only actionable tasks can be linked.', 'errors.goalTaskActionable'],
+  ['This task already supports another goal.', 'errors.goalTaskOwned'],
+  ['This task is not linked to the goal.', 'errors.goalTaskMissing'],
+  ['Choose an actionable task linked to this goal.', 'errors.goalNextAction'],
+  ['Choose an active routine from this workspace.', 'errors.goalRoutineActive'],
   ['This item changed before your update was saved. Refresh and try again.', 'errors.revision'],
   ['That change could not be saved. Refresh the day and try again.', 'errors.save'],
   ['Planora could not read onboarding preferences. Your local data is still available.', 'errors.onboardingRead'],
@@ -154,6 +168,13 @@ export function formatLocalTimeValue(time: string, locale: string) {
 
 export function formatNumberValue(value: number, locale: string) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+export function formatPercentageValue(value: number, locale: string) {
+  return new Intl.NumberFormat(locale, {
+    style: 'percent',
+    maximumFractionDigits: 0,
+  }).format(value / 100);
 }
 
 export function formatLocalizedList(items: readonly string[], locale: string) {

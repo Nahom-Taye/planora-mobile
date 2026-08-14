@@ -164,9 +164,11 @@ function usePlanningValue(repositories: RepositoryStore | null) {
     [mutate, profile, taskService, today, workspace],
   );
   const createTask = useCallback(
-    (draft: TaskDraft) =>
+    (draft: TaskDraft, goalId: string | null = null) =>
       workspace && profile && taskService
-        ? mutate(() => taskService.create(workspace.id, draft, profile.timeZone))
+        ? mutate(() =>
+            taskService.create(workspace.id, draft, profile.timeZone, goalId),
+          )
         : Promise.resolve<MutationResult>({ ok: false }),
     [mutate, profile, taskService, workspace],
   );
@@ -234,6 +236,7 @@ function usePlanningValue(repositories: RepositoryStore | null) {
       : null,
     tasks,
     routines,
+    checkIns,
     refresh,
     quickCapture,
     createTask,
