@@ -47,6 +47,12 @@ export type AppSettings = EntityMetadata & {
   plannerView: PlannerView;
   insightsView: InsightsView;
   insightsRange: InsightsRange;
+  notificationTitlesEnabled: boolean;
+  quietHoursEnabled: boolean;
+  quietHoursStart: LocalTime;
+  quietHoursEnd: LocalTime;
+  deviceCalendarId: string | null;
+  deviceCalendarName: string | null;
   onboardingVersion: number;
   onboardingCompletedAt: Instant | null;
 };

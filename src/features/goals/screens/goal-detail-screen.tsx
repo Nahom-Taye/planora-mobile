@@ -7,6 +7,7 @@ import type { Goal, Milestone, Routine, Task } from '@/domain/entities';
 import { GoalDetailSection } from '@/features/goals/components/goal-detail-section';
 import { GoalProgressSummary } from '@/features/goals/components/goal-progress-summary';
 import { GoalScreenHeader } from '@/features/goals/components/goal-screen-header';
+import { ReminderAction } from '@/features/reminders/components/reminder-action';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useGoals } from '@/providers/goal-provider';
 import { useLocalization } from '@/providers/localization-provider';
@@ -195,6 +196,7 @@ export function GoalDetailScreen() {
       </GoalDetailSection>
       <GoalDetailSection title={localization.t('goals.actions')}>
         <View style={{ gap: theme.spacing.sm }}>
+          <ReminderAction entityId={goal.id} entityType="goal" />
           <Button
             label={localization.t('reflections.reflectGoal')}
             onPress={() =>

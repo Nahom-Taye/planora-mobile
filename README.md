@@ -2,7 +2,7 @@
 
 Planora is a calm personal planning and productivity tracker for Android and iOS. The application connects daily focus, forward planning, long-term goals, and personal reflection through a clear mobile experience.
 
-This repository contains the completed Phase 1–6 foundations and the Phase 7 local Insights and reflection implementation. Planning-data synchronization, notifications, calendar-provider integrations, payments, sharing, and premium features remain outside the current scope.
+This repository contains the completed Phase 1–7 foundations and the Phase 8 local reminders and device-calendar interoperability implementation. Planning-data synchronization, payments, sharing, and premium features remain outside the current scope.
 
 ## Foundation features
 
@@ -45,6 +45,10 @@ This repository contains the completed Phase 1–6 foundations and the Phase 7 l
 - Transparent task, workload, routine, goal, milestone, and reflection summaries without productivity scores
 - Daily, weekly, and goal reflections with optional mood labels, revision-safe editing, soft deletion, and offline history
 - Deterministic local explanations with documented minimum samples and no analytics transmission
+- Opt-in local reminders for tasks, plan blocks, routines, and goals with bounded reconciliation
+- Generic notification content by default, optional title display, quiet hours, and safe destination validation
+- Optional one-way export of eligible plan blocks to a selected writable device calendar
+- Explicit recovery for revoked permissions, missing calendar events, and externally changed calendar events
 - English, Amharic, Spanish, French, and Arabic interface catalogs with persisted per-profile selection
 - Locale-aware dates, times, numbers, durations, pluralization, and RTL-aware presentation
 - Bundled Noto Sans Latin, Arabic, and Ethiopic fonts under the SIL Open Font License
@@ -121,7 +125,7 @@ src/
 
 Routes remain thin and delegate presentation to feature modules. Shared visual rules live in the theme and component layers.
 
-Phase 4 feature modules live under `src/features/today`, `src/features/tasks`, `src/features/routines`, and `src/features/workspace`. Phase 5 adds `src/features/planner`, `src/features/localization`, and planning preferences under `src/features/settings`. Phase 6 adds focused goal, milestone, progress, task-link, and routine-link modules under `src/features/goals` with thin routes under `app/(goals)`. Phase 7 adds local range, aggregation, trend, workload, routine, goal-context, explanation, and reflection services under `src/features/insights`, an `InsightsProvider`, and thin reflection routes under `app/(insights)`. The five-tab shell remains unchanged.
+Phase 4 feature modules live under `src/features/today`, `src/features/tasks`, `src/features/routines`, and `src/features/workspace`. Phase 5 adds `src/features/planner`, `src/features/localization`, and planning preferences under `src/features/settings`. Phase 6 adds focused goal, milestone, progress, task-link, and routine-link modules under `src/features/goals` with thin routes under `app/(goals)`. Phase 7 adds local Insights and reflection modules. Phase 8 adds local reminder and calendar services under `src/features/reminders` and `src/features/calendar`, a `ReminderProvider`, and thin notification fallback and reminder-editor routes under `app/(reminders)`. The five-tab shell remains unchanged.
 
 `supabase/migrations/` contains versioned remote profile and authorization schema. Authentication sessions do not use SQLite.
 
@@ -138,6 +142,7 @@ npm run test:phase4
 npm run test:phase5
 npm run test:phase6
 npm run test:phase7
+npm run test:phase8
 npm run validate:translations
 npm run doctor
 ```
@@ -154,4 +159,4 @@ To test live account behavior, use a non-production Supabase project with email 
 
 ## Product specification
 
-The product vision and phase scope are documented in [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md). Local persistence is described in [docs/OFFLINE_ARCHITECTURE.md](docs/OFFLINE_ARCHITECTURE.md), account boundaries in [docs/AUTH_ARCHITECTURE.md](docs/AUTH_ARCHITECTURE.md), daily workflows in [docs/PHASE4_ARCHITECTURE.md](docs/PHASE4_ARCHITECTURE.md), Planner behavior in [docs/PHASE5_ARCHITECTURE.md](docs/PHASE5_ARCHITECTURE.md), Goals behavior in [docs/PHASE6_ARCHITECTURE.md](docs/PHASE6_ARCHITECTURE.md), Insights and reflections in [docs/PHASE7_ARCHITECTURE.md](docs/PHASE7_ARCHITECTURE.md), and language behavior in [docs/LOCALIZATION_ARCHITECTURE.md](docs/LOCALIZATION_ARCHITECTURE.md).
+The product vision and phase scope are documented in [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md). Local persistence is described in [docs/OFFLINE_ARCHITECTURE.md](docs/OFFLINE_ARCHITECTURE.md), account boundaries in [docs/AUTH_ARCHITECTURE.md](docs/AUTH_ARCHITECTURE.md), daily workflows in [docs/PHASE4_ARCHITECTURE.md](docs/PHASE4_ARCHITECTURE.md), Planner behavior in [docs/PHASE5_ARCHITECTURE.md](docs/PHASE5_ARCHITECTURE.md), Goals behavior in [docs/PHASE6_ARCHITECTURE.md](docs/PHASE6_ARCHITECTURE.md), Insights and reflections in [docs/PHASE7_ARCHITECTURE.md](docs/PHASE7_ARCHITECTURE.md), reminders and calendar interoperability in [docs/PHASE8_ARCHITECTURE.md](docs/PHASE8_ARCHITECTURE.md), and language behavior in [docs/LOCALIZATION_ARCHITECTURE.md](docs/LOCALIZATION_ARCHITECTURE.md).

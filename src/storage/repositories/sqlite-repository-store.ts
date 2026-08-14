@@ -4,6 +4,8 @@ import {
   accountLinkMapper,
   appSettingsMapper,
   areaMapper,
+  deviceCalendarEventMapper,
+  deviceNotificationScheduleMapper,
   goalMapper,
   goalRoutineLinkMapper,
   localChangeMapper,
@@ -11,6 +13,7 @@ import {
   planBlockMapper,
   planBlockSeriesMapper,
   reflectionMapper,
+  reminderIntentMapper,
   routineCheckInMapper,
   routineMapper,
   tagMapper,
@@ -72,6 +75,21 @@ function createScope(
     reflections: new SqliteEntityRepository(
       executor,
       reflectionMapper,
+      dependencies,
+    ),
+    reminderIntents: new SqliteEntityRepository(
+      executor,
+      reminderIntentMapper,
+      dependencies,
+    ),
+    deviceNotificationSchedules: new SqliteEntityRepository(
+      executor,
+      deviceNotificationScheduleMapper,
+      dependencies,
+    ),
+    deviceCalendarEvents: new SqliteEntityRepository(
+      executor,
+      deviceCalendarEventMapper,
       dependencies,
     ),
     appSettings: new SqliteEntityRepository(

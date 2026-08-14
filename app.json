@@ -30,6 +30,13 @@
       ],
       "expo-sqlite",
       "expo-secure-store",
+      "expo-notifications",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow Planora to export plan blocks you choose to a device calendar."
+        }
+      ],
       [
         "expo-localization",
         {

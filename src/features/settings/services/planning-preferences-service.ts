@@ -3,6 +3,7 @@ import type {
   InsightsRange,
   InsightsView,
   LanguagePreference,
+  LocalTime,
   PlannerView,
 } from '../../../domain/entities/index.ts';
 import type { RepositoryStore } from '../../../domain/repositories/contracts.ts';
@@ -56,6 +57,32 @@ export class PlanningPreferencesService {
       expectedRevision: settings.revision,
       insightsView,
       insightsRange,
+    });
+  }
+
+  async setReminderPreferences(
+    settings: AppSettings,
+    input: {
+      notificationTitlesEnabled: boolean;
+      quietHoursEnabled: boolean;
+      quietHoursStart: LocalTime;
+      quietHoursEnd: LocalTime;
+    },
+  ) {
+    return this.repositories.appSettings.update(settings.id, {
+      expectedRevision: settings.revision,
+      ...input,
+    });
+  }
+
+  async setDeviceCalendar(
+    settings: AppSettings,
+    calendar: { id: string; name: string } | null,
+  ) {
+    return this.repositories.appSettings.update(settings.id, {
+      expectedRevision: settings.revision,
+      deviceCalendarId: calendar?.id ?? null,
+      deviceCalendarName: calendar?.name ?? null,
     });
   }
 }

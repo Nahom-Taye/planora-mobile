@@ -4,6 +4,7 @@ import { planningMigration } from './002-planning.ts';
 import { plannerLocalizationMigration } from './004-planner-localization.ts';
 import { goalsMilestonesMigration } from './005-goals-milestones.ts';
 import { insightsReflectionsMigration } from './006-insights-reflections.ts';
+import { remindersCalendarMigration } from './007-reminders-calendar.ts';
 
 export const migrations = [
   foundationMigration,
@@ -12,6 +13,7 @@ export const migrations = [
   plannerLocalizationMigration,
   goalsMilestonesMigration,
   insightsReflectionsMigration,
+  remindersCalendarMigration,
 ] as const;
 
 export type { Migration } from './types.ts';

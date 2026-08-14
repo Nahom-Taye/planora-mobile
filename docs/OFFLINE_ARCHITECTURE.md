@@ -27,7 +27,10 @@ The storage layer owns SQLite connections, migrations, bound queries, row mappin
 - `Area` groups responsibilities or parts of life.
 - `Tag` provides lightweight workspace classification.
 - `Reflection` stores qualitative notes for a day, week, or goal context.
-- `AppSettings` stores device-facing planning, appearance, language, capacity, last-Planner-view, last-Insights-destination, and last-Insights-range choices for a profile.
+- `AppSettings` stores device-facing planning, appearance, language, capacity, last-Planner-view, last-Insights-destination, last-Insights-range, reminder privacy, quiet hours, and selected-calendar choices for a profile.
+- `ReminderIntent` stores portable, workspace-owned reminder intent for a supported planning entity.
+- `DeviceNotificationSchedule` stores only Planora-owned native notification mappings and their reconciliation state.
+- `DeviceCalendarEvent` stores only Planora-owned one-way event mappings and source fingerprints for the current device.
 - `LocalChange` reserves revision and operation metadata for future reconciliation without implementing transport.
 
 Persisted domain entities have stable identifiers, creation and update timestamps, and an integer revision. User-owned entities also have nullable deletion timestamps. Status values are closed string unions and optional persisted fields use explicit `null` values.
@@ -60,6 +63,8 @@ Migration 5 appends goal progress method, manual progress, and optional next-act
 
 Migration 6 appends safe `summary` and `7d` defaults for the remembered Insights destination and range, plus workspace-scoped reflection query indexes. It creates no activity-event table, backfills no behavior, adds no seed data, and leaves released migrations 1–5 unchanged. Duplicate reflection identity is enforced transactionally by the local lifecycle service rather than by an unsafe uniqueness migration over databases that may already contain duplicate foundation records.
 
+Migration 7 appends notification-content privacy, quiet-hours, and selected-calendar settings. It creates portable reminder intent plus device-only notification and calendar mapping tables with ownership constraints, foreign keys, active uniqueness, and reconciliation indexes. It creates no reminders, schedules, calendar events, or seed records and leaves released migrations 1–6 unchanged.
+
 ## Date and time conventions
 
 - Absolute events use UTC ISO 8601 timestamps and the `Instant` type.
@@ -86,7 +91,7 @@ Native platforms use an exclusive asynchronous transaction connection. Web uses 
 
 User-owned records are soft deleted by setting `deletedAt`, incrementing the revision, and retaining the record for recovery and future deletion reconciliation. Normal reads exclude deleted rows unless explicitly requested. Goal deletion does not delete linked tasks or routines. Unlinking a task changes only its nullable goal relationship, and unlinking a routine soft-deletes only the link row, preserving routine history. Foreign keys restrict destructive parent removal, while the task-tag join uses cascading cleanup only for physical maintenance operations.
 
-Phase 2 does not implement purge schedules, export, restoration controls, or remote deletion. Those policies must be defined before any remote service is connected. Local records remain on the device until a future user-facing retention or removal workflow is implemented, or the operating system removes application data.
+Phase 8 cancellation and calendar removal affect only recorded Planora mappings and never unrelated operating-system notifications or events. Local planning records remain soft deleted under their established lifecycle. Export, restoration controls, remote deletion, and user-facing planning-data clearing remain future work.
 
 ## Future synchronization boundary
 
@@ -102,12 +107,12 @@ Initialization failures keep the application out of an ambiguous partially ready
 
 ## Testing strategy
 
-Focused tests cover date and time validation, row round trips, migration ordering and idempotency, interrupted migration rollback behavior, bound repository writes, deterministic list ordering, revision updates, and soft deletion. Phase 6 adds deterministic tests for goal and milestone lifecycle, transactional ordering, four progress methods, relationship semantics, workspace isolation, restart persistence, migration 5, five-language parity, RTL, and Hermes-safe formatting. Phase 7 adds range, time-zone, pagination, aggregation, comparison, explanation, reflection lifecycle, restart persistence, migration 6, and five-catalog regression coverage. Project checks cover TypeScript, lint rules, dependency compatibility, and platform bundles.
+Focused tests cover date and time validation, row round trips, migration ordering and idempotency, interrupted migration rollback behavior, bound repository writes, deterministic list ordering, revision updates, and soft deletion. Phase 6 adds deterministic goal and milestone coverage. Phase 7 adds range, aggregation, comparison, explanation, and reflection coverage. Phase 8 adds reminder lifecycle, bounded occurrence, quiet-hours, permission, notification navigation, calendar conflict, mapping, migration 7, and five-catalog coverage. Project checks cover TypeScript, lint rules, dependency compatibility, and platform bundles.
 
 Test data is deterministic and lives only in the test process. Normal application startup creates schema metadata but no profiles, workspaces, tasks, or other fake records.
 
 ## Foundation limitations
 
-Phase 2 supplies storage readiness and repository capabilities. Phases 3–7 use that boundary for accounts, local task and routine workflows, Planner scheduling, recurrence, settings, goals, milestones, local goal relationships, Insights, and reflections without adding planning synchronization. Remote synchronization, background jobs, reminders, payments, imports, exports, database reset controls, and user-facing purge controls remain outside the current implementation.
+Phase 2 supplies storage readiness and repository capabilities. Phases 3–8 use that boundary for accounts, local planning, goals, Insights, reflections, reminders, and one-way calendar export without adding planning synchronization. Remote synchronization, unbounded background jobs, calendar import, payments, general planning export, database reset controls, and user-facing purge controls remain outside the current implementation.
 
 The local database uses the platform-provided SQLite storage behavior. Phase 2 does not add application-level at-rest encryption, and the interface makes no encryption claim.

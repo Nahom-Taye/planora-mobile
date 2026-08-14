@@ -290,6 +290,12 @@ function settings(changes: Partial<AppSettings> = {}): AppSettings {
     plannerView: 'day',
     insightsView: 'summary',
     insightsRange: '7d',
+    notificationTitlesEnabled: false,
+    quietHoursEnabled: false,
+    quietHoursStart: toLocalTime('22:00'),
+    quietHoursEnd: toLocalTime('07:00'),
+    deviceCalendarId: null,
+    deviceCalendarName: null,
     onboardingVersion: 1,
     onboardingCompletedAt: instant,
     ...changes,
@@ -981,7 +987,7 @@ test('migration 6 is additive indexed seed-free and defaults existing settings s
   const sql = statements.join('\n');
   assert.equal(insightsReflectionsMigration.version, 6);
   assert.equal(insightsReflectionsMigration.name, 'insights_reflections');
-  assert.equal(migrations.at(-1)?.version, 6);
+  assert.deepEqual(migrations.slice(0, 6).map((migration) => migration.version), [1, 2, 3, 4, 5, 6]);
   assert.match(sql, /insights_view TEXT NOT NULL DEFAULT 'summary'/);
   assert.match(sql, /insights_range TEXT NOT NULL DEFAULT '7d'/);
   assert.match(sql, /reflections_workspace_scope_period_idx/);
