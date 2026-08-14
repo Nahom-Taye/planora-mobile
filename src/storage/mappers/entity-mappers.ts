@@ -4,6 +4,7 @@ import type {
   Area,
   EntityMetadata,
   Goal,
+  GoalRoutineLink,
   LocalChange,
   Milestone,
   PlanBlock,
@@ -26,6 +27,7 @@ import {
 import type {
   LocalChangeFilter,
   AccountLinkFilter,
+  GoalRoutineLinkFilter,
   MilestoneFilter,
   PlanBlockFilter,
   PlanBlockSeriesFilter,
@@ -434,6 +436,9 @@ export const goalMapper: EntityMapper<
     'horizon',
     'target_date',
     'completed_at',
+    'progress_method',
+    'manual_progress',
+    'next_action_task_id',
   ],
   orderBy: 'updated_at DESC, id ASC',
   toRow: (entity) => ({
@@ -447,6 +452,9 @@ export const goalMapper: EntityMapper<
     horizon: entity.horizon,
     target_date: entity.targetDate,
     completed_at: entity.completedAt,
+    progress_method: entity.progressMethod,
+    manual_progress: entity.manualProgress,
+    next_action_task_id: entity.nextActionTaskId,
   }),
   fromRow: (row) => {
     const targetDate = nullableString(row, 'target_date');
@@ -463,6 +471,9 @@ export const goalMapper: EntityMapper<
       horizon: stringValue(row, 'horizon') as Goal['horizon'],
       targetDate: targetDate ? toCalendarDate(targetDate) : null,
       completedAt: completedAt ? toInstant(completedAt) : null,
+      progressMethod: stringValue(row, 'progress_method') as Goal['progressMethod'],
+      manualProgress: numberValue(row, 'manual_progress'),
+      nextActionTaskId: nullableString(row, 'next_action_task_id'),
     };
   },
   buildFilters: (filter) =>
@@ -751,6 +762,33 @@ export const planBlockMapper: EntityMapper<
 
     return result;
   },
+};
+
+export const goalRoutineLinkMapper: EntityMapper<
+  GoalRoutineLink,
+  GoalRoutineLinkFilter
+> = {
+  table: 'goal_routine_links',
+  columns: [...metadataColumns, 'workspace_id', 'goal_id', 'routine_id'],
+  orderBy: 'created_at ASC, id ASC',
+  toRow: (entity) => ({
+    ...metadataToRow(entity),
+    workspace_id: entity.workspaceId,
+    goal_id: entity.goalId,
+    routine_id: entity.routineId,
+  }),
+  fromRow: (row) => ({
+    ...metadataFromRow(row),
+    workspaceId: stringValue(row, 'workspace_id'),
+    goalId: stringValue(row, 'goal_id'),
+    routineId: stringValue(row, 'routine_id'),
+  }),
+  buildFilters: (filter) =>
+    clauses([
+      ['workspace_id', filter?.workspaceId],
+      ['goal_id', filter?.goalId],
+      ['routine_id', filter?.routineId],
+    ]),
 };
 
 export const planBlockSeriesMapper: EntityMapper<

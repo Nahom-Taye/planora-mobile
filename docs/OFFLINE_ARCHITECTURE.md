@@ -21,8 +21,9 @@ The storage layer owns SQLite connections, migrations, bound queries, row mappin
 - `PlanBlockSeries` defines bounded daily or selected-weekday recurrence for independently revisioned plan-block occurrences.
 - `Routine` holds a daily or weekly schedule definition in an explicit time zone.
 - `RoutineCheckIn` records a routine outcome for one calendar date.
-- `Goal` represents a longer-term outcome and optional target date.
-- `Milestone` is an ordered checkpoint within a goal.
+- `Goal` represents a longer-term outcome with lifecycle, horizon, optional target date, explicit progress method, optional manual progress, and an optional linked next action.
+- `Milestone` is an ordered, revisioned checkpoint within a goal with pending, completed, or cancelled state.
+- `GoalRoutineLink` is a revisioned and soft-deletable many-to-many relationship between a goal and a supporting routine.
 - `Area` groups responsibilities or parts of life.
 - `Tag` provides lightweight workspace classification.
 - `Reflection` stores qualitative notes for a day, week, or goal context.
@@ -55,6 +56,8 @@ Migration definitions contain only fixed schema statements. Failure is surfaced 
 
 Migration 4 appends Planner recurrence ownership and indexes plus safe settings defaults for language, daily capacity, and Planner view. It contains no seed records and leaves released migrations 1–3 unchanged.
 
+Migration 5 appends goal progress method, manual progress, and optional next-action fields; creates the goal-routine link table; and adds relationship and filtering indexes. Safe defaults map existing goals to milestone progress at zero. Composite foreign keys protect goal-routine workspace ownership, and the task relationship remains constrained by repository-level active-workspace validation. The migration is atomic, seed-free, forward-only, and non-destructive. Released migrations 1–4 remain unchanged.
+
 ## Date and time conventions
 
 - Absolute events use UTC ISO 8601 timestamps and the `Instant` type.
@@ -71,13 +74,13 @@ New entities receive UUID values from the maintained Expo cryptography module. I
 
 ## Transaction expectations
 
-A single-row insert is atomic by SQLite behavior. Optimistic updates use a revision predicate. Multi-entity operations must use `RepositoryStore.transaction`, whose callback receives repositories bound to the transaction connection.
+A single-row insert is atomic by SQLite behavior. Optimistic updates use a revision predicate. Multi-entity operations must use `RepositoryStore.transaction`, whose callback receives repositories bound to the transaction connection. Milestone reordering normalizes every affected sort position in one transaction and rolls back the entire move if any revision fails. Unlinking a selected next-action task clears the goal pointer and task relationship in the same transaction.
 
 Native platforms use an exclusive asynchronous transaction connection. Web uses the supported asynchronous transaction API behind the same repository boundary. Application code must not start raw database transactions.
 
 ## Deletion and retention
 
-User-owned records are soft deleted by setting `deletedAt`, incrementing the revision, and retaining the record for recovery and future deletion reconciliation. Normal reads exclude deleted rows unless explicitly requested. Foreign keys restrict destructive parent removal, while the task-tag join uses cascading cleanup only for physical maintenance operations.
+User-owned records are soft deleted by setting `deletedAt`, incrementing the revision, and retaining the record for recovery and future deletion reconciliation. Normal reads exclude deleted rows unless explicitly requested. Goal deletion does not delete linked tasks or routines. Unlinking a task changes only its nullable goal relationship, and unlinking a routine soft-deletes only the link row, preserving routine history. Foreign keys restrict destructive parent removal, while the task-tag join uses cascading cleanup only for physical maintenance operations.
 
 Phase 2 does not implement purge schedules, export, restoration controls, or remote deletion. Those policies must be defined before any remote service is connected. Local records remain on the device until a future user-facing retention or removal workflow is implemented, or the operating system removes application data.
 
@@ -95,12 +98,12 @@ Initialization failures keep the application out of an ambiguous partially ready
 
 ## Testing strategy
 
-Focused tests cover date and time validation, row round trips, migration ordering and idempotency, interrupted migration rollback behavior, bound repository writes, deterministic list ordering, revision updates, and soft deletion. Project checks cover TypeScript, lint rules, dependency compatibility, and platform bundles.
+Focused tests cover date and time validation, row round trips, migration ordering and idempotency, interrupted migration rollback behavior, bound repository writes, deterministic list ordering, revision updates, and soft deletion. Phase 6 adds deterministic tests for goal and milestone lifecycle, transactional ordering, four progress methods, relationship semantics, workspace isolation, restart persistence, migration 5, five-language parity, RTL, and Hermes-safe formatting. Project checks cover TypeScript, lint rules, dependency compatibility, and platform bundles.
 
 Test data is deterministic and lives only in the test process. Normal application startup creates schema metadata but no profiles, workspaces, tasks, or other fake records.
 
 ## Foundation limitations
 
-Phase 2 supplies storage readiness and repository capabilities. Phases 3–5 use that boundary for accounts, local task and routine workflows, Planner scheduling, recurrence, and settings without adding planning synchronization. Goal, reflection, remote synchronization, background jobs, reminders, payments, imports, exports, database reset controls, and user-facing purge controls remain outside the current implementation.
+Phase 2 supplies storage readiness and repository capabilities. Phases 3–6 use that boundary for accounts, local task and routine workflows, Planner scheduling, recurrence, settings, goals, milestones, and local goal relationships without adding planning synchronization. Reflection, insight, remote synchronization, background jobs, reminders, payments, imports, exports, database reset controls, and user-facing purge controls remain outside the current implementation.
 
 The local database uses the platform-provided SQLite storage behavior. Phase 2 does not add application-level at-rest encryption, and the interface makes no encryption claim.

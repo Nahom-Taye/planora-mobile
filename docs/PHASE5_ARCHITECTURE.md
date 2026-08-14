@@ -2,7 +2,7 @@
 
 ## Scope and boundaries
 
-Phase 5 adds local day and week planning, plan-block workflows, workload cues, bounded recurrence, a compact Today agenda, and a five-language interface foundation. SQLite remains the immediate source of truth. Goals, milestones, insights, reflections, notifications, calendar providers, remote planning synchronization, payments, and premium capabilities are not implemented.
+Phase 5 adds local day and week planning, plan-block workflows, workload cues, bounded recurrence, a compact Today agenda, and a five-language interface foundation. SQLite remains the immediate source of truth. Phase 6 later adds goals and milestones without changing these scheduling rules. Insights, reflections, notifications, calendar providers, remote planning synchronization, payments, and premium capabilities are not implemented.
 
 The existing five-tab shell remains intact. Route files only select feature screens. Planner presentation lives under `src/features/planner`, language behavior under `src/features/localization`, and profile planning preferences under `src/features/settings`. Neither route components nor Planner services contain SQL or import the account client.
 
@@ -26,7 +26,7 @@ Week boundaries use the active profile's `weekStartsOn` value. Seven localized s
 
 A task due date remains a deadline or intended calendar day. A plan block represents scheduled working time. Scheduling a task creates a linked block without changing its due date, notes, status, completion timestamp, or revision. Rescheduling the block changes only the block. Completing a block and completing its linked task are separate explicit actions.
 
-Only non-deleted pending or in-progress tasks from the active workspace can be newly linked. Only non-archived routines from that workspace can be linked. Existing links remain visible if the linked record later changes state; the block can be explicitly unlinked. A block may reference a task or routine, never both.
+Only non-deleted pending or in-progress tasks from the active workspace can be newly linked. Only non-archived routines from that workspace can be linked. Existing links remain visible if the linked record later changes state; the block can be explicitly unlinked. A block may reference a task or routine, never both. Phase 6 may add a compact goal label to a task-selection row, but linking or unlinking that goal never changes the task due date or any plan block.
 
 ## Plan-block lifecycle and rescheduling
 
@@ -52,7 +52,7 @@ The model does not support unbounded pre-generation, monthly rules, natural-lang
 
 ## Today refinement
 
-Today retains Phase 4 task and routine rules while presenting a denser hierarchy: compact brand and localized date, progress and workload summary, one quick-add field, next-up block, high-priority and overdue work, remaining tasks, scheduled routines, a short agenda preview, inbox work, and a quieter collapsible completed section. Small inline empty states replace a full-screen empty card. Tasks, routines, and Planner remain directly reachable, and one restrained menu holds secondary creation actions.
+Today retains Phase 4 task and routine rules while presenting a denser hierarchy: compact brand and localized date, progress and workload summary, one quick-add field, next-up block, high-priority and overdue work, remaining tasks, scheduled routines, a short agenda preview, inbox work, and a quieter collapsible completed section. Small inline empty states replace a full-screen empty card. Tasks, routines, and Planner remain directly reachable, and one restrained menu holds secondary creation actions. Phase 6 adds only a compact goal label on linked task rows; Today does not become a goal dashboard.
 
 ## Time-zone behavior
 

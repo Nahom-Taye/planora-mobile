@@ -2,7 +2,7 @@
 
 Planora is a calm personal planning and productivity tracker for Android and iOS. The application connects daily focus, forward planning, long-term goals, and personal reflection through a clear mobile experience.
 
-This repository contains the completed Phase 1–4 foundations and the Phase 5 local Planner, scheduling, refined Today dashboard, and localization implementation. Goals, insights, planning-data synchronization, notifications, calendar-provider integrations, payments, and premium features remain outside the current scope.
+This repository contains the completed Phase 1–5 foundations and the Phase 6 local Goals and milestones implementation. Insights, reflections, planning-data synchronization, notifications, calendar-provider integrations, payments, and premium features remain outside the current scope.
 
 ## Foundation features
 
@@ -35,6 +35,11 @@ This repository contains the completed Phase 1–4 foundations and the Phase 5 l
 - Task scheduling that keeps task deadlines and lifecycle independent from working-time blocks
 - Configurable daily capacity, overlap explanations, and unscheduled-task counts
 - Bounded daily and selected-weekday plan-block recurrence with preserved completed history
+- Local goal creation, editing, lifecycle actions, search, filtering, and focused detail screens
+- Ordered milestones with explicit completion, reopening, cancellation, and accessible move actions
+- Milestone, linked-task, manual-percentage, and non-numeric goal progress methods
+- Goal-linked tasks and many-to-many supporting routines with workspace-safe local relationships
+- Compact goal context in Today, task lists, task editing, and Planner task selection
 - English, Amharic, Spanish, French, and Arabic interface catalogs with persisted per-profile selection
 - Locale-aware dates, times, numbers, durations, pluralization, and RTL-aware presentation
 - Bundled Noto Sans Latin, Arabic, and Ethiopic fonts under the SIL Open Font License
@@ -111,7 +116,7 @@ src/
 
 Routes remain thin and delegate presentation to feature modules. Shared visual rules live in the theme and component layers.
 
-Phase 4 feature modules live under `src/features/today`, `src/features/tasks`, `src/features/routines`, and `src/features/workspace`. Phase 5 adds `src/features/planner`, `src/features/localization`, and planning preferences under `src/features/settings`. Planner block editors use a dedicated route group while the five-tab shell remains unchanged. Goals and Insights retain localized placeholders.
+Phase 4 feature modules live under `src/features/today`, `src/features/tasks`, `src/features/routines`, and `src/features/workspace`. Phase 5 adds `src/features/planner`, `src/features/localization`, and planning preferences under `src/features/settings`. Phase 6 adds focused goal, milestone, progress, task-link, and routine-link modules under `src/features/goals` with thin routes under `app/(goals)`. The five-tab shell remains unchanged, and Insights retains a localized placeholder.
 
 `supabase/migrations/` contains versioned remote profile and authorization schema. Authentication sessions do not use SQLite.
 
@@ -126,6 +131,7 @@ npm run test:phase2
 npm run test:phase3
 npm run test:phase4
 npm run test:phase5
+npm run test:phase6
 npm run validate:translations
 npm run doctor
 ```
@@ -142,4 +148,4 @@ To test live account behavior, use a non-production Supabase project with email 
 
 ## Product specification
 
-The product vision and phase scope are documented in [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md). Local persistence is described in [docs/OFFLINE_ARCHITECTURE.md](docs/OFFLINE_ARCHITECTURE.md), account boundaries in [docs/AUTH_ARCHITECTURE.md](docs/AUTH_ARCHITECTURE.md), daily workflows in [docs/PHASE4_ARCHITECTURE.md](docs/PHASE4_ARCHITECTURE.md), Planner behavior in [docs/PHASE5_ARCHITECTURE.md](docs/PHASE5_ARCHITECTURE.md), and language behavior in [docs/LOCALIZATION_ARCHITECTURE.md](docs/LOCALIZATION_ARCHITECTURE.md).
+The product vision and phase scope are documented in [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md). Local persistence is described in [docs/OFFLINE_ARCHITECTURE.md](docs/OFFLINE_ARCHITECTURE.md), account boundaries in [docs/AUTH_ARCHITECTURE.md](docs/AUTH_ARCHITECTURE.md), daily workflows in [docs/PHASE4_ARCHITECTURE.md](docs/PHASE4_ARCHITECTURE.md), Planner behavior in [docs/PHASE5_ARCHITECTURE.md](docs/PHASE5_ARCHITECTURE.md), Goals behavior in [docs/PHASE6_ARCHITECTURE.md](docs/PHASE6_ARCHITECTURE.md), and language behavior in [docs/LOCALIZATION_ARCHITECTURE.md](docs/LOCALIZATION_ARCHITECTURE.md).

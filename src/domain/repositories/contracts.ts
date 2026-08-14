@@ -2,6 +2,7 @@ import type {
   AppSettings,
   Area,
   Goal,
+  GoalRoutineLink,
   LocalChange,
   LocalAccountLink,
   Milestone,
@@ -80,6 +81,11 @@ export type RoutineCheckInFilter = {
   toDate?: string;
 };
 export type MilestoneFilter = { workspaceId?: string; goalId?: string };
+export type GoalRoutineLinkFilter = {
+  workspaceId?: string;
+  goalId?: string;
+  routineId?: string;
+};
 export type ReflectionFilter = {
   workspaceId?: string;
   scope?: Reflection['scope'];
@@ -123,6 +129,10 @@ export type GoalRepository = EntityRepository<
   WorkspaceEntityFilter<Goal['status']>
 >;
 export type MilestoneRepository = EntityRepository<Milestone, MilestoneFilter>;
+export type GoalRoutineLinkRepository = EntityRepository<
+  GoalRoutineLink,
+  GoalRoutineLinkFilter
+>;
 export type AreaRepository = EntityRepository<
   Area,
   WorkspaceEntityFilter<Area['status']>
@@ -161,6 +171,7 @@ export type RepositoryScope = {
   routineCheckIns: RoutineCheckInRepository;
   goals: GoalRepository;
   milestones: MilestoneRepository;
+  goalRoutineLinks: GoalRoutineLinkRepository;
   areas: AreaRepository;
   tags: TagRepository;
   reflections: ReflectionRepository;

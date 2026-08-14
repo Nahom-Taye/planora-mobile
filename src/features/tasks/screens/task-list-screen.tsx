@@ -5,7 +5,9 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { Button, Card, EmptyState, Screen, Text } from '@/components/ui';
 import type { Task } from '@/domain/entities';
 import { groupTasks } from '@/features/tasks/services/task-organization';
+import { goalForTask } from '@/features/goals/services/goal-task-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useGoals } from '@/providers/goal-provider';
 import { useLocalization } from '@/providers/localization-provider';
 import { usePlanning } from '@/providers/planning-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
@@ -114,6 +116,8 @@ function TaskListRow({ task, quiet }: { task: Task; quiet: boolean }) {
   const theme = useAppTheme();
   const router = useRouter();
   const localization = useLocalization();
+  const goals = useGoals();
+  const linkedGoal = goalForTask(task, goals.goals);
   const dueLabel = task.dueDate
     ? localization.formatDate(task.dueDate, {
         day: 'numeric',
@@ -129,7 +133,7 @@ function TaskListRow({ task, quiet }: { task: Task; quiet: boolean }) {
   return (
     <Pressable
       accessibilityHint={localization.t('tasks.opensDetails')}
-      accessibilityLabel={`${task.title}. ${statusLabel(task, localization.t)}. ${dueLabel}. ${priority}.`}
+      accessibilityLabel={`${task.title}. ${statusLabel(task, localization.t)}. ${dueLabel}. ${priority}.${linkedGoal ? ` ${localization.t('goals.linkedGoal', { title: linkedGoal.title })}.` : ''}`}
       accessibilityRole="button"
       onPress={() =>
         router.push({
@@ -150,6 +154,11 @@ function TaskListRow({ task, quiet }: { task: Task; quiet: boolean }) {
                 {statusLabel(task, localization.t)} · {dueLabel}
                 {task.scheduledTime ? ` · ${localization.formatTime(task.scheduledTime)}` : ''} · {priority}
               </Text>
+              {linkedGoal ? (
+                <Text tone="accent" variant="caption">
+                  {localization.t('goals.linkedGoal', { title: linkedGoal.title })}
+                </Text>
+              ) : null}
             </View>
             <Ionicons color={theme.colors.textMuted} name={localization.isRTL ? 'chevron-back' : 'chevron-forward'} size={20} />
           </View>

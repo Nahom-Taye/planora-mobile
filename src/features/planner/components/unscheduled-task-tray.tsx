@@ -4,7 +4,9 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Card, Text } from '@/components/ui';
 import type { CalendarDate, Task } from '@/domain/entities';
+import { goalForTask } from '@/features/goals/services/goal-task-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useGoals } from '@/providers/goal-provider';
 import { useLocalization } from '@/providers/localization-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
 
@@ -18,6 +20,7 @@ export function UnscheduledTaskTray({
   const theme = useAppTheme();
   const localization = useLocalization();
   const router = useRouter();
+  const goals = useGoals();
 
   return (
     <View style={{ gap: theme.spacing.sm }}>
@@ -59,6 +62,13 @@ export function UnscheduledTaskTray({
                       })
                     : localization.t('tasks.unscheduled')}
                 </Text>
+                {goalForTask(task, goals.goals) ? (
+                  <Text numberOfLines={1} tone="accent" variant="caption">
+                    {localization.t('goals.linkedGoal', {
+                      title: goalForTask(task, goals.goals)?.title ?? '',
+                    })}
+                  </Text>
+                ) : null}
               </View>
               <Ionicons
                 color={theme.colors.primary}

@@ -10,6 +10,7 @@ import {
 
 import { Button, Card, Screen, Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useGoals } from '@/providers/goal-provider';
 import { useLocalization } from '@/providers/localization-provider';
 import { usePlanning } from '@/providers/planning-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
@@ -21,10 +22,12 @@ type TaskEditorScreenProps = { create?: boolean };
 export function TaskEditorScreen({ create = false }: TaskEditorScreenProps) {
   const theme = useAppTheme();
   const router = useRouter();
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; goalId?: string }>();
   const planning = usePlanning();
+  const goals = useGoals();
   const localization = useLocalization();
   const task = create || !params.id ? null : planning.getTask(params.id);
+  const linkedGoal = goals.getGoal(task?.goalId ?? params.goalId ?? '');
 
   if (!create && planning.status === 'loading' && !planning.plan) {
     return (
@@ -117,6 +120,25 @@ export function TaskEditorScreen({ create = false }: TaskEditorScreenProps) {
           ? localization.t('tasks.createDescription')
           : localization.t('tasks.editDescription')}
       </Text>
+      {linkedGoal ? (
+        <Pressable
+          accessibilityLabel={localization.t('goals.openGoal', { title: linkedGoal.title })}
+          accessibilityRole="link"
+          onPress={() =>
+            router.push({
+              pathname: '/(goals)/goals/[id]',
+              params: { id: linkedGoal.id },
+            })
+          }
+          style={{ marginBottom: theme.spacing.xl }}
+        >
+          <Card variant="subtle">
+            <Text tone="accent" variant="caption">
+              {localization.t('goals.linkedGoal', { title: linkedGoal.title })}
+            </Text>
+          </Card>
+        </Pressable>
+      ) : null}
       {!create && !task ? (
         <Card variant="subtle">
           <Text variant="heading">{localization.t('tasks.unavailable')}</Text>
@@ -131,7 +153,7 @@ export function TaskEditorScreen({ create = false }: TaskEditorScreenProps) {
           onSubmit={async (draft) => {
             const result = task
               ? await planning.updateTask(task, draft)
-              : await planning.createTask(draft);
+              : await planning.createTask(draft, params.goalId ?? null);
             if (result.ok) router.back();
             return result;
           }}

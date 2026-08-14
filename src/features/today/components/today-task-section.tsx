@@ -4,7 +4,9 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
 import type { Task } from '@/domain/entities';
+import { goalForTask } from '@/features/goals/services/goal-task-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useGoals } from '@/providers/goal-provider';
 import { useLocalization } from '@/providers/localization-provider';
 import { usePlanning } from '@/providers/planning-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
@@ -73,6 +75,8 @@ function TodayTaskRow({
   const localization = useLocalization();
   const router = useRouter();
   const planning = usePlanning();
+  const goals = useGoals();
+  const linkedGoal = goalForTask(task, goals.goals);
   const isDone = task.status === 'completed';
   const isCancelled = task.status === 'cancelled';
   const state = isCancelled
@@ -140,6 +144,11 @@ function TodayTaskRow({
             ? `${localization.formatTime(task.scheduledTime)} · ${state}`
             : state}
         </Text>
+        {linkedGoal ? (
+          <Text numberOfLines={1} tone="accent" variant="caption">
+            {localization.t('goals.linkedGoal', { title: linkedGoal.title })}
+          </Text>
+        ) : null}
       </Pressable>
       <Ionicons
         color={theme.colors.textMuted}

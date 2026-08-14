@@ -16,8 +16,9 @@
     "test:phase3": "node --no-warnings --test --experimental-transform-types tests/phase3.test.ts",
     "test:phase4": "node --no-warnings --test --experimental-transform-types tests/phase4.test.ts",
     "test:phase5": "node --no-warnings --test --experimental-transform-types tests/phase5.test.ts",
+    "test:phase6": "node --no-warnings --test --experimental-transform-types tests/phase6.test.ts",
     "validate:translations": "node --no-warnings --experimental-transform-types scripts/validate-translations.ts",
-    "test": "npm run test:phase2 && npm run test:phase3 && npm run test:phase4 && npm run test:phase5 && npm run validate:translations",
+    "test": "npm run test:phase2 && npm run test:phase3 && npm run test:phase4 && npm run test:phase5 && npm run test:phase6 && npm run validate:translations",
     "check": "npm run typecheck && npm run lint && npm run test && npm run doctor"
   },
   "dependencies": {

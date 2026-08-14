@@ -7,6 +7,7 @@ import type {
 
 export type GoalStatus = 'active' | 'paused' | 'completed' | 'abandoned';
 export type GoalHorizon = 'month' | 'quarter' | 'year' | 'someday';
+export type GoalProgressMethod = 'milestones' | 'tasks' | 'manual' | 'none';
 
 export type Goal = EntityMetadata & {
   workspaceId: EntityId;
@@ -18,6 +19,9 @@ export type Goal = EntityMetadata & {
   targetDate: CalendarDate | null;
   completedAt: Instant | null;
   areaId: EntityId | null;
+  progressMethod: GoalProgressMethod;
+  manualProgress: number;
+  nextActionTaskId: EntityId | null;
 };
 
 export type MilestoneStatus = 'pending' | 'completed' | 'cancelled';
@@ -31,4 +35,10 @@ export type Milestone = EntityMetadata & {
   targetDate: CalendarDate | null;
   completedAt: Instant | null;
   sortOrder: number;
+};
+
+export type GoalRoutineLink = EntityMetadata & {
+  workspaceId: EntityId;
+  goalId: EntityId;
+  routineId: EntityId;
 };

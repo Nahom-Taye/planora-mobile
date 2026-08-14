@@ -5,6 +5,7 @@ import {
   appSettingsMapper,
   areaMapper,
   goalMapper,
+  goalRoutineLinkMapper,
   localChangeMapper,
   milestoneMapper,
   planBlockMapper,
@@ -56,6 +57,11 @@ function createScope(
       dependencies,
     ),
     goals: new SqliteEntityRepository(executor, goalMapper, dependencies),
+    goalRoutineLinks: new SqliteEntityRepository(
+      executor,
+      goalRoutineLinkMapper,
+      dependencies,
+    ),
     milestones: new SqliteEntityRepository(
       executor,
       milestoneMapper,
