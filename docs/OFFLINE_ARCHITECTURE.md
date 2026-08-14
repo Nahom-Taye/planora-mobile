@@ -27,7 +27,7 @@ The storage layer owns SQLite connections, migrations, bound queries, row mappin
 - `Area` groups responsibilities or parts of life.
 - `Tag` provides lightweight workspace classification.
 - `Reflection` stores qualitative notes for a day, week, or goal context.
-- `AppSettings` stores device-facing planning, appearance, language, capacity, and last-Planner-view choices for a profile.
+- `AppSettings` stores device-facing planning, appearance, language, capacity, last-Planner-view, last-Insights-destination, and last-Insights-range choices for a profile.
 - `LocalChange` reserves revision and operation metadata for future reconciliation without implementing transport.
 
 Persisted domain entities have stable identifiers, creation and update timestamps, and an integer revision. User-owned entities also have nullable deletion timestamps. Status values are closed string unions and optional persisted fields use explicit `null` values.
@@ -58,6 +58,8 @@ Migration 4 appends Planner recurrence ownership and indexes plus safe settings 
 
 Migration 5 appends goal progress method, manual progress, and optional next-action fields; creates the goal-routine link table; and adds relationship and filtering indexes. Safe defaults map existing goals to milestone progress at zero. Composite foreign keys protect goal-routine workspace ownership, and the task relationship remains constrained by repository-level active-workspace validation. The migration is atomic, seed-free, forward-only, and non-destructive. Released migrations 1–4 remain unchanged.
 
+Migration 6 appends safe `summary` and `7d` defaults for the remembered Insights destination and range, plus workspace-scoped reflection query indexes. It creates no activity-event table, backfills no behavior, adds no seed data, and leaves released migrations 1–5 unchanged. Duplicate reflection identity is enforced transactionally by the local lifecycle service rather than by an unsafe uniqueness migration over databases that may already contain duplicate foundation records.
+
 ## Date and time conventions
 
 - Absolute events use UTC ISO 8601 timestamps and the `Instant` type.
@@ -75,6 +77,8 @@ New entities receive UUID values from the maintained Expo cryptography module. I
 ## Transaction expectations
 
 A single-row insert is atomic by SQLite behavior. Optimistic updates use a revision predicate. Multi-entity operations must use `RepositoryStore.transaction`, whose callback receives repositories bound to the transaction connection. Milestone reordering normalizes every affected sort position in one transaction and rolls back the entire move if any revision fails. Unlinking a selected next-action task clears the goal pointer and task relationship in the same transaction.
+
+Reflection creation and editing validate active-workspace ownership, normalize scope identity, check duplicates, and write in one repository transaction. Reflection edits and soft deletion use optimistic revisions, so a stale form cannot overwrite a newer local body or mood value.
 
 Native platforms use an exclusive asynchronous transaction connection. Web uses the supported asynchronous transaction API behind the same repository boundary. Application code must not start raw database transactions.
 
@@ -98,12 +102,12 @@ Initialization failures keep the application out of an ambiguous partially ready
 
 ## Testing strategy
 
-Focused tests cover date and time validation, row round trips, migration ordering and idempotency, interrupted migration rollback behavior, bound repository writes, deterministic list ordering, revision updates, and soft deletion. Phase 6 adds deterministic tests for goal and milestone lifecycle, transactional ordering, four progress methods, relationship semantics, workspace isolation, restart persistence, migration 5, five-language parity, RTL, and Hermes-safe formatting. Project checks cover TypeScript, lint rules, dependency compatibility, and platform bundles.
+Focused tests cover date and time validation, row round trips, migration ordering and idempotency, interrupted migration rollback behavior, bound repository writes, deterministic list ordering, revision updates, and soft deletion. Phase 6 adds deterministic tests for goal and milestone lifecycle, transactional ordering, four progress methods, relationship semantics, workspace isolation, restart persistence, migration 5, five-language parity, RTL, and Hermes-safe formatting. Phase 7 adds range, time-zone, pagination, aggregation, comparison, explanation, reflection lifecycle, restart persistence, migration 6, and five-catalog regression coverage. Project checks cover TypeScript, lint rules, dependency compatibility, and platform bundles.
 
 Test data is deterministic and lives only in the test process. Normal application startup creates schema metadata but no profiles, workspaces, tasks, or other fake records.
 
 ## Foundation limitations
 
-Phase 2 supplies storage readiness and repository capabilities. Phases 3–6 use that boundary for accounts, local task and routine workflows, Planner scheduling, recurrence, settings, goals, milestones, and local goal relationships without adding planning synchronization. Reflection, insight, remote synchronization, background jobs, reminders, payments, imports, exports, database reset controls, and user-facing purge controls remain outside the current implementation.
+Phase 2 supplies storage readiness and repository capabilities. Phases 3–7 use that boundary for accounts, local task and routine workflows, Planner scheduling, recurrence, settings, goals, milestones, local goal relationships, Insights, and reflections without adding planning synchronization. Remote synchronization, background jobs, reminders, payments, imports, exports, database reset controls, and user-facing purge controls remain outside the current implementation.
 
 The local database uses the platform-provided SQLite storage behavior. Phase 2 does not add application-level at-rest encryption, and the interface makes no encryption claim.

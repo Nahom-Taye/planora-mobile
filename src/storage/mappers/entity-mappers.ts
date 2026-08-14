@@ -298,6 +298,8 @@ export const appSettingsMapper: EntityMapper<AppSettings, ProfileFilter> = {
     'language_preference',
     'daily_planning_capacity_minutes',
     'planner_view',
+    'insights_view',
+    'insights_range',
     'onboarding_version',
     'onboarding_completed_at',
   ],
@@ -311,6 +313,8 @@ export const appSettingsMapper: EntityMapper<AppSettings, ProfileFilter> = {
     language_preference: entity.languagePreference,
     daily_planning_capacity_minutes: entity.dailyPlanningCapacityMinutes,
     planner_view: entity.plannerView,
+    insights_view: entity.insightsView,
+    insights_range: entity.insightsRange,
     onboarding_version: entity.onboardingVersion,
     onboarding_completed_at: entity.onboardingCompletedAt,
   }),
@@ -340,6 +344,8 @@ export const appSettingsMapper: EntityMapper<AppSettings, ProfileFilter> = {
         'daily_planning_capacity_minutes',
       ),
       plannerView: stringValue(row, 'planner_view') as AppSettings['plannerView'],
+      insightsView: stringValue(row, 'insights_view') as AppSettings['insightsView'],
+      insightsRange: stringValue(row, 'insights_range') as AppSettings['insightsRange'],
       onboardingVersion: numberValue(row, 'onboarding_version'),
       onboardingCompletedAt: onboardingCompletedAt
         ? toInstant(onboardingCompletedAt)
@@ -913,6 +919,7 @@ export const reflectionMapper: EntityMapper<Reflection, ReflectionFilter> = {
     const result = clauses([
       ['workspace_id', filter?.workspaceId],
       ['scope', filter?.scope],
+      ['scope_id', filter?.scopeId],
     ]);
 
     if (filter?.fromDate) {

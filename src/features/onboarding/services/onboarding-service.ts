@@ -63,6 +63,8 @@ export class OnboardingService {
         languagePreference: 'system',
         dailyPlanningCapacityMinutes: 480,
         plannerView: 'day',
+        insightsView: 'summary',
+        insightsRange: '7d',
         onboardingVersion: CURRENT_ONBOARDING_VERSION,
         onboardingCompletedAt: completedAt,
       });

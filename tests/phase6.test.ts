@@ -573,7 +573,7 @@ test('migration 5 is additive atomic-ready indexed foreign-key protected and see
   });
   const sql = statements.join('\n');
   assert.equal(goalsMilestonesMigration.version, 5);
-  assert.equal(migrations.at(-1)?.version, 5);
+  assert.equal(migrations[4]?.version, 5);
   assert.match(sql, /progress_method TEXT NOT NULL DEFAULT 'milestones'/);
   assert.match(sql, /CREATE TABLE goal_routine_links/);
   assert.match(sql, /FOREIGN KEY \(goal_id, workspace_id\)/);

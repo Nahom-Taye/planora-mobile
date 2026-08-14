@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { Button, Card, Screen, Text } from '@/components/ui';
@@ -195,6 +195,21 @@ export function GoalDetailScreen() {
       </GoalDetailSection>
       <GoalDetailSection title={localization.t('goals.actions')}>
         <View style={{ gap: theme.spacing.sm }}>
+          <Button
+            label={localization.t('reflections.reflectGoal')}
+            onPress={() =>
+              goals.today &&
+              router.push({
+                pathname: '/(insights)/reflections/new',
+                params: {
+                  scope: 'goal',
+                  goalId: goal.id,
+                  periodStart: goals.today,
+                },
+              } as unknown as Href)
+            }
+            variant="secondary"
+          />
           {goal.status === 'active' ? (
             <>
               <Button

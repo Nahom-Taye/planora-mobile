@@ -348,6 +348,15 @@ export function TodayScreen() {
           label={localization.t('today.openPlanner')}
           onPress={() => router.push('/(tabs)/planner')}
         />
+        <InlineLink
+          label={localization.t('reflections.reflectToday')}
+          onPress={() =>
+            router.push({
+              pathname: '/(insights)/reflections/new',
+              params: { scope: 'day', periodStart: planning.today },
+            } as unknown as Href)
+          }
+        />
       </View>
 
       {planning.errorMessage || planner.errorMessage ? (
