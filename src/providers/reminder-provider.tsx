@@ -298,6 +298,30 @@ function useReminderValue(repositories: RepositoryStore | null) {
       run(async () => calendar?.removeMapping(mapping, removeEvent)),
     [calendar, run],
   );
+  const clearDeviceIntegrations = useCallback(async (removeCalendarEvents: boolean) => {
+    if (!repositories || !workspace.workspace) return;
+    const workspaceId = workspace.workspace.id;
+    let offset = 0;
+    while (true) {
+      const page = await repositories.deviceNotificationSchedules.list({ filter: { workspaceId }, page: { limit: 100, offset } });
+      for (const mapping of page.items) {
+        if (mapping.notificationIdentifier) await expoNotificationGateway.cancel(mapping.notificationIdentifier);
+      }
+      if (page.nextOffset === null) break;
+      offset = page.nextOffset;
+    }
+    if (!removeCalendarEvents) return;
+    offset = 0;
+    while (true) {
+      const page = await repositories.deviceCalendarEvents.list({ filter: { workspaceId }, page: { limit: 100, offset } });
+      for (const mapping of page.items) {
+        const event = await expoCalendarGateway.getEvent(mapping.eventId);
+        if (event) await expoCalendarGateway.deleteEvent(mapping.eventId);
+      }
+      if (page.nextOffset === null) break;
+      offset = page.nextOffset;
+    }
+  }, [repositories, workspace.workspace]);
 
   return {
     notificationPermission,
@@ -318,6 +342,7 @@ function useReminderValue(repositories: RepositoryStore | null) {
     exportBlock,
     calendarMappingFor,
     removeCalendarMapping,
+    clearDeviceIntegrations,
   };
 }
 

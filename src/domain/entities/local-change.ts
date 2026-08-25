@@ -30,4 +30,9 @@ export type LocalChange = {
   attemptCount: number;
   lastAttemptAt: Instant | null;
   errorCode: string | null;
+  workspaceId: EntityId | null;
+  baseRevision: number;
+  accountId: string | null;
+  nextAttemptAt: Instant | null;
+  syncOrder: number;
 };

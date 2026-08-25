@@ -2,7 +2,7 @@
 
 Planora is a calm personal planning and productivity tracker for Android and iOS. The application connects daily focus, forward planning, long-term goals, and personal reflection through a clear mobile experience.
 
-This repository contains the completed Phase 1–7 foundations and the Phase 8 local reminders and device-calendar interoperability implementation. Planning-data synchronization, payments, sharing, and premium features remain outside the current scope.
+This repository contains the completed Phase 1–8 foundations and the Phase 9 resilient account-synchronization and data-control implementation. Payments, subscriptions, paywalls, collaboration, and premium capabilities remain outside the current scope.
 
 ## Foundation features
 
@@ -52,6 +52,12 @@ This repository contains the completed Phase 1–7 foundations and the Phase 8 l
 - English, Amharic, Spanish, French, and Arabic interface catalogs with persisted per-profile selection
 - Locale-aware dates, times, numbers, durations, pluralization, and RTL-aware presentation
 - Bundled Noto Sans Latin, Arabic, and Ethiopic fonts under the SIL Open Font License
+- Explicitly enabled Upload, Merge, and Restore synchronization modes that never start from sign-in alone
+- Durable bounded push and pull with stable operation identifiers, server revisions, incremental cursors, retry, reconnect, and cancellation
+- Account-switch isolation, preserved conflict copies, explicit conflict resolution, and retained deletion tombstones
+- Versioned portable planning export with native identifier and session exclusions
+- Exact-confirmation device, cloud, and authenticated account deletion controls
+- Safe local-only behavior when public backend configuration or the remote synchronization schema is unavailable
 
 ## Requirements
 
@@ -82,7 +88,7 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 
 Never place a service-role key, database password, or other privileged credential in an Expo public variable. When these values are absent or invalid, account actions are unavailable on the opening screen while Continue locally remains active.
 
-Apply `supabase/migrations/202608040001_account_profiles.sql` through the authorized Supabase migration workflow for the project. Add `planora://callback` to the allowed authentication redirect URLs. For Expo Go testing, also add the development callback shown by the running application environment.
+Apply `supabase/migrations/202608040001_account_profiles.sql` and then `supabase/migrations/202608140001_resilient_sync.sql` through the authorized Supabase migration workflow for the project. Deploy `supabase/functions/delete-account` with `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` available only in the server function environment. Add `planora://callback` to the allowed authentication redirect URLs. For Expo Go testing, also add the development callback shown by the running application environment. Repository files do not prove that either migration or the function has been deployed.
 
 ## Start the application
 
@@ -125,9 +131,9 @@ src/
 
 Routes remain thin and delegate presentation to feature modules. Shared visual rules live in the theme and component layers.
 
-Phase 4 feature modules live under `src/features/today`, `src/features/tasks`, `src/features/routines`, and `src/features/workspace`. Phase 5 adds `src/features/planner`, `src/features/localization`, and planning preferences under `src/features/settings`. Phase 6 adds focused goal, milestone, progress, task-link, and routine-link modules under `src/features/goals` with thin routes under `app/(goals)`. Phase 7 adds local Insights and reflection modules. Phase 8 adds local reminder and calendar services under `src/features/reminders` and `src/features/calendar`, a `ReminderProvider`, and thin notification fallback and reminder-editor routes under `app/(reminders)`. The five-tab shell remains unchanged.
+Phase 4 feature modules live under `src/features/today`, `src/features/tasks`, `src/features/routines`, and `src/features/workspace`. Phase 5 adds `src/features/planner`, `src/features/localization`, and planning preferences under `src/features/settings`. Phase 6 adds focused goal, milestone, progress, task-link, and routine-link modules under `src/features/goals` with thin routes under `app/(goals)`. Phase 7 adds local Insights and reflection modules. Phase 8 adds local reminder and calendar services under `src/features/reminders` and `src/features/calendar`. Phase 9 adds synchronization services under `src/features/sync`, `SyncProvider`, thin Privacy and Data routes under `app/(sync)`, local migration 8, the remote synchronization migration, and the authenticated account-deletion function. The five-tab shell remains unchanged.
 
-`supabase/migrations/` contains versioned remote profile and authorization schema. Authentication sessions do not use SQLite.
+`supabase/migrations/` contains versioned remote profile and owner-scoped planning schema. Authentication sessions do not use SQLite. SQLite remains the immediate source of truth even when synchronization is enabled.
 
 ## Verification
 
@@ -143,6 +149,7 @@ npm run test:phase5
 npm run test:phase6
 npm run test:phase7
 npm run test:phase8
+npm run test:phase9
 npm run validate:translations
 npm run doctor
 ```
@@ -155,8 +162,8 @@ npm run check
 
 ## Account testing
 
-To test live account behavior, use a non-production Supabase project with email authentication enabled. Verify signup and confirmation, sign-in, restart restoration, sign-out, recovery through the allowed callback, profile editing, incorrect-password behavior, offline startup, and missing-configuration startup. Use two separate test identities to confirm neither can select, insert, update, or delete the other profile. Remove test accounts only when safe and authorized, and never print credentials or session values.
+To test live account behavior, use a non-production Supabase project with email authentication enabled. Verify signup and confirmation, sign-in, restart restoration, sign-out, recovery through the allowed callback, profile editing, incorrect-password behavior, offline startup, and missing-configuration startup. Use two separate identities to confirm profile and planning policy isolation. Use two physical devices to verify explicit Upload, Merge, Restore, conflict, tombstone, reconnect, account-switch, cloud-deletion, and account-deletion behavior. Remove test accounts only when safe and authorized, and never print credentials or session values. These live checks are required and are not claimed by the automated suite.
 
 ## Product specification
 
-The product vision and phase scope are documented in [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md). Local persistence is described in [docs/OFFLINE_ARCHITECTURE.md](docs/OFFLINE_ARCHITECTURE.md), account boundaries in [docs/AUTH_ARCHITECTURE.md](docs/AUTH_ARCHITECTURE.md), daily workflows in [docs/PHASE4_ARCHITECTURE.md](docs/PHASE4_ARCHITECTURE.md), Planner behavior in [docs/PHASE5_ARCHITECTURE.md](docs/PHASE5_ARCHITECTURE.md), Goals behavior in [docs/PHASE6_ARCHITECTURE.md](docs/PHASE6_ARCHITECTURE.md), Insights and reflections in [docs/PHASE7_ARCHITECTURE.md](docs/PHASE7_ARCHITECTURE.md), reminders and calendar interoperability in [docs/PHASE8_ARCHITECTURE.md](docs/PHASE8_ARCHITECTURE.md), and language behavior in [docs/LOCALIZATION_ARCHITECTURE.md](docs/LOCALIZATION_ARCHITECTURE.md).
+The product vision and phase scope are documented in [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md). Local persistence is described in [docs/OFFLINE_ARCHITECTURE.md](docs/OFFLINE_ARCHITECTURE.md), account boundaries in [docs/AUTH_ARCHITECTURE.md](docs/AUTH_ARCHITECTURE.md), daily workflows in [docs/PHASE4_ARCHITECTURE.md](docs/PHASE4_ARCHITECTURE.md), Planner behavior in [docs/PHASE5_ARCHITECTURE.md](docs/PHASE5_ARCHITECTURE.md), Goals behavior in [docs/PHASE6_ARCHITECTURE.md](docs/PHASE6_ARCHITECTURE.md), Insights and reflections in [docs/PHASE7_ARCHITECTURE.md](docs/PHASE7_ARCHITECTURE.md), reminders and calendar interoperability in [docs/PHASE8_ARCHITECTURE.md](docs/PHASE8_ARCHITECTURE.md), synchronization and data controls in [docs/PHASE9_ARCHITECTURE.md](docs/PHASE9_ARCHITECTURE.md), synchronization risks in [docs/SYNC_THREAT_MODEL.md](docs/SYNC_THREAT_MODEL.md), and language behavior in [docs/LOCALIZATION_ARCHITECTURE.md](docs/LOCALIZATION_ARCHITECTURE.md).

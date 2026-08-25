@@ -23,6 +23,24 @@ import { mapProfileRow } from './profile-mapper.ts';
 
 let cachedGateway: AccountGateway | null = null;
 let cachedConfiguration = '';
+let cachedClient: SupabaseClient<Database> | null = null;
+
+export function getSupabaseClient(configuration: AuthConfiguration) {
+  const configurationKey = `${configuration.url}|${configuration.publishableKey}`;
+  if (cachedClient && cachedConfiguration === configurationKey) return cachedClient;
+  cachedClient = createClient<Database>(configuration.url, configuration.publishableKey, {
+    auth: {
+      storage: authSessionStorage,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+      flowType: 'pkce',
+      lock: processLock,
+    },
+  });
+  cachedConfiguration = configurationKey;
+  return cachedClient;
+}
 
 export function createSupabaseAccountGateway(
   configuration: AuthConfiguration,
@@ -33,20 +51,7 @@ export function createSupabaseAccountGateway(
     return cachedGateway;
   }
 
-  const client = createClient<Database>(
-    configuration.url,
-    configuration.publishableKey,
-    {
-      auth: {
-        storage: authSessionStorage,
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: false,
-        flowType: 'pkce',
-        lock: processLock,
-      },
-    },
-  );
+  const client = getSupabaseClient(configuration);
 
   cachedGateway = new SupabaseAccountGateway(client);
   cachedConfiguration = configurationKey;

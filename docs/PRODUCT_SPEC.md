@@ -27,7 +27,7 @@ Planora is not intended to replace team project-management, clinical treatment, 
 
 ## Product capability map
 
-The following list distinguishes the local functionality delivered through Phase 8 from later product direction.
+The following list distinguishes the functionality delivered through Phase 9 from later product direction.
 
 - A focused Today view for priorities, local tasks, scheduled routines, next-up blocks, and a compact agenda preview.
 - A local day and week Planner with revision-safe time blocks, rescheduling, capacity awareness, overlap explanations, and bounded recurrence.
@@ -39,8 +39,8 @@ The following list distinguishes the local functionality delivered through Phase
 - Local insight summaries, equal-period trends, workload and routine context, calm explanations, and daily, weekly, and goal reflections.
 - Opt-in local reminders, notification quiet hours, privacy-preserving content, and safe notification navigation.
 - Optional one-way export of eligible plan blocks to a selected writable device calendar.
-- Cross-device accounts and sync through a future backend phase.
-- Data export, account deletion, privacy controls, and transparent sync status.
+- Explicitly enabled account synchronization with Upload, Merge, Restore, bounded retry, account-switch isolation, transparent status, and preserved conflicts.
+- Portable planning export plus device, cloud, and authenticated account deletion controls.
 - Optional paid capabilities only after the core experience is stable and useful.
 
 ## Navigation map
@@ -70,8 +70,8 @@ Planora
     ├── Reminders, notification privacy, and quiet hours
     ├── Device calendar destination
     ├── Optional account profile and recovery
-    ├── Planning synchronization (future)
-    └── Privacy and data controls (future)
+    ├── Planning synchronization
+    └── Privacy and data controls
 ```
 
 The five primary destinations remain visible in bottom navigation. Creation and detail flows should be presented within the relevant destination, using stacks or sheets where platform conventions support them.
@@ -92,7 +92,10 @@ Phase 2 defines the local domain models and storage. Phases 4–6 expose task, r
 - **Area:** an optional life or responsibility category used for organization.
 - **Tag:** a lightweight user-defined classification.
 - **Reflection:** a revisioned qualitative note attached to one local day, normalized local week, or workspace-owned goal.
-- **LocalChange:** local revision, deletion, and queue metadata reserved for future reconciliation.
+- **LocalChange:** stable operation, local revision, deletion, account, retry, and queue state for bounded reconciliation.
+- **SyncBinding:** explicit local-workspace to account-owned remote-workspace consent and cursor state.
+- **SyncEntityState:** acknowledged remote revision and cursor for one portable local entity.
+- **SyncConflict:** account-scoped preserved local and remote payloads awaiting an explicit choice.
 
 Every persisted entity should use stable identifiers, creation and update timestamps, and explicit version or conflict metadata where sync requires it. Deletion behavior must be designed before remote synchronization is introduced.
 
@@ -142,7 +145,7 @@ Every persisted entity should use stable identifiers, creation and update timest
 6. **Goals and milestones:** Connect outcomes to milestones, routines, and actionable work with flexible progress models.
 7. **Insights and reflection:** Deliver privacy-conscious summaries, trend explanations, workload signals, and qualitative reflections without manipulative scoring.
 8. **Reminders and integrations:** Add opt-in local notifications, quiet hours, validated navigation, one-way device-calendar interoperability, and robust permission education.
-9. **Sync quality and premium capabilities:** Harden multi-device reconciliation, export and deletion, observability, restore flows, and only then introduce clearly valuable optional paid capabilities.
+9. **Sync quality and data controls:** Add opt-in multi-device reconciliation, export and deletion, redacted diagnostics, restore flows, conflict preservation, and account-switch isolation. Paid capabilities remain deferred.
 10. **Release hardening and launch:** Complete accessibility audits, privacy and security review, performance profiling, recovery testing, store assets, beta feedback, production monitoring, and staged Android/iOS release.
 
-Each phase requires its own acceptance criteria and verification plan before work begins. Phase 8 preserves the local storage boundary while adding permission-gated local reminders, deterministic bounded reconciliation, generic notification content by default, safe destination validation, and explicit one-way calendar export. Remote planning synchronization, calendar import, remote push, payments, sharing, collaboration, and premium features remain excluded.
+Each phase requires its own acceptance criteria and verification plan before work begins. Phase 9 keeps SQLite as the immediate source of truth and requires explicit activation before planning data leaves the device. Local-only planning remains supported. Remote calendar import, remote push notifications, payments, subscriptions, paywalls, collaboration, and premium capabilities remain excluded.

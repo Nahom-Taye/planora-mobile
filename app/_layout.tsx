@@ -23,6 +23,7 @@ import { PlanningProvider } from '@/providers/planning-provider';
 import { PlannerProvider } from '@/providers/planner-provider';
 import { ReminderProvider } from '@/providers/reminder-provider';
 import { StorageProvider, useStorage } from '@/providers/storage-provider';
+import { SyncProvider } from '@/providers/sync-provider';
 import { WorkspaceProvider, useWorkspace } from '@/providers/workspace-provider';
 import { AppThemeProvider } from '@/theme';
 
@@ -150,6 +151,7 @@ function RootNavigator() {
           <Stack.Screen name="(goals)" />
           <Stack.Screen name="(insights)" />
           <Stack.Screen name="(reminders)" />
+          <Stack.Screen name="(sync)" />
         </Stack.Protected>
         <Stack.Protected guard={!accountAvailable}>
           <Stack.Screen name="(auth)" />
@@ -200,7 +202,9 @@ function StorageBackedApplication() {
                 <PlannerProvider repositories={storage.repositories}>
                   <InsightsProvider repositories={storage.repositories}>
                     <ReminderProvider repositories={storage.repositories}>
-                      <RootNavigator />
+                      <SyncProvider repositories={storage.repositories}>
+                        <RootNavigator />
+                      </SyncProvider>
                     </ReminderProvider>
                   </InsightsProvider>
                 </PlannerProvider>

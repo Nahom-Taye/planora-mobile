@@ -2,15 +2,15 @@
 
 ## Authentication boundaries
 
-Phase 3 adds an optional account boundary without changing the offline planning boundary. Phase 4 changes the signed-out cold-launch presentation without changing that boundary. Phase 5 localizes the complete account-entry and recovery presentation without changing session or remote-data semantics. Route components use provider hooks and feature services. They do not import the Supabase client. The account gateway owns provider calls, the account provider owns application session state, and SQLite repositories own local profile linkage.
+Phase 3 adds an optional account boundary without changing the offline planning boundary. Phase 4 changes the signed-out cold-launch presentation, and Phase 5 localizes account entry and recovery. Phase 9 adds a separate, explicitly enabled planning-synchronization boundary. Route components use provider hooks and feature services. They do not import the Supabase client or SQL. The account gateway owns authentication calls, the synchronization gateway owns remote planning procedures, the account provider owns application session state, and SQLite repositories own local linkage and planning.
 
-The remote boundary contains authentication and a minimal account profile only. Tasks, plan blocks, routines, check-ins, goals, milestones, areas, tags, reflections, workspaces, settings, and local change records are not sent remotely.
+The authentication boundary contains a minimal account profile. When and only when the user explicitly enables synchronization, the planning boundary may send the active workspace, tasks, plan blocks, routines, check-ins, goals, milestones, areas, tags, reflections, portable settings, and reminder intent. Sessions, email addresses, local account links, device notification schedules, calendar mappings, native identifiers, diagnostics, and conflict metadata are never portable planning payloads.
 
 ## Local-only mode
 
 After branded initialization, a valid saved session opens the appropriate onboarding or main route. A signed-out cold launch opens the account-entry form. Continue locally grants access for the current application process and opens onboarding when incomplete or the main tabs when complete. The choice is intentionally not persisted, so a later signed-out cold launch offers account entry again. Backgrounding does not reset the in-memory local choice.
 
-Account configuration, connectivity, sign-in, and email verification never prevent the user from choosing local access. When public account configuration is missing or invalid, account actions explain that they are unavailable while Continue locally remains active.
+Account configuration, connectivity, sign-in, email verification, and synchronization availability never prevent the user from choosing local access. When public account configuration is missing or invalid, account and synchronization actions explain that they are unavailable while Continue locally remains active. Signing in alone never uploads local planning.
 
 Account headings, fields, validation, confirmation dialogs, recovery instructions, and accessibility labels resolve through the active local profile language. Authored provider errors map to local catalog entries without logging addresses, passwords, callback material, or session values. Changing the interface language does not modify the remote profile locale or send a language preference to the account provider.
 
@@ -47,7 +47,7 @@ Client route protection is not authorization. The database policies remain respo
 
 The remote `public.profiles` table contains the authenticated user identifier, display name, locale, time zone, creation timestamp, and update timestamp. A signup trigger creates the minimum profile. Update triggers maintain the timestamp and reject ownership changes.
 
-No remote planning-content table or synchronization table is included in Phase 3.
+The Phase 3 profile migration contains no planning tables. Phase 9 adds a separate owner-scoped remote planning migration with forced Row Level Security, an operation ledger, an incremental change journal, and authenticated procedures. The two migrations remain ordered and independently deployable.
 
 ## Row Level Security policies
 
@@ -59,7 +59,7 @@ The migration is `supabase/migrations/202608040001_account_profiles.sql`. Apply 
 
 SQLite migration 3 adds `account_links`. A link associates the stable local profile and optional local workspace with the remote account identifier. It contains link status and timestamps but no email, password, or session material.
 
-Sign-in creates or refreshes the link. Sign-out marks the link as unlinked. Neither operation deletes local data, replaces local identifiers, uploads planning content, merges records, or starts synchronization.
+Sign-in creates or refreshes the link. Sign-out marks the link as unlinked. Neither operation deletes local data, replaces local identifiers, uploads planning content, merges records, or starts synchronization. An already enabled binding stops when its account no longer matches. A new account must make a fresh Upload, Merge, or Restore choice.
 
 ## Deep-link and recovery behavior
 
@@ -75,11 +75,11 @@ SQLite remains the immediate source of truth. Local-only startup does not contac
 
 ## Sign-out behavior
 
-Sign-out clears local authentication session material, removes the active account state, marks the local account link as unlinked, and returns to account entry. Local profiles, workspaces, and planning records remain on the device. Sign-out does not implement remote planning-data deletion because planning data is not uploaded.
+Sign-out clears local authentication session material, removes the active account state, marks the local account link as unlinked, and returns to account entry. Local profiles, workspaces, and planning records remain on the device. Sign-out is not cloud deletion and is not account deletion. Cloud planning deletion and authenticated account deletion require separate exact-confirmation actions.
 
 ## Privacy limitations
 
-Native secure storage protects session material using platform facilities, but it does not encrypt the Planora SQLite planning database. Web session persistence is accessible to same-origin browser scripts. Phase 3 does not provide remote planning synchronization, multi-device restore, account export, or complete account deletion workflows.
+Native secure storage protects session material using platform facilities, but it does not encrypt the Planora SQLite planning database. Web session persistence is accessible to same-origin browser scripts. Phase 9 provides optional planning synchronization, restore, portable planning export, cloud deletion, and authenticated account deletion. It does not export session state, provide social identity portability, or make the downloaded export private after it leaves the application.
 
 ## Testing strategy
 
@@ -87,6 +87,6 @@ Automated tests use mocked boundaries and deterministic values for onboarding co
 
 A configured test project is required to verify signup, email confirmation, sign-in, restart restoration, sign-out, password recovery, profile updates, incorrect-password behavior, and two-account policy isolation. Test accounts should be removed afterward only when deletion is safe and authorized.
 
-## Phase 3 limitations
+## Current limitations
 
-Phase 3 provides onboarding, email-and-password account foundations, recovery, minimal profiles, route protection, and authorization policies. Phase 4 adds an authentication-first opening decision, and Phase 5 localizes its presentation, but neither adds a new account provider type or remote planning boundary. Social sign-in, phone sign-in, biometrics, anonymous provider accounts, planning-data synchronization, goals, insights, notifications, payments, export, and full account deletion remain excluded.
+The account provider remains email and password with recovery and a minimal profile. Social sign-in, phone sign-in, biometrics, anonymous provider accounts, payments, subscriptions, paywalls, and collaboration remain excluded. Applying the Phase 9 remote migration, deploying the account-deletion function, two-account policy testing, and two-device synchronization testing remain manual deployment and release work.
