@@ -12,6 +12,11 @@ import type {
   PlanBlockSeries,
   Reflection,
   ReminderIntent,
+  SyncBinding,
+  SyncConflict,
+  SyncDiagnostic,
+  SyncEntityState,
+  PortableEntityType,
   Routine,
   RoutineCheckIn,
   Tag,
@@ -115,7 +120,13 @@ export type DeviceCalendarEventFilter = {
 export type LocalChangeFilter = {
   entityType?: LocalChange['entityType'];
   state?: LocalChange['state'];
+  workspaceId?: string;
+  accountId?: string;
 };
+export type SyncBindingFilter = { workspaceId?: string; accountId?: string; enabled?: boolean };
+export type SyncEntityStateFilter = { workspaceId?: string; entityType?: PortableEntityType; entityId?: string };
+export type SyncConflictFilter = { workspaceId?: string; accountId?: string; status?: SyncConflict['status']; entityType?: PortableEntityType };
+export type SyncDiagnosticFilter = { workspaceId?: string; category?: string; entityType?: PortableEntityType };
 export type AccountLinkFilter = {
   localProfileId?: string;
   remoteAccountId?: string;
@@ -176,6 +187,10 @@ export type AccountLinkRepository = EntityRepository<
   LocalAccountLink,
   AccountLinkFilter
 >;
+export type SyncBindingRepository = EntityRepository<SyncBinding, SyncBindingFilter>;
+export type SyncEntityStateRepository = EntityRepository<SyncEntityState, SyncEntityStateFilter>;
+export type SyncConflictRepository = EntityRepository<SyncConflict, SyncConflictFilter>;
+export type SyncDiagnosticRepository = EntityRepository<SyncDiagnostic, SyncDiagnosticFilter>;
 
 export interface LocalChangeRepository {
   getById(id: string): Promise<LocalChange | null>;
@@ -191,6 +206,15 @@ export interface LocalChangeRepository {
       Omit<LocalChange, 'id' | 'createdAt' | 'updatedAt' | 'revision'>
     > & { expectedRevision?: number },
   ): Promise<LocalChange>;
+  remove(id: string): Promise<void>;
+}
+
+export interface SyncControlRepository {
+  portableType(localChangeId: string): Promise<PortableEntityType | null>;
+  setPortableType(localChangeId: string, entityType: PortableEntityType): Promise<void>;
+  suppress(workspaceId: string): Promise<void>;
+  resume(workspaceId: string): Promise<void>;
+  clearWorkspace(workspaceId: string): Promise<void>;
 }
 
 export type RepositoryScope = {
@@ -213,6 +237,11 @@ export type RepositoryScope = {
   appSettings: AppSettingsRepository;
   accountLinks: AccountLinkRepository;
   localChanges: LocalChangeRepository;
+  syncBindings: SyncBindingRepository;
+  syncEntityStates: SyncEntityStateRepository;
+  syncConflicts: SyncConflictRepository;
+  syncDiagnostics: SyncDiagnosticRepository;
+  syncControl: SyncControlRepository;
 };
 
 export interface RepositoryStore extends RepositoryScope {

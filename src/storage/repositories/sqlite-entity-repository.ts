@@ -1,4 +1,4 @@
-import type { EntityMetadata, LocalChange } from '../../domain/entities/index.ts';
+import type { EntityMetadata, LocalChange, PortableEntityType } from '../../domain/entities/index.ts';
 import { toInstant } from '../../domain/entities/common.ts';
 import type {
   CreateEntityInput,
@@ -6,6 +6,7 @@ import type {
   ListOptions,
   LocalChangeFilter,
   LocalChangeRepository,
+  SyncControlRepository,
   Page,
   UpdateEntityInput,
 } from '../../domain/repositories/contracts.ts';
@@ -182,6 +183,70 @@ export class SqliteEntityRepository<
       throw toStorageError(error, 'WRITE_FAILED', 'Local data could not be removed.');
     }
   }
+
+}
+
+export class SqliteSyncControlRepository implements SyncControlRepository {
+  constructor(private readonly executor: SqlExecutor) {}
+
+  async portableType(localChangeId: string): Promise<PortableEntityType | null> {
+    const row = await this.executor.first<{ portable_entity_type: SqlValue }>(
+      `SELECT portable_entity_type FROM sync_change_details WHERE local_change_id = ?`,
+      [localChangeId],
+    );
+    return typeof row?.portable_entity_type === 'string'
+      ? (row.portable_entity_type as PortableEntityType)
+      : null;
+  }
+
+  async setPortableType(localChangeId: string, entityType: PortableEntityType) {
+    if (!['plan_block_series', 'goal_routine_link', 'reminder_intent'].includes(entityType)) return;
+    await this.executor.run(
+      `INSERT OR REPLACE INTO sync_change_details (local_change_id, portable_entity_type) VALUES (?, ?)`,
+      [localChangeId, entityType],
+    );
+  }
+
+  async suppress(workspaceId: string) {
+    await this.executor.run(
+      `INSERT OR IGNORE INTO sync_suppression (workspace_id) VALUES (?)`,
+      [workspaceId],
+    );
+  }
+
+  async resume(workspaceId: string) {
+    await this.executor.run(`DELETE FROM sync_suppression WHERE workspace_id = ?`, [workspaceId]);
+  }
+
+
+  async clearWorkspace(workspaceId: string) {
+    await this.executor.run(`UPDATE goals SET next_action_task_id = NULL WHERE workspace_id = ?`, [workspaceId]);
+    const tables = [
+      'device_notification_schedules',
+      'device_calendar_events',
+      'reminder_intents',
+      'sync_conflicts',
+      'sync_diagnostics',
+      'sync_entity_states',
+      'local_changes',
+      'reflections',
+      'goal_routine_links',
+      'milestones',
+      'plan_blocks',
+      'plan_block_series',
+      'routine_check_ins',
+      'tasks',
+      'goals',
+      'routines',
+      'tags',
+      'areas',
+      'sync_suppression',
+      'sync_bindings',
+    ];
+    for (const table of tables) {
+      await this.executor.run(`DELETE FROM ${table} WHERE workspace_id = ?`, [workspaceId]);
+    }
+  }
 }
 
 export class SqliteLocalChangeRepository implements LocalChangeRepository {
@@ -298,6 +363,14 @@ export class SqliteLocalChangeRepository implements LocalChangeRepository {
       return entity;
     } catch (error) {
       throw toStorageError(error, 'WRITE_FAILED', 'Local change data could not be updated.');
+    }
+  }
+
+  async remove(id: string) {
+    try {
+      await this.executor.run(`DELETE FROM ${this.mapper.table} WHERE id = ?`, [id]);
+    } catch (error) {
+      throw toStorageError(error, 'WRITE_FAILED', 'Local change data could not be cleared.');
     }
   }
 }

@@ -7,3 +7,4 @@ export * from './organization.ts';
 export * from './planning.ts';
 export * from './reminders.ts';
 export * from './routines.ts';
+export * from './sync.ts';

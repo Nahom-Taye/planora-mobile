@@ -9,6 +9,10 @@ import {
   goalMapper,
   goalRoutineLinkMapper,
   localChangeMapper,
+  syncBindingMapper,
+  syncConflictMapper,
+  syncDiagnosticMapper,
+  syncEntityStateMapper,
   milestoneMapper,
   planBlockMapper,
   planBlockSeriesMapper,
@@ -24,6 +28,7 @@ import {
 import {
   SqliteEntityRepository,
   SqliteLocalChangeRepository,
+  SqliteSyncControlRepository,
   type RepositoryDependencies,
 } from './sqlite-entity-repository.ts';
 
@@ -107,6 +112,11 @@ function createScope(
       localChangeMapper,
       dependencies,
     ),
+    syncBindings: new SqliteEntityRepository(executor, syncBindingMapper, dependencies),
+    syncEntityStates: new SqliteEntityRepository(executor, syncEntityStateMapper, dependencies),
+    syncConflicts: new SqliteEntityRepository(executor, syncConflictMapper, dependencies),
+    syncDiagnostics: new SqliteEntityRepository(executor, syncDiagnosticMapper, dependencies),
+    syncControl: new SqliteSyncControlRepository(executor),
   };
 }
 

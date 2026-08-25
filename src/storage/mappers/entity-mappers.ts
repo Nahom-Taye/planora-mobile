@@ -13,6 +13,10 @@ import type {
   PlanBlockSeries,
   Reflection,
   ReminderIntent,
+  SyncBinding,
+  SyncConflict,
+  SyncDiagnostic,
+  SyncEntityState,
   Routine,
   RoutineCheckIn,
   Tag,
@@ -40,6 +44,10 @@ import type {
   ReflectionFilter,
   ReminderIntentFilter,
   RoutineCheckInFilter,
+  SyncBindingFilter,
+  SyncConflictFilter,
+  SyncDiagnosticFilter,
+  SyncEntityStateFilter,
   WorkspaceEntityFilter,
   WorkspaceFilter,
 } from '../../domain/repositories/contracts.ts';
@@ -1124,8 +1132,13 @@ export const localChangeMapper: EntityMapper<LocalChange, LocalChangeFilter> = {
     'attempt_count',
     'last_attempt_at',
     'error_code',
+    'workspace_id',
+    'base_revision',
+    'account_id',
+    'next_attempt_at',
+    'sync_order',
   ],
-  orderBy: 'created_at ASC, id ASC',
+  orderBy: 'sync_order ASC, created_at ASC, id ASC',
   toRow: (entity) => ({
     id: entity.id,
     created_at: entity.createdAt,
@@ -1139,6 +1152,11 @@ export const localChangeMapper: EntityMapper<LocalChange, LocalChangeFilter> = {
     attempt_count: entity.attemptCount,
     last_attempt_at: entity.lastAttemptAt,
     error_code: entity.errorCode,
+    workspace_id: entity.workspaceId,
+    base_revision: entity.baseRevision,
+    account_id: entity.accountId,
+    next_attempt_at: entity.nextAttemptAt,
+    sync_order: entity.syncOrder,
   }),
   fromRow: (row) => {
     const lastAttemptAt = nullableString(row, 'last_attempt_at');
@@ -1156,11 +1174,56 @@ export const localChangeMapper: EntityMapper<LocalChange, LocalChangeFilter> = {
       attemptCount: numberValue(row, 'attempt_count'),
       lastAttemptAt: lastAttemptAt ? toInstant(lastAttemptAt) : null,
       errorCode: nullableString(row, 'error_code'),
+      workspaceId: nullableString(row, 'workspace_id'),
+      baseRevision: numberValue(row, 'base_revision'),
+      accountId: nullableString(row, 'account_id'),
+      nextAttemptAt: nullableString(row, 'next_attempt_at')
+        ? toInstant(stringValue(row, 'next_attempt_at'))
+        : null,
+      syncOrder: numberValue(row, 'sync_order'),
     };
   },
   buildFilters: (filter) =>
     clauses([
       ['entity_type', filter?.entityType],
       ['state', filter?.state],
+      ['workspace_id', filter?.workspaceId],
+      ['account_id', filter?.accountId],
     ]),
+};
+
+export const syncBindingMapper: EntityMapper<SyncBinding, SyncBindingFilter> = {
+  table: 'sync_bindings',
+  columns: [...metadataColumns, 'workspace_id', 'account_id', 'remote_workspace_id', 'enabled', 'state', 'last_cursor', 'last_success_at', 'error_category', 'restore_cursor', 'restore_state'],
+  orderBy: 'updated_at DESC, id ASC',
+  toRow: (entity) => ({ ...metadataToRow(entity), workspace_id: entity.workspaceId, account_id: entity.accountId, remote_workspace_id: entity.remoteWorkspaceId, enabled: entity.enabled ? 1 : 0, state: entity.state, last_cursor: entity.lastCursor, last_success_at: entity.lastSuccessAt, error_category: entity.errorCategory, restore_cursor: entity.restoreCursor, restore_state: entity.restoreState }),
+  fromRow: (row) => ({ ...metadataFromRow(row), workspaceId: stringValue(row, 'workspace_id'), accountId: stringValue(row, 'account_id'), remoteWorkspaceId: stringValue(row, 'remote_workspace_id'), enabled: numberValue(row, 'enabled') === 1, state: stringValue(row, 'state') as SyncBinding['state'], lastCursor: numberValue(row, 'last_cursor'), lastSuccessAt: nullableString(row, 'last_success_at') ? toInstant(stringValue(row, 'last_success_at')) : null, errorCategory: nullableString(row, 'error_category'), restoreCursor: numberValue(row, 'restore_cursor'), restoreState: stringValue(row, 'restore_state') as SyncBinding['restoreState'] }),
+  buildFilters: (filter) => clauses([['workspace_id', filter?.workspaceId], ['account_id', filter?.accountId], ['enabled', filter?.enabled === undefined ? undefined : filter.enabled ? 1 : 0]]),
+};
+
+export const syncEntityStateMapper: EntityMapper<SyncEntityState, SyncEntityStateFilter> = {
+  table: 'sync_entity_states',
+  columns: [...metadataColumns, 'workspace_id', 'entity_type', 'entity_id', 'remote_revision', 'remote_cursor'],
+  orderBy: 'updated_at ASC, id ASC',
+  toRow: (entity) => ({ ...metadataToRow(entity), workspace_id: entity.workspaceId, entity_type: entity.entityType, entity_id: entity.entityId, remote_revision: entity.remoteRevision, remote_cursor: entity.remoteCursor }),
+  fromRow: (row) => ({ ...metadataFromRow(row), workspaceId: stringValue(row, 'workspace_id'), entityType: stringValue(row, 'entity_type') as SyncEntityState['entityType'], entityId: stringValue(row, 'entity_id'), remoteRevision: numberValue(row, 'remote_revision'), remoteCursor: numberValue(row, 'remote_cursor') }),
+  buildFilters: (filter) => clauses([['workspace_id', filter?.workspaceId], ['entity_type', filter?.entityType], ['entity_id', filter?.entityId]]),
+};
+
+export const syncConflictMapper: EntityMapper<SyncConflict, SyncConflictFilter> = {
+  table: 'sync_conflicts',
+  columns: [...metadataColumns, 'workspace_id', 'account_id', 'entity_type', 'entity_id', 'local_payload_json', 'remote_payload_json', 'base_revision', 'local_revision', 'remote_revision', 'remote_cursor', 'remote_deleted', 'status', 'resolution', 'resolved_at'],
+  orderBy: 'created_at ASC, id ASC',
+  toRow: (entity) => ({ ...metadataToRow(entity), workspace_id: entity.workspaceId, account_id: entity.accountId, entity_type: entity.entityType, entity_id: entity.entityId, local_payload_json: entity.localPayload, remote_payload_json: entity.remotePayload, base_revision: entity.baseRevision, local_revision: entity.localRevision, remote_revision: entity.remoteRevision, remote_cursor: entity.remoteCursor, remote_deleted: entity.remoteDeleted ? 1 : 0, status: entity.status, resolution: entity.resolution, resolved_at: entity.resolvedAt }),
+  fromRow: (row) => ({ ...metadataFromRow(row), workspaceId: stringValue(row, 'workspace_id'), accountId: stringValue(row, 'account_id'), entityType: stringValue(row, 'entity_type') as SyncConflict['entityType'], entityId: stringValue(row, 'entity_id'), localPayload: stringValue(row, 'local_payload_json'), remotePayload: stringValue(row, 'remote_payload_json'), baseRevision: numberValue(row, 'base_revision'), localRevision: numberValue(row, 'local_revision'), remoteRevision: numberValue(row, 'remote_revision'), remoteCursor: numberValue(row, 'remote_cursor'), remoteDeleted: numberValue(row, 'remote_deleted') === 1, status: stringValue(row, 'status') as SyncConflict['status'], resolution: nullableString(row, 'resolution') as SyncConflict['resolution'], resolvedAt: nullableString(row, 'resolved_at') ? toInstant(stringValue(row, 'resolved_at')) : null }),
+  buildFilters: (filter) => clauses([['workspace_id', filter?.workspaceId], ['account_id', filter?.accountId], ['status', filter?.status], ['entity_type', filter?.entityType]]),
+};
+
+export const syncDiagnosticMapper: EntityMapper<SyncDiagnostic, SyncDiagnosticFilter> = {
+  table: 'sync_diagnostics',
+  columns: [...metadataColumns, 'workspace_id', 'category', 'occurred_at', 'attempt_count', 'connectivity', 'entity_type'],
+  orderBy: 'occurred_at DESC, id ASC',
+  toRow: (entity) => ({ ...metadataToRow(entity), workspace_id: entity.workspaceId, category: entity.category, occurred_at: entity.occurredAt, attempt_count: entity.attemptCount, connectivity: entity.connectivity, entity_type: entity.entityType }),
+  fromRow: (row) => ({ ...metadataFromRow(row), workspaceId: nullableString(row, 'workspace_id'), category: stringValue(row, 'category'), occurredAt: toInstant(stringValue(row, 'occurred_at')), attemptCount: numberValue(row, 'attempt_count'), connectivity: stringValue(row, 'connectivity') as SyncDiagnostic['connectivity'], entityType: nullableString(row, 'entity_type') as SyncDiagnostic['entityType'] }),
+  buildFilters: (filter) => clauses([['workspace_id', filter?.workspaceId], ['category', filter?.category], ['entity_type', filter?.entityType]]),
 };

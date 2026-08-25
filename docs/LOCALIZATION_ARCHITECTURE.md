@@ -20,13 +20,13 @@ Manual selection updates the settings row with an expected revision and refreshe
 
 ## Catalog structure and verification
 
-English defines the deep catalog shape and the statically accepted key union. Each non-English catalog must satisfy that shape at compile time. Catalogs are grouped by launch, navigation, authentication, onboarding, Today, tasks, routines, Planner, Settings, storage, validation, errors, and future-placeholders presentation.
+English defines the deep catalog shape and the statically accepted key union. Each non-English catalog must satisfy that shape at compile time. Catalogs are grouped by launch, navigation, authentication, onboarding, Today, tasks, routines, Planner, Goals, Insights, reminders, synchronization, privacy and data controls, Settings, storage, validation, and errors.
 
 The validation command independently flattens every catalog and fails for a missing key, unknown key, placeholder mismatch, or value equal to its raw key. It also decodes project-owned text files with a fatal UTF-8 decoder. Tests exercise English fallback, interpolation, plural branches, all five catalog registrations, Ethiopic and Arabic Unicode ranges, and RTL selection.
 
 ## Locale-aware formatting
 
-Calendar dates are formatted from typed year-month-day values at a safe UTC noon, preserving the intended calendar date. Local times are formatted from typed wall-clock values. `Intl.DateTimeFormat`, `Intl.NumberFormat`, `Intl.ListFormat`, and `Intl.PluralRules` provide localized dates, weekdays, months, times, numbers, lists, duration units, and plural selection.
+Calendar dates are formatted from typed year-month-day values at a safe UTC noon, preserving the intended calendar date. Local times are formatted from typed wall-clock values. `Intl.DateTimeFormat`, `Intl.NumberFormat`, and `Intl.PluralRules` provide localized dates, weekdays, months, times, numbers, duration units, and plural selection. Localized lists use authored conjunction patterns so unsupported runtime list-format capabilities are not required.
 
 Formatting locale follows the selected interface language rather than translating user content. Time-zone calculations remain separate and use the local profile's IANA time zone.
 
@@ -50,4 +50,4 @@ Language controls are radio buttons with selected state and native language name
 
 ## Translation quality boundary
 
-The catalogs are complete and mechanically verified, but automated validation cannot certify naturalness, cultural fit, pronunciation, truncation, or assistive-technology quality. Amharic and the other non-English catalogs require final review by fluent human reviewers before production release. No certified or professionally approved linguistic quality is claimed by Phase 5.
+The catalogs include Phase 9 synchronization, export, conflict, and deletion text and are mechanically complete, but automated validation cannot certify naturalness, cultural fit, pronunciation, truncation, or assistive-technology quality. Amharic and the other non-English catalogs require final review by fluent human reviewers before production release. No certified or professionally approved linguistic quality is claimed.

@@ -4,7 +4,7 @@
 
 Phase 8 adds opt-in local reminders and optional one-way export of eligible plan blocks to a writable device calendar. SQLite remains the source of truth. Reminder intent is portable planning data, while native notification identifiers and device calendar mappings remain local to the device.
 
-Phase 8 does not add remote push notifications, push tokens, calendar import, two-way calendar synchronization, remote planning synchronization, telemetry, payments, subscriptions, sharing, collaboration, or background execution guarantees.
+Phase 8 does not add remote push notifications, push tokens, calendar import, two-way calendar synchronization, telemetry, payments, subscriptions, sharing, collaboration, or background execution guarantees. Phase 9 may synchronize portable reminder intent after explicit activation, but native notification schedules and calendar mappings remain device-local.
 
 ## Module structure
 
@@ -54,7 +54,7 @@ Native notification identifiers and calendar identifiers are separated from port
 
 Reminder intent and preference changes remain available offline. Native scheduling and calendar operations are attempted only on supported devices and surface bounded errors without changing planning records. Reconciliation may be retried from Settings. Revoked permissions, missing events, external calendar edits, unsupported platforms, and missing records have distinct recoverable states.
 
-No planning content is transmitted. There is no remote notification service, remote calendar service, tracking identifier, hidden analytics, or behavioral advertising. Notification and calendar access state, native identifiers, and event mappings remain device-local. SQLite storage is not described as encrypted.
+Phase 8 itself transmits no planning content. Under Phase 9, explicitly enabled planning synchronization can include portable reminder intent but never native notification schedules, notification identifiers, calendar access state, selected calendar identifiers, event identifiers, or mapping fingerprints. There is no remote notification service, remote calendar service, tracking identifier, hidden analytics, or behavioral advertising. SQLite storage is not described as encrypted.
 
 ## Localization and accessibility
 

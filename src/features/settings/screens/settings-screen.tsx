@@ -4,6 +4,7 @@ import { BrandWordmark } from '@/components/brand';
 import { Screen, SectionHeader } from '@/components/ui';
 import { AccountSettingsSection } from '@/features/account';
 import { DataStorageSection } from '@/features/storage';
+import { PrivacyDataSection } from '@/features/sync';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useLocalization } from '@/providers/localization-provider';
 
@@ -28,6 +29,7 @@ export function SettingsScreen() {
       <PlanningPreferencesSection />
       <ReminderCalendarSettingsSection />
       <AccountSettingsSection />
+      <PrivacyDataSection />
       <DataStorageSection />
     </Screen>
   );
