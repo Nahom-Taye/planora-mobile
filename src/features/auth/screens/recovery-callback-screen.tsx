@@ -23,7 +23,7 @@ export function RecoveryCallbackScreen() {
   useEffect(() => {
     if (!url || handledUrl.current === url) return;
     handledUrl.current = url;
-    void account.consumeCallback(url).then((result) => {
+    void account.consumeCallback(url, Linking.createURL('/callback')).then((result) => {
       if (!result.ok) return;
       router.replace(
         result.purpose === 'recovery'

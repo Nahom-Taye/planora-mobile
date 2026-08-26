@@ -12,8 +12,8 @@ const textExtensions = new Set([
   '.yml',
   '.yaml',
 ]);
-const roots = ['app', 'assets', 'docs', 'scripts', 'src', 'supabase', 'tests'];
-const standalone = ['.env.example', '.gitignore', 'README.md', 'app.json', 'eslint.config.js', 'expo-env.d.ts', 'metro.config.js', 'package-lock.json', 'package.json', 'tsconfig.json'];
+const roots = ['app', 'assets', 'docs', 'locales', 'scripts', 'src', 'supabase', 'tests'];
+const standalone = ['.env.example', '.gitignore', 'README.md', 'app.json', 'eas.json', 'eslint.config.js', 'expo-env.d.ts', 'metro.config.js', 'package-lock.json', 'package.json', 'tsconfig.json'];
 
 const files = [
   ...(await Promise.all(roots.map((root) => collect(root)))).flat(),

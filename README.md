@@ -160,6 +160,10 @@ Run the complete project check:
 npm run check
 ```
 
+Release preparation adds `npm run test:phase10` and `npm run verify:release`. The release command runs the combined code checks and Expo dependency compatibility validation; `npm audit` remains a separate visible review because unresolved SDK 54 build-tool findings are documented in [Security](docs/SECURITY.md).
+
+Release behavior, privacy boundaries, manual validation, and store blockers are documented in [Privacy](docs/PRIVACY.md), [Release checklist](docs/RELEASE_CHECKLIST.md), and [Store readiness](docs/STORE_READINESS.md). The application is prepared for release verification but is not claimed as published.
+
 ## Account testing
 
 To test live account behavior, use a non-production Supabase project with email authentication enabled. Verify signup and confirmation, sign-in, restart restoration, sign-out, recovery through the allowed callback, profile editing, incorrect-password behavior, offline startup, and missing-configuration startup. Use two separate identities to confirm profile and planning policy isolation. Use two physical devices to verify explicit Upload, Merge, Restore, conflict, tombstone, reconnect, account-switch, cloud-deletion, and account-deletion behavior. Remove test accounts only when safe and authorized, and never print credentials or session values. These live checks are required and are not claimed by the automated suite.

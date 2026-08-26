@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSCalendarsUsageDescription": "Autorisez Planora à exporter les blocs de planification que vous choisissez vers un calendrier de l’appareil.",
+    "NSCalendarsFullAccessUsageDescription": "Autorisez Planora à exporter les blocs de planification que vous choisissez vers un calendrier de l’appareil."
+  }
+}

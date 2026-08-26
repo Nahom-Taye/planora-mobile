@@ -90,7 +90,7 @@ function recordPayload(value: Json | null) {
   return value as Record<string, unknown>;
 }
 
-function mapRemoteError(error: { code?: string; message?: string; status?: number }) {
+export function mapRemoteError(error: { code?: string; message?: string; status?: number }) {
   if (error.status === 401) return new SyncGatewayError('session_expired');
   if (error.code === '42P01' || error.code === '42883' || error.code === 'PGRST202') return new SyncGatewayError('schema_missing');
   const message = error.message?.toLowerCase() ?? '';

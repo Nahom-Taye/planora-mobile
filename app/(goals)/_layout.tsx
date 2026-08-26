@@ -1,5 +1,11 @@
 import { Stack } from 'expo-router';
 
+import { FeatureErrorBoundary } from '@/features/recovery';
+
 export default function GoalsLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <FeatureErrorBoundary area="goals">
+      <Stack screenOptions={{ headerShown: false }} />
+    </FeatureErrorBoundary>
+  );
 }

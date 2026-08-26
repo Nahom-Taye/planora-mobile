@@ -217,12 +217,15 @@ function useReminderValue(repositories: RepositoryStore | null) {
   const requestNotifications = useCallback(
     () =>
       run(async () => {
-        const permission = await requestNotificationPermission();
+        const permission = await requestNotificationPermission({
+          name: localization.t('nativePermissions.reminderChannel'),
+          description: localization.t('nativePermissions.reminderChannelDescription'),
+        });
         setNotificationPermission(permission);
         if (permission === 'allowed') await reconcile();
         return permission;
       }),
-    [reconcile, run],
+    [localization, reconcile, run],
   );
   const requestCalendar = useCallback(
     () =>

@@ -176,6 +176,16 @@ export function formatLocalTimeValue(time: string, locale: string) {
   }).format(new Date(Date.UTC(2000, 0, 1, hour, minute)));
 }
 
+export function formatInstantValue(value: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(value));
+}
+
 export function formatNumberValue(value: number, locale: string) {
   return new Intl.NumberFormat(locale).format(value);
 }

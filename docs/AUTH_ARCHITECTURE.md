@@ -65,7 +65,7 @@ Sign-in creates or refreshes the link. Sign-out marks the link as unlinked. Neit
 
 The application scheme is `planora`. The production recovery callback is `planora://callback`. Expo Go development uses the callback produced by Expo Linking for the active development URL.
 
-The callback handler accepts a one-time authorization code, verification token hash, recovery token hash, or provider recovery session. Private callback values are consumed in memory and are not written to route parameters, logs, or SQLite. Valid email verification returns to onboarding when needed or the main application, while valid recovery state opens the password-reset screen. Invalid or expired links lead to a recoverable request-new-link path. Continue locally from callback recovery follows the same onboarding decision as the opening screen.
+The callback handler requires the incoming scheme, host, and path to match the callback destination produced for the running application before it accepts a one-time authorization code, verification token hash, recovery token hash, or provider recovery session. Private callback values are consumed in memory and are not written to route parameters, logs, or SQLite. Valid email verification returns to onboarding when needed or the main application, while valid recovery state opens the password-reset screen. Invalid or expired links lead to a recoverable request-new-link path. Continue locally from callback recovery follows the same onboarding decision as the opening screen.
 
 The Supabase project URL configuration must allow the production callback and the development callback used during testing.
 

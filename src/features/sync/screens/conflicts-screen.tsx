@@ -6,6 +6,25 @@ import { canCombineConflict, combineConflictPayload } from '@/features/sync/serv
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useLocalization } from '@/providers/localization-provider';
 import { useSync } from '@/providers/sync-provider';
+import type { PortableEntityType } from '@/domain/entities';
+import type { TranslationKey } from '@/features/localization/catalogs';
+
+const entityTypeKeys: Record<PortableEntityType, TranslationKey> = {
+  workspace: 'entityTypes.workspace',
+  task: 'entityTypes.task',
+  plan_block_series: 'entityTypes.planBlockSeries',
+  plan_block: 'entityTypes.planBlock',
+  routine: 'entityTypes.routine',
+  routine_check_in: 'entityTypes.routineCheckIn',
+  goal: 'entityTypes.goal',
+  milestone: 'entityTypes.milestone',
+  goal_routine_link: 'entityTypes.goalRoutineLink',
+  area: 'entityTypes.area',
+  tag: 'entityTypes.tag',
+  reflection: 'entityTypes.reflection',
+  app_settings: 'entityTypes.appSettings',
+  reminder_intent: 'entityTypes.reminderIntent',
+};
 
 export function ConflictsScreen() {
   const router = useRouter();
@@ -21,7 +40,7 @@ export function ConflictsScreen() {
       <View style={{ gap: theme.spacing.lg, marginTop: theme.spacing.xl }}>
         {sync.conflicts.length ? sync.conflicts.map((conflict) => (
           <Card key={conflict.id}>
-            <Text variant="heading">{localization.t('sync.conflictItem', { type: conflict.entityType })}</Text>
+            <Text variant="heading">{localization.t('sync.conflictItem', { type: localization.t(entityTypeKeys[conflict.entityType]) })}</Text>
             <Text style={{ marginTop: theme.spacing.sm }} tone="textMuted">{localization.t('sync.conflictBasis', { local: conflict.localRevision, remote: conflict.remoteRevision })}</Text>
             <View style={{ gap: theme.spacing.sm, marginTop: theme.spacing.lg }}>
               <Button label={localization.t('sync.keepLocal')} loading={sync.busy} onPress={() => void sync.resolveConflict(conflict.id, 'local')} />

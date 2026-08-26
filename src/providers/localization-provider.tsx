@@ -33,6 +33,7 @@ import {
   directionForLanguage,
   formatCalendarDateValue,
   formatDurationValue,
+  formatInstantValue,
   formatLocalizedList,
   formatLocalTimeValue,
   formatNumberValue,
@@ -63,6 +64,7 @@ type LocalizationContextValue = {
   message: (value: string | null | undefined) => string;
   formatDate: (date: string, options?: Intl.DateTimeFormatOptions) => string;
   formatTime: (time: string) => string;
+  formatInstant: (value: string) => string;
   formatNumber: (value: number) => string;
   formatPercentage: (value: number) => string;
   formatDuration: (minutes: number) => string;
@@ -178,6 +180,7 @@ export function LocalizationProvider({
       formatDate: (date, options = { weekday: 'long', month: 'long', day: 'numeric' }) =>
         formatCalendarDateValue(date, locale, options),
       formatTime: (time) => formatLocalTimeValue(time, locale),
+      formatInstant: (instant) => formatInstantValue(instant, locale),
       formatNumber: (number) => formatNumberValue(number, locale),
       formatPercentage: (number) => formatPercentageValue(number, locale),
       formatDuration: (minutes) => formatDurationValue(minutes, locale, t),

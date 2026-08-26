@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSCalendarsUsageDescription": "Allow Planora to export plan blocks you choose to a device calendar.",
+    "NSCalendarsFullAccessUsageDescription": "Allow Planora to export plan blocks you choose to a device calendar."
+  }
+}

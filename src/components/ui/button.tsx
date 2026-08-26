@@ -14,10 +14,12 @@ import { Text } from './text';
 type ButtonProps = {
   label: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   disabled?: boolean;
   loading?: boolean;
   accessibilityLabel?: string;
+  accessibilityHint?: string;
+  selected?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -28,24 +30,32 @@ export function Button({
   disabled = false,
   loading = false,
   accessibilityLabel,
+  accessibilityHint,
+  selected,
   style,
 }: ButtonProps) {
   const theme = useAppTheme();
   const isDisabled = disabled || loading;
   const isPrimary = variant === 'primary';
   const isSecondary = variant === 'secondary';
+  const isDanger = variant === 'danger';
 
   return (
     <Pressable
       accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityHint={accessibilityHint}
       accessibilityRole="button"
-      accessibilityState={{ busy: loading, disabled: isDisabled }}
+      accessibilityState={{ busy: loading, disabled: isDisabled, selected }}
       disabled={isDisabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.base,
         {
-          backgroundColor: isPrimary ? theme.colors.primary : 'transparent',
+          backgroundColor: isPrimary
+            ? theme.colors.primary
+            : isDanger
+              ? theme.colors.danger
+              : 'transparent',
           borderColor: isSecondary ? theme.colors.border : 'transparent',
           borderRadius: theme.radii.lg,
           opacity: isDisabled ? 0.5 : pressed ? 0.82 : 1,
@@ -56,11 +66,11 @@ export function Button({
     >
       {loading ? (
         <ActivityIndicator
-          color={isPrimary ? theme.colors.onPrimary : theme.colors.primary}
+          color={isPrimary ? theme.colors.onPrimary : isDanger ? theme.colors.onDanger : theme.colors.primary}
         />
       ) : (
         <Text
-          style={{ color: isPrimary ? theme.colors.onPrimary : theme.colors.primary }}
+          style={{ color: isPrimary ? theme.colors.onPrimary : isDanger ? theme.colors.onDanger : theme.colors.primary }}
           variant="label"
         >
           {label}

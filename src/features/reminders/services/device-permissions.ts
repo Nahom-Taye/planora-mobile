@@ -11,6 +11,11 @@ export type DevicePermissionState =
   | 'blocked'
   | 'unavailable';
 
+export type NotificationChannelText = {
+  name: string;
+  description: string;
+};
+
 export async function readNotificationPermission(): Promise<DevicePermissionState> {
   if (Platform.OS === 'web') return 'unavailable';
   try {
@@ -20,9 +25,9 @@ export async function readNotificationPermission(): Promise<DevicePermissionStat
   }
 }
 
-export async function requestNotificationPermission(): Promise<DevicePermissionState> {
+export async function requestNotificationPermission(channel: NotificationChannelText): Promise<DevicePermissionState> {
   if (Platform.OS === 'web') return 'unavailable';
-  await ensureReminderChannel();
+  await ensureReminderChannel(channel);
   try {
     return notificationState(await Notifications.requestPermissionsAsync());
   } catch {
@@ -50,11 +55,11 @@ export async function requestCalendarPermission(): Promise<DevicePermissionState
   }
 }
 
-export async function ensureReminderChannel() {
+export async function ensureReminderChannel(channel: NotificationChannelText) {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync('planora-reminders', {
-    name: 'Planora reminders',
-    description: 'Calm reminders you choose in Planora',
+    name: channel.name,
+    description: channel.description,
     importance: Notifications.AndroidImportance.DEFAULT,
     lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
     sound: null,
