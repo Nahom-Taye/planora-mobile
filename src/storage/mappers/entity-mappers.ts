@@ -1186,6 +1186,7 @@ export const localChangeMapper: EntityMapper<LocalChange, LocalChangeFilter> = {
   buildFilters: (filter) =>
     clauses([
       ['entity_type', filter?.entityType],
+      ['entity_id', filter?.entityId],
       ['state', filter?.state],
       ['workspace_id', filter?.workspaceId],
       ['account_id', filter?.accountId],

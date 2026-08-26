@@ -51,3 +51,5 @@ Language controls are radio buttons with selected state and native language name
 ## Translation quality boundary
 
 The catalogs include Phase 9 synchronization, export, conflict, and deletion text and are mechanically complete, but automated validation cannot certify naturalness, cultural fit, pronunciation, truncation, or assistive-technology quality. Amharic and the other non-English catalogs require final review by fluent human reviewers before production release. No certified or professionally approved linguistic quality is claimed.
+
+Phase 10 adds localized feature-recovery screens, invalid-route recovery, destructive-action labels, conflict entity names, and the Android reminder-channel name and description. Five native locale resource files provide the iOS calendar permission explanation. The release workflow validates those files as UTF-8 along with the interface catalogs. System notification permission wording remains controlled by the operating system.

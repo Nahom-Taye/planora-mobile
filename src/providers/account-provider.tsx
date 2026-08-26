@@ -216,8 +216,9 @@ function useAccountValue() {
   const consumeCallback = useCallback(
     async (
       url: string,
+      expectedDestination?: string,
     ): Promise<OperationResult & { purpose: 'verification' | 'recovery' }> => {
-      const callback = parseRecoveryUrl(url);
+      const callback = parseRecoveryUrl(url, expectedDestination);
       const purpose =
         callback.kind === 'invalid' ? 'recovery' : callback.purpose;
       if (!gateway) return { ok: false, purpose };

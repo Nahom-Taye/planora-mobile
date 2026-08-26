@@ -84,9 +84,16 @@ function parseRecord(value: string) {
 }
 
 async function removeConflictingChanges(repositories: RepositoryStore, workspaceId: string, accountId: string, entityType: string, entityId: string) {
-  const page = await repositories.localChanges.list({ filter: { workspaceId, accountId }, page: { limit: 100, offset: 0 } });
-  for (const change of page.items) {
-    const type = (await repositories.syncControl.portableType(change.id)) ?? change.entityType;
-    if (type === entityType && change.entityId === entityId) await repositories.localChanges.remove(change.id);
-  }
+  const matchingIds: string[] = [];
+  let offset = 0;
+  do {
+    const page = await repositories.localChanges.list({ filter: { workspaceId, accountId, entityId }, page: { limit: 100, offset } });
+    for (const change of page.items) {
+      const type = (await repositories.syncControl.portableType(change.id)) ?? change.entityType;
+      if (type === entityType) matchingIds.push(change.id);
+    }
+    offset = page.nextOffset ?? 0;
+  } while (offset > 0);
+
+  for (const id of matchingIds) await repositories.localChanges.remove(id);
 }

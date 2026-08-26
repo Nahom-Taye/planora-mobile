@@ -1,8 +1,17 @@
 import type { RecoveryCallback } from './auth-types.ts';
 
-export function parseRecoveryUrl(url: string): RecoveryCallback {
+export function parseRecoveryUrl(
+  url: string,
+  expectedDestination?: string,
+): RecoveryCallback {
   try {
     const parsed = new URL(url);
+    if (
+      expectedDestination &&
+      !sameDestination(parsed, new URL(expectedDestination))
+    ) {
+      return { kind: 'invalid' };
+    }
     const fragment = new URLSearchParams(parsed.hash.replace(/^#/, ''));
     const code = parsed.searchParams.get('code');
     const tokenHash = parsed.searchParams.get('token_hash');
@@ -37,4 +46,17 @@ export function parseRecoveryUrl(url: string): RecoveryCallback {
   }
 
   return { kind: 'invalid' };
+}
+
+function sameDestination(actual: URL, expected: URL) {
+  return (
+    actual.protocol === expected.protocol &&
+    actual.host === expected.host &&
+    normalizedPath(actual.pathname) === normalizedPath(expected.pathname)
+  );
+}
+
+function normalizedPath(path: string) {
+  const normalized = path.replace(/\/+$/, '');
+  return normalized || '/';
 }

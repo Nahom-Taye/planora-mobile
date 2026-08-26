@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useLocalization } from '@/providers/localization-provider';
 
 import { BrandWordmark } from './brand-wordmark';
@@ -16,6 +17,7 @@ export function BrandedLaunchScreen({
 }: BrandedLaunchScreenProps) {
   const theme = useAppTheme();
   const localization = useLocalization();
+  const reducedMotion = useReducedMotion();
 
   return (
     <SafeAreaView
@@ -47,7 +49,7 @@ export function BrandedLaunchScreen({
           {message ?? localization.t('launch.tagline')}
         </Text>
       </View>
-      <ActivityIndicator color={theme.colors.accent} style={styles.indicator} />
+      <ActivityIndicator animating={reducedMotion === false} color={theme.colors.accent} style={styles.indicator} />
     </SafeAreaView>
   );
 }

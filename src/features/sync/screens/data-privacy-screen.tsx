@@ -1,9 +1,19 @@
 import { useRouter, type Href } from 'expo-router';
-import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { useRef, useState } from 'react';
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Card, FormField, Screen, SectionHeader, Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useLocalization } from '@/providers/localization-provider';
 import { useSync } from '@/providers/sync-provider';
 
@@ -17,6 +27,8 @@ export function DataPrivacyScreen() {
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [confirmation, setConfirmation] = useState('');
   const [removeCalendarEvents, setRemoveCalendarEvents] = useState(false);
+  const confirmationRef = useRef<TextInput>(null);
+  const reducedMotion = useReducedMotion();
   const statusKey = statusTranslationKey(sync.binding?.state);
 
   const destructiveAction = async () => {
@@ -28,11 +40,27 @@ export function DataPrivacyScreen() {
         ? await sync.deleteCloud(confirmation)
         : await sync.deleteAccount(confirmation);
     if (result !== null) {
-      setPendingAction(null);
-      setConfirmation('');
+      closeConfirmation();
       Alert.alert(localization.t('sync.completedTitle'), localization.t(action === 'clear_device' ? 'sync.deviceCleared' : action === 'delete_cloud' ? 'sync.cloudDeleted' : 'sync.accountDeleted'));
     }
   };
+
+  const closeConfirmation = () => {
+    setPendingAction(null);
+    setConfirmation('');
+    setRemoveCalendarEvents(false);
+  };
+
+  const confirmationDescription = pendingAction === 'clear_device'
+    ? localization.t('sync.confirmClear')
+    : pendingAction === 'delete_cloud'
+      ? localization.t('sync.confirmCloud')
+      : localization.t('sync.confirmAccount');
+  const confirmationAction = pendingAction === 'clear_device'
+    ? localization.t('destructive.clearDevice')
+    : pendingAction === 'delete_cloud'
+      ? localization.t('destructive.deleteCloud')
+      : localization.t('destructive.deleteAccount');
 
   return (
     <Screen testID="privacy-data-screen">
@@ -49,7 +77,7 @@ export function DataPrivacyScreen() {
           {localization.t('sync.pendingCount', { count: sync.pending })}
         </Text>
         {sync.binding?.lastSuccessAt ? (
-          <Text tone="textMuted" variant="caption">{localization.t('sync.lastSuccess', { value: new Intl.DateTimeFormat(localization.locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(sync.binding.lastSuccessAt)) })}</Text>
+          <Text tone="textMuted" variant="caption">{localization.t('sync.lastSuccess', { value: localization.formatInstant(sync.binding.lastSuccessAt) })}</Text>
         ) : null}
         {sync.message ? <Text accessibilityLiveRegion="assertive" style={{ marginTop: theme.spacing.md }} tone="warning">{localization.t('sync.recoverableError')}</Text> : null}
         <View style={[styles.actions, { gap: theme.spacing.md, marginTop: theme.spacing.lg }]}>
@@ -83,27 +111,60 @@ export function DataPrivacyScreen() {
       <View style={{ gap: theme.spacing.md, marginTop: theme.spacing.xxl }}>
         <Text variant="heading">{localization.t('sync.deletionTitle')}</Text>
         <Text tone="textMuted">{localization.t('sync.deletionDescription')}</Text>
-        <Button label={localization.t('sync.clearDevice')} onPress={() => setPendingAction('clear_device')} variant="secondary" />
-        <Button disabled={!sync.binding?.enabled} label={localization.t('sync.deleteCloud')} onPress={() => setPendingAction('delete_cloud')} variant="secondary" />
-        <Button disabled={!sync.signedIn} label={localization.t('sync.deleteAccount')} onPress={() => setPendingAction('delete_account')} variant="secondary" />
+        <Button label={localization.t('sync.clearDevice')} onPress={() => setPendingAction('clear_device')} variant="danger" />
+        <Button disabled={!sync.binding?.enabled} label={localization.t('sync.deleteCloud')} onPress={() => setPendingAction('delete_cloud')} variant="danger" />
+        <Button disabled={!sync.signedIn} label={localization.t('sync.deleteAccount')} onPress={() => setPendingAction('delete_account')} variant="danger" />
       </View>
 
-      {pendingAction ? (
-        <Card style={{ marginTop: theme.spacing.xl }}>
-          <Text variant="heading">{localization.t('sync.confirmTitle')}</Text>
-          <Text style={{ marginTop: theme.spacing.sm }} tone="textMuted">
-            {localization.t(`sync.confirm${pendingAction === 'clear_device' ? 'Clear' : pendingAction === 'delete_cloud' ? 'Cloud' : 'Account'}` as never)}
-          </Text>
-          <FormField autoCapitalize="characters" label={localization.t('sync.confirmation')} onChangeText={setConfirmation} style={{ marginTop: theme.spacing.lg }} value={confirmation} />
-          {pendingAction === 'clear_device' ? (
-            <Button label={localization.t(removeCalendarEvents ? 'calendar.removeBoth' : 'calendar.keepExternal')} onPress={() => setRemoveCalendarEvents((value) => !value)} style={{ marginTop: theme.spacing.md }} variant="secondary" />
-          ) : null}
-          <View style={[styles.actions, { gap: theme.spacing.md, marginTop: theme.spacing.lg }]}>
-            <Button label={localization.t('common.cancel')} onPress={() => { setPendingAction(null); setConfirmation(''); setRemoveCalendarEvents(false); }} style={styles.flex} variant="ghost" />
-            <Button label={localization.t('common.delete')} loading={sync.busy} onPress={() => void destructiveAction()} style={styles.flex} />
-          </View>
-        </Card>
-      ) : null}
+      <Modal
+        accessibilityViewIsModal
+        animationType={reducedMotion === false ? 'fade' : 'none'}
+        onRequestClose={closeConfirmation}
+        onShow={() => confirmationRef.current?.focus()}
+        presentationStyle="overFullScreen"
+        statusBarTranslucent
+        transparent
+        visible={pendingAction !== null}
+      >
+        <SafeAreaView style={[styles.modalOverlay, { backgroundColor: theme.colors.overlay }]}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalKeyboard}>
+            <Card style={styles.modalCard}>
+              <View accessibilityLiveRegion="assertive" accessibilityRole="alert" style={{ gap: theme.spacing.md }}>
+                <Text accessibilityRole="header" variant="heading">{localization.t('sync.confirmTitle')}</Text>
+                <Text tone="textMuted">{confirmationDescription}</Text>
+              </View>
+              <FormField
+                autoCapitalize="characters"
+                autoCorrect={false}
+                label={localization.t('sync.confirmation')}
+                onChangeText={setConfirmation}
+                ref={confirmationRef}
+                style={{ marginTop: theme.spacing.lg }}
+                value={confirmation}
+              />
+              {pendingAction === 'clear_device' ? (
+                <Button
+                  accessibilityHint={localization.t('destructive.calendarStateHint')}
+                  label={localization.t(removeCalendarEvents ? 'calendar.removeBoth' : 'calendar.keepExternal')}
+                  onPress={() => setRemoveCalendarEvents((value) => !value)}
+                  selected={removeCalendarEvents}
+                  style={{ marginTop: theme.spacing.md }}
+                  variant="secondary"
+                />
+              ) : null}
+              {sync.message ? (
+                <Text accessibilityLiveRegion="assertive" style={{ marginTop: theme.spacing.md }} tone="danger">
+                  {localization.t('sync.recoverableError')}
+                </Text>
+              ) : null}
+              <View style={[styles.actions, { gap: theme.spacing.md, marginTop: theme.spacing.lg }]}>
+                <Button label={localization.t('common.cancel')} onPress={closeConfirmation} style={styles.flex} variant="ghost" />
+                <Button label={confirmationAction} loading={sync.busy} onPress={() => void destructiveAction()} style={styles.flex} variant="danger" />
+              </View>
+            </Card>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
     </Screen>
   );
 }
@@ -122,4 +183,7 @@ function statusTranslationKey(state: string | undefined): 'sync.stateLocal' | 's
 const styles = StyleSheet.create({
   actions: { flexDirection: 'row', flexWrap: 'wrap' },
   flex: { flexGrow: 1 },
+  modalCard: { alignSelf: 'center', maxWidth: 560, width: '100%' },
+  modalKeyboard: { justifyContent: 'center', flex: 1 },
+  modalOverlay: { flex: 1, justifyContent: 'center', padding: 24 },
 });

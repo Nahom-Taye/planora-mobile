@@ -13,6 +13,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BrandedLaunchScreen } from '@/components/brand';
 import { StorageInitializationError } from '@/features/storage/components/storage-initialization-error';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { FeatureErrorBoundary } from '@/features/recovery';
 import { AccountProvider, useAccount } from '@/providers/account-provider';
 import { AppEntryProvider, useAppEntry } from '@/providers/app-entry-provider';
 import { LocalizationProvider, useLocalization } from '@/providers/localization-provider';
@@ -28,7 +30,6 @@ import { WorkspaceProvider, useWorkspace } from '@/providers/workspace-provider'
 import { AppThemeProvider } from '@/theme';
 
 void SplashScreen.preventAutoHideAsync();
-SplashScreen.setOptions({ duration: 300, fade: true });
 
 function RootNavigator() {
   const theme = useAppTheme();
@@ -40,13 +41,16 @@ function RootNavigator() {
   const localization = useLocalization();
   const refreshLocalization = localization.refresh;
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
+    if (reducedMotion === null) return;
+    SplashScreen.setOptions({ duration: reducedMotion ? 0 : 300, fade: !reducedMotion });
     void SplashScreen.hideAsync();
-    const launchTimer = setTimeout(() => setShowLaunchScreen(false), 550);
+    const launchTimer = setTimeout(() => setShowLaunchScreen(false), reducedMotion ? 0 : 550);
 
     return () => clearTimeout(launchTimer);
-  }, []);
+  }, [reducedMotion]);
 
   useEffect(() => {
     if (onboarding.status === 'complete') void refreshLocalization();
@@ -70,6 +74,7 @@ function RootNavigator() {
   }, [theme]);
 
   if (
+    reducedMotion === null ||
     showLaunchScreen ||
     !localization.fontsReady ||
     storage.status !== 'ready' ||
@@ -203,7 +208,9 @@ function StorageBackedApplication() {
                   <InsightsProvider repositories={storage.repositories}>
                     <ReminderProvider repositories={storage.repositories}>
                       <SyncProvider repositories={storage.repositories}>
-                        <RootNavigator />
+                        <FeatureErrorBoundary area="today">
+                          <RootNavigator />
+                        </FeatureErrorBoundary>
                       </SyncProvider>
                     </ReminderProvider>
                   </InsightsProvider>

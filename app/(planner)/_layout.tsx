@@ -1,5 +1,11 @@
 import { Stack } from 'expo-router';
 
+import { FeatureErrorBoundary } from '@/features/recovery';
+
 export default function PlannerLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <FeatureErrorBoundary area="planner">
+      <Stack screenOptions={{ headerShown: false }} />
+    </FeatureErrorBoundary>
+  );
 }

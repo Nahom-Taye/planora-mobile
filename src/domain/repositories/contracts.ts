@@ -119,6 +119,7 @@ export type DeviceCalendarEventFilter = {
 };
 export type LocalChangeFilter = {
   entityType?: LocalChange['entityType'];
+  entityId?: string;
   state?: LocalChange['state'];
   workspaceId?: string;
   accountId?: string;

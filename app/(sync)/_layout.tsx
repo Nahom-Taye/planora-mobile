@@ -1,5 +1,11 @@
 import { Stack } from 'expo-router';
 
+import { FeatureErrorBoundary } from '@/features/recovery';
+
 export default function SyncLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <FeatureErrorBoundary area="synchronization">
+      <Stack screenOptions={{ headerShown: false }} />
+    </FeatureErrorBoundary>
+  );
 }

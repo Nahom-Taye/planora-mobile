@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSCalendarsUsageDescription": "Planora የመረጧቸውን የዕቅድ ክፍሎች ወደ መሣሪያ ቀን መቁጠሪያ እንዲልክ ይፍቀዱ።",
+    "NSCalendarsFullAccessUsageDescription": "Planora የመረጧቸውን የዕቅድ ክፍሎች ወደ መሣሪያ ቀን መቁጠሪያ እንዲልክ ይፍቀዱ።"
+  }
+}

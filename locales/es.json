@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSCalendarsUsageDescription": "Permite que Planora exporte los bloques de planificación que elijas a un calendario del dispositivo.",
+    "NSCalendarsFullAccessUsageDescription": "Permite que Planora exporte los bloques de planificación que elijas a un calendario del dispositivo."
+  }
+}

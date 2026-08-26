@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSCalendarsUsageDescription": "اسمح لـ Planora بتصدير كتل التخطيط التي تختارها إلى تقويم الجهاز.",
+    "NSCalendarsFullAccessUsageDescription": "اسمح لـ Planora بتصدير كتل التخطيط التي تختارها إلى تقويم الجهاز."
+  }
+}

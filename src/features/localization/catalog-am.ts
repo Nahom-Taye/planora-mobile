@@ -61,6 +61,21 @@ export const am = {
   sync: {
     eyebrow: 'ግላዊነት እና ውሂብ', title: 'ግላዊነት እና ውሂብ', description: 'ውሂብዎን ይላኩ ወይም ያስወግዱ፤ ከግልጽ ምርጫ በኋላም ዕቅድን በፈቃድ ያመሳስሉ።', settingsTitle: 'ግላዊነት እና ውሂብ', settingsDescription: 'የአካባቢ ውሂብ፣ ተንቀሳቃሽ ወጪ፣ አማራጭ ማመሳሰል እና የመለያ ስረዛን ያስተዳድሩ።', manage: 'ግላዊነትን እና ውሂብን ያስተዳድሩ', localOnly: 'በመሣሪያው ብቻ', enabled: 'ማመሳሰል ነቅቷል', localFirst: 'SQLite ፈጣን የመረጃ ምንጭ ሆኖ ይቆያል። መደበኛ ዕቅድ አውታረ መረብን አይጠብቅም።', status: 'የማመሳሰል ሁኔታ', stateLocal: 'በመሣሪያው ብቻ። ምንም አይላክም።', stateIdle: 'ከመጨረሻው የተጠናቀቀ ማረጋገጫ በኋላ ዘምኗል።', stateSyncing: 'የተገደበ ስብስብ እየተመሳሰለ ነው።', stateOffline: 'ከመስመር ውጭ። የሚጠባበቁ ለውጦች በደህና ተሰልፈዋል።', stateError: 'ማመሳሰሉ ሌላ ሙከራ ይፈልጋል። የአካባቢ ዕቅድ አሁንም ይገኛል።', stateConflict: 'አንድ ወይም ከዚያ በላይ ለውጦች ምርጫዎን ይፈልጋሉ።', stateRestoring: 'የተገደበ ስብስብ ወደ አካባቢ ማከማቻ እየተመለሰ ነው።', stateAccountMismatch: 'ሌላ መለያ ስለገባ ማመሳሰል ቆሟል።', pendingCount: '{{count}} የአካባቢ ለውጦች ተሰልፈዋል', lastSuccess: 'የመጨረሻ የተጠናቀቀ ማረጋገጫ፦ {{value}}', recoverableError: 'የርቀት ጥያቄው አልተጠናቀቀም። የአካባቢ ውሂብ አልተወገደም።', syncNow: 'አሁን ያመሳስሉ', disable: 'ማመሳሰልን ያጥፉ', upload: 'ይህን መሣሪያ ይላኩ', merge: 'ከደመና ቦታ ጋር ያዋህዱ', restore: 'የደመና ቦታን ይመልሱ', activationNote: 'መግባት ይህን በራስ-ሰር አያነቃም። መላክ ይህን መሣሪያ መነሻ ያደርጋል፤ ማዋሃድ የአካባቢ መዝገቦችን ይጠብቃል፤ መመለስ የባለቤትነት መዝገቦችን ያወርዳል።', signInRequired: 'መጀመሪያ ይግቡ፣ ከዚያ ግልጽ የማመሳሰል ምርጫ ለማድረግ ወደዚህ ይመለሱ።', unavailable: 'የርቀት መለያ አገልግሎቶች አልተዋቀሩም። የአካባቢ ዕቅድ ሙሉ በሙሉ ይገኛል።', reviewConflicts: 'ግጭቶችን ይመልከቱ ({{count}})', conflictEyebrow: 'የእርስዎ ምርጫ', conflictTitle: 'የተመሳሰሉ ለውጦችን ይፍቱ', conflictDescription: 'ምን እንደሚቆይ እስኪመርጡ ድረስ ሁለቱም ስሪቶች ይጠበቃሉ።', conflictItem: 'የ{{type}} ለውጥ', conflictBasis: 'የአካባቢ ክለሳ {{local}} እና የደመና ክለሳ {{remote}} በተናጠል ተለውጠዋል።', keepLocal: 'የአካባቢ ስሪትን ያቆዩ', keepCloud: 'የደመና ስሪትን ያቆዩ', combineText: 'የሚደገፍ ጽሑፍ ያዋህዱ', noConflicts: 'አሁን መፍትሔ የሚፈልግ ለውጥ የለም።', exportTitle: 'ተንቀሳቃሽ ወጪ', exportDescription: 'የመግቢያ መረጃ ወይም የመሣሪያ ማሳወቂያና ቀን መቁጠሪያ መለያዎች የሌሉበት የዕቅድ ውሂብ JSON ቅጂ ይፍጠሩ።', exportAction: 'የዕቅድ ውሂብን ይላኩ', exportDialog: 'የPlanora ዕቅድ ውሂብን ይላኩ', deletionTitle: 'የማስወገድ መቆጣጠሪያዎች', deletionDescription: 'እነዚህ ድርጊቶች የተለያዩ ናቸው። ያልተሳካ የርቀት ድርጊት ተጠናቋል ተብሎ አይታወቅም።', clearDevice: 'የዕቅድ ውሂብን ከዚህ መሣሪያ ያጽዱ', deleteCloud: 'የተመሳሰለ የደመና ውሂብን ይሰርዙ', deleteAccount: 'የPlanora መለያን ይሰርዙ', confirmTitle: 'የማረጋገጫ ሐረጉን ይጻፉ', confirmClear: 'CLEAR ይጻፉ። ይህ የዕቅድ መዝገቦችን ከመሣሪያው ያስወግዳል፤ የደመና ውሂብን ወይም መለያን አይሰርዝም።', confirmCloud: 'DELETE CLOUD ይጻፉ። ይህ የተመሳሰሉ መዝገቦችን ከመለያው ያስወግዳል፣ መለያውንና የመሣሪያውን ውሂብ ግን ይጠብቃል።', confirmAccount: 'DELETE ACCOUNT ይጻፉ። አገልጋዩ የገባውን መለያ መሰረዝ አለበት። የመሣሪያ ውሂብ በተለየ እስኪጸዳ ድረስ ይቆያል።', confirmation: 'የማረጋገጫ ሐረግ', completedTitle: 'ድርጊቱ ተጠናቋል', deviceCleared: 'የዕቅድ ውሂብ ከዚህ መሣሪያ ተጽድቷል።', cloudDeleted: 'የተመሳሰለ የደመና ውሂብ ተሰርዟል።', accountDeleted: 'የመለያ ስረዛ ጥያቄው ተጠናቋል። የመሣሪያ ውሂብ በራስ-ሰር አልተወገደም።',
   },
+  entityTypes: {
+    workspace: 'የሥራ ቦታ', task: 'ተግባር', planBlockSeries: 'ተደጋጋሚ ዕቅድ', planBlock: 'የዕቅድ ክፍል', routine: 'ልማድ', routineCheckIn: 'የልማድ ምዝገባ', goal: 'ግብ', milestone: 'ደረጃ', goalRoutineLink: 'የግብና ልማድ አገናኝ', area: 'አካባቢ', tag: 'መለያ', reflection: 'ነጸብራቅ', appSettings: 'የዕቅድ ምርጫዎች', reminderIntent: 'የማስታወሻ ምርጫ',
+  },
+  recoveryBoundary: {
+    title: 'ይህ ክፍል ሌላ ሙከራ ይፈልጋል', description: 'የተቀመጠው የአካባቢ ውሂብዎ አልተቀየረም። ክፍሉን እንደገና ይክፈቱ ወይም ወደ ዛሬ ይመለሱ።', retry: 'ይህን ክፍል እንደገና ሞክር', retryHint: 'የአካባቢ ውሂብን ሳያጠፋ ይህን ክፍል ብቻ እንደገና ይጀምራል።', today: 'ወደ ዛሬ ተመለስ', todayHint: 'ይህን ክፍል ትቶ ዛሬን ይከፍታል።',
+  },
+  notFound: {
+    eyebrow: 'ደህንነቱ የተጠበቀ መመለሻ', title: 'ያ መድረሻ አይገኝም', description: 'አገናኙ ያልተሟላ ሊሆን ወይም ከሚገኝ መዝገብ ጋር ላይገናኝ ይችላል። የተቀመጠው ውሂብዎ አልተቀየረም።', today: 'ዛሬን ክፈት',
+  },
+  destructive: {
+    clearDevice: 'የመሣሪያ ውሂብ አጥፋ', deleteCloud: 'የደመና ውሂብ አጥፋ', deleteAccount: 'መለያ አጥፋ', calendarStateHint: 'የተገናኙ የመሣሪያ ቀን መቁጠሪያ ክስተቶችም ይወገዱ እንደሆነ ይምረጡ።',
+  },
+  nativePermissions: {
+    reminderChannel: 'የPlanora ማስታወሻዎች', reminderChannelDescription: 'በPlanora ውስጥ በግልጽ የመረጧቸው ማስታወሻዎች',
+  },
   settings: {
     eyebrow: 'የእርስዎ ቦታ', title: 'ቅንብሮች', description: 'Planora እንዴት እንደሚታይና እንደሚሠራ ከመጀመሪያው በተደራሽ ምርጫዎች ያስተካክሉ።', language: 'ቋንቋ', languageDescription: 'ለዚህ የአካባቢ መገለጫ የመተግበሪያ ቋንቋ ይምረጡ።', systemLanguage: 'የመሣሪያውን ቋንቋ ተጠቀም', directionRestart: 'የቀኝ ወደ ግራ አቀማመጥን በመተግበሪያው ሁሉ ለመተግበር Planoraን እንደገና ያስጀምሩ። Expo Go ይህን ምርጫ ሊመልስ ይችላል፤ የRTL ማረጋገጫ ለማድረግ የልማት ስሪት ይጠቀሙ።', planning: 'የእቅድ ምርጫዎች', planningDescription: 'የሥራ ጫናን ለማነጻጸር የተረጋጋ ዕለታዊ አቅም ይወስኑ።', capacity: 'ዕለታዊ አቅም በደቂቃ', capacityHint: 'ከ30 እስከ 1,440 ደቂቃ ይምረጡ።', saveCapacity: 'አቅም አስቀምጥ', saved: 'ምርጫው ተቀምጧል።',
   },
