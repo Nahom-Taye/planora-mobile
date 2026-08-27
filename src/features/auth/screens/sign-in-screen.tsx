@@ -49,9 +49,10 @@ export function SignInScreen() {
 
   return (
     <AuthScaffold
+      backFallback="/(auth)/welcome"
       description={localization.t('auth.signInDescription')}
       icon="log-in-outline"
-      showBack={false}
+      showBack
       title={localization.t('auth.signInTitle')}
     >
       <AuthErrorSummary message={account.errorMessage} />

@@ -15,6 +15,7 @@ import { useGoals } from '@/providers/goal-provider';
 import { useLocalization } from '@/providers/localization-provider';
 import { usePlanning } from '@/providers/planning-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 import { TaskForm } from '../components/task-form';
 
@@ -61,7 +62,7 @@ export function TaskEditorScreen({ create = false }: TaskEditorScreenProps) {
     operation: () => ReturnType<typeof planning.completeTask>,
   ) => {
     const result = await operation();
-    if (result.ok) router.back();
+    if (result.ok) goBackOrReplace(router, '/(tasks)/tasks');
   };
 
   const cancel = () => {
@@ -92,7 +93,7 @@ export function TaskEditorScreen({ create = false }: TaskEditorScreenProps) {
           style: 'destructive',
           onPress: () => {
             void planning.deleteTask(task).then((result) => {
-              if (result.ok) router.back();
+              if (result.ok) goBackOrReplace(router, '/(tasks)/tasks');
             });
           },
         },
@@ -106,7 +107,7 @@ export function TaskEditorScreen({ create = false }: TaskEditorScreenProps) {
         <Pressable
           accessibilityLabel={localization.t('common.goBack')}
           accessibilityRole="button"
-          onPress={() => router.back()}
+          onPress={() => goBackOrReplace(router, '/(tasks)/tasks')}
           style={styles.iconButton}
         >
           <Ionicons color={theme.colors.text} name={localization.isRTL ? 'arrow-forward' : 'arrow-back'} size={24} />
@@ -155,7 +156,7 @@ export function TaskEditorScreen({ create = false }: TaskEditorScreenProps) {
             const result = task
               ? await planning.updateTask(task, draft)
               : await planning.createTask(draft, params.goalId ?? null);
-            if (result.ok) router.back();
+            if (result.ok) goBackOrReplace(router, '/(tasks)/tasks');
             return result;
           }}
           task={task ?? undefined}

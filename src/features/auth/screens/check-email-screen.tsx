@@ -17,6 +17,7 @@ export function CheckEmailScreen() {
 
   return (
     <AuthScaffold
+      backFallback="/(auth)/sign-in"
       description={localization.t('auth.checkEmailDescription')}
       eyebrow={localization.t('auth.checkEmailEyebrow')}
       icon="mail-outline"

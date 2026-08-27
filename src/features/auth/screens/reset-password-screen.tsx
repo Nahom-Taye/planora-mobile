@@ -40,10 +40,11 @@ export function ResetPasswordScreen() {
 
   return (
     <AuthScaffold
+      backFallback="/(auth)/forgot-password"
       description={localization.t('auth.choosePasswordDescription')}
       eyebrow={localization.t('auth.secureRecovery')}
       icon="lock-closed-outline"
-      showBack={false}
+      showBack
       title={localization.t('auth.choosePassword')}
     >
       <AuthErrorSummary message={account.errorMessage} />

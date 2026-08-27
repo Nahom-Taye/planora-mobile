@@ -41,11 +41,7 @@ export function buildTodayPlan(
       (task) =>
         (task.status === 'completed' || task.status === 'cancelled') &&
         (task.dueDate === today ||
-          (timeZone &&
-            localCalendarDate(
-              new Date(task.completedAt ?? task.updatedAt),
-              timeZone,
-            ) === today)),
+          completionCalendarDate(task, timeZone) === today),
     )
     .sort(compareTasks);
   const routineCompletions = todayRoutines.filter((routine) =>
@@ -79,6 +75,17 @@ export function buildTodayPlan(
       actionable.filter((task) => !task.dueDate || task.dueDate <= today).length +
       todayRoutines.length,
   };
+}
+
+function completionCalendarDate(task: Task, timeZone?: TimeZone) {
+  if (!timeZone) return null;
+  const instant = new Date(task.completedAt ?? task.updatedAt);
+  if (!Number.isFinite(instant.getTime())) return null;
+  try {
+    return localCalendarDate(instant, timeZone);
+  } catch {
+    return null;
+  }
 }
 
 export { compareTasks } from '../../tasks/services/task-organization.ts';

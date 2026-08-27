@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { type PropsWithChildren } from 'react';
 import {
   KeyboardAvoidingView,
@@ -16,6 +16,7 @@ import { Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useLocalization } from '@/providers/localization-provider';
 import { MAX_CONTENT_WIDTH, MIN_TOUCH_TARGET } from '@/utils/layout';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 type AuthScaffoldProps = PropsWithChildren<{
   title: string;
@@ -23,6 +24,7 @@ type AuthScaffoldProps = PropsWithChildren<{
   eyebrow?: string;
   icon?: keyof typeof Ionicons.glyphMap;
   showBack?: boolean;
+  backFallback?: Href;
 }>;
 
 export function AuthScaffold({
@@ -32,6 +34,7 @@ export function AuthScaffold({
   eyebrow,
   icon = 'person-outline',
   showBack = true,
+  backFallback = '/(auth)/welcome',
 }: AuthScaffoldProps) {
   const theme = useAppTheme();
   const router = useRouter();
@@ -55,7 +58,7 @@ export function AuthScaffold({
                 <Pressable
                   accessibilityLabel={localization.t('common.goBack')}
                   accessibilityRole="button"
-                  onPress={() => router.back()}
+                  onPress={() => goBackOrReplace(router, backFallback)}
                   style={styles.backButton}
                 >
                   <Ionicons

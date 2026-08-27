@@ -8,6 +8,7 @@ import { ReminderAction } from '@/features/reminders/components/reminder-action'
 import { useLocalization } from '@/providers/localization-provider';
 import { usePlanning } from '@/providers/planning-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 import { RoutineForm } from '../components/routine-form';
 
@@ -52,7 +53,7 @@ export function RoutineEditorScreen({ create = false }: { create?: boolean }) {
         <Pressable
           accessibilityLabel={localization.t('common.goBack')}
           accessibilityRole="button"
-          onPress={() => router.back()}
+          onPress={() => goBackOrReplace(router, '/(routines)/routines')}
           style={styles.iconButton}
         >
           <Ionicons color={theme.colors.text} name={localization.isRTL ? 'arrow-forward' : 'arrow-back'} size={24} />
@@ -79,7 +80,7 @@ export function RoutineEditorScreen({ create = false }: { create?: boolean }) {
             const result = routine
               ? await planning.updateRoutine(routine, draft)
               : await planning.createRoutine(draft);
-            if (result.ok) router.back();
+            if (result.ok) goBackOrReplace(router, '/(routines)/routines');
             return result;
           }}
           routine={routine ?? undefined}

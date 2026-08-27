@@ -72,6 +72,7 @@ export function CreateAccountScreen() {
 
   return (
     <AuthScaffold
+      backFallback="/(auth)/welcome"
       description={localization.t('auth.createDescription')}
       icon="person-add-outline"
       title={localization.t('auth.createTitle')}

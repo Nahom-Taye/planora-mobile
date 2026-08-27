@@ -7,6 +7,7 @@ import { GoalScreenHeader } from '@/features/goals/components/goal-screen-header
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useGoals } from '@/providers/goal-provider';
 import { useLocalization } from '@/providers/localization-provider';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 export function GoalEditorScreen({ create = false }: { create?: boolean }) {
   const theme = useAppTheme();
@@ -28,7 +29,7 @@ export function GoalEditorScreen({ create = false }: { create?: boolean }) {
   return (
     <Screen testID={create ? 'create-goal-screen' : 'edit-goal-screen'}>
       <GoalScreenHeader
-        onBack={() => router.back()}
+        onBack={() => goBackOrReplace(router, '/(tabs)/goals')}
         title={localization.t(create ? 'goals.create' : 'goals.edit')}
       />
       <Text style={{ marginBottom: theme.spacing.xl }} tone="textMuted">
@@ -50,7 +51,7 @@ export function GoalEditorScreen({ create = false }: { create?: boolean }) {
             const result = goal
               ? await goals.updateGoal(goal, draft)
               : await goals.createGoal(draft);
-            if (result.ok) router.back();
+            if (result.ok) goBackOrReplace(router, '/(tabs)/goals');
             return result;
           }}
         />

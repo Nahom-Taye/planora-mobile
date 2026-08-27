@@ -20,7 +20,9 @@ import { confirmationMatches, DataControlService } from '@/features/sync/service
 import { PlanningExportService } from '@/features/sync/services/planning-export';
 import { SupabaseSyncGateway } from '@/features/sync/services/supabase-sync-gateway';
 import { SyncActivationService, type SyncActivationMode } from '@/features/sync/services/sync-activation';
-import { SyncEngine, type SyncRunResult } from '@/features/sync/services/sync-engine';
+import { AutomaticSyncCoordinator, automaticRetryDelay, type AutomaticSyncReason } from '@/features/sync/services/automatic-sync';
+import { SyncCancelledError, SyncEngine, type SyncRunResult } from '@/features/sync/services/sync-engine';
+import { subscribeLocalDataChanges } from '@/storage/repositories/local-data-change-signal';
 
 import { useAccount } from './account-provider';
 import { useWorkspace } from './workspace-provider';
@@ -52,7 +54,11 @@ function useSyncValue(repositories: RepositoryStore | null) {
   const [pending, setPending] = useState(0);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [online, setOnline] = useState(true);
   const operation = useRef(false);
+  const automaticDeferred = useRef(false);
+  const automaticCoordinator = useRef<AutomaticSyncCoordinator | null>(null);
+  const automaticLifecycle = useRef(false);
   const activeWorkspaceId = workspace.workspace?.id ?? null;
   const accountId = account.session?.accountId ?? null;
   const activeAccount = useRef(accountId);
@@ -88,12 +94,18 @@ function useSyncValue(repositories: RepositoryStore | null) {
       await refresh();
       return result;
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'sync_error');
+      if (!(error instanceof SyncCancelledError)) {
+        setMessage(error instanceof Error ? error.message : 'sync_error');
+      }
       await refresh().catch(() => undefined);
       return null;
     } finally {
       operation.current = false;
       setBusy(false);
+      if (automaticDeferred.current) {
+        automaticDeferred.current = false;
+        automaticCoordinator.current?.trigger('settled');
+      }
     }
   }, [refresh]);
 
@@ -102,20 +114,84 @@ function useSyncValue(repositories: RepositoryStore | null) {
     return run(() => engine.run(activeWorkspaceId, accountId, () => activeAccount.current === accountId));
   }, [accountId, activeWorkspaceId, engine, run]);
 
+  const automaticAttempt = useCallback(async (reason: AutomaticSyncReason) => {
+    if (!repositories || !activeWorkspaceId || !accountId) return;
+    if (operation.current) {
+      automaticDeferred.current = true;
+      return;
+    }
+    if (reason === 'queue' || reason === 'settled') {
+      const page = await repositories.localChanges.list({
+        filter: { workspaceId: activeWorkspaceId, accountId },
+        page: { limit: 1, offset: 0 },
+      });
+      if (page.items.length === 0) {
+        await refresh();
+        return;
+      }
+    }
+    if (!engine) return;
+    await run(() => engine.run(
+      activeWorkspaceId,
+      accountId,
+      () => activeAccount.current === accountId && automaticLifecycle.current,
+    ));
+    const remaining = await repositories.localChanges.list({
+      filter: { workspaceId: activeWorkspaceId, accountId },
+      page: { limit: 100, offset: 0 },
+    });
+    const retryDelay = automaticRetryDelay(remaining.items, Date.now());
+    if (retryDelay !== null) {
+      automaticCoordinator.current?.triggerAfter('queue', retryDelay);
+    }
+  }, [accountId, activeWorkspaceId, engine, refresh, repositories, run]);
+
   useEffect(() => {
-    if (!binding?.enabled || !accountId) return;
-    void synchronize();
+    automaticCoordinator.current?.stop();
+    automaticCoordinator.current = null;
+    automaticLifecycle.current = false;
+    if (!binding?.enabled || !accountId || binding.accountId !== accountId) return;
+    let active = AppState.currentState === 'active';
+    let connected = true;
+    let disposed = false;
+    automaticLifecycle.current = active && connected;
+    const coordinator = new AutomaticSyncCoordinator({
+      canRun: () => !disposed && active && connected && activeAccount.current === accountId,
+      run: automaticAttempt,
+    });
+    automaticCoordinator.current = coordinator;
+    const unsubscribeChanges = subscribeLocalDataChanges(() => coordinator.trigger('queue'));
     const appSubscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') void synchronize();
+      active = state === 'active';
+      automaticLifecycle.current = active && connected;
+      if (active) coordinator.trigger('foreground');
+      else coordinator.suspend();
     });
     const networkSubscription = Network.addNetworkStateListener((state) => {
-      if (state.isConnected && state.isInternetReachable !== false) void synchronize();
+      const wasConnected = connected;
+      connected = Boolean(state.isConnected && state.isInternetReachable !== false);
+      automaticLifecycle.current = active && connected;
+      setOnline(connected);
+      if (!wasConnected && connected) coordinator.trigger('reconnect');
+      else if (!connected) coordinator.suspend();
+    });
+    void Network.getNetworkStateAsync().then((state) => {
+      if (disposed) return;
+      connected = Boolean(state.isConnected && state.isInternetReachable !== false);
+      automaticLifecycle.current = active && connected;
+      setOnline(connected);
+      if (connected) coordinator.trigger('foreground');
     });
     return () => {
+      disposed = true;
+      automaticLifecycle.current = false;
+      coordinator.stop();
+      if (automaticCoordinator.current === coordinator) automaticCoordinator.current = null;
+      unsubscribeChanges();
       appSubscription.remove();
       networkSubscription.remove();
     };
-  }, [accountId, binding?.accountId, binding?.enabled, synchronize]);
+  }, [accountId, automaticAttempt, binding?.accountId, binding?.enabled]);
 
   const enable = useCallback((mode: SyncActivationMode) => {
     if (!activation || !activeWorkspaceId || !accountId) return Promise.resolve(null);
@@ -162,6 +238,7 @@ function useSyncValue(repositories: RepositoryStore | null) {
     pending,
     busy,
     message,
+    online,
     refresh,
     synchronize,
     enable,

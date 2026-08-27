@@ -9,6 +9,7 @@ import { validateDisplayName } from '@/features/auth/services/auth-validation';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAccount } from '@/providers/account-provider';
 import { useLocalization } from '@/providers/localization-provider';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 export function AccountProfileScreen() {
   const theme = useAppTheme();
@@ -36,11 +37,12 @@ export function AccountProfileScreen() {
       locale: account.profile?.locale ?? resolved.locale ?? 'en-US',
       timeZone: account.profile?.timeZone ?? resolved.timeZone ?? 'UTC',
     });
-    if (result.ok) router.back();
+    if (result.ok) goBackOrReplace(router, '/(tabs)/settings');
   };
 
   return (
     <AuthScaffold
+      backFallback="/(tabs)/settings"
       description={localization.t('auth.profileDescription')}
       eyebrow={localization.t('auth.profileEyebrow')}
       icon="person-circle-outline"

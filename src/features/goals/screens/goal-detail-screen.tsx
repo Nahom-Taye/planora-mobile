@@ -12,6 +12,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useGoals } from '@/providers/goal-provider';
 import { useLocalization } from '@/providers/localization-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 export function GoalDetailScreen() {
   const theme = useAppTheme();
@@ -25,7 +26,7 @@ export function GoalDetailScreen() {
     return (
       <Screen>
         <GoalScreenHeader
-          onBack={() => router.back()}
+          onBack={() => goBackOrReplace(router, '/(tabs)/goals')}
           title={localization.t('goals.details')}
         />
         <Card variant="subtle">
@@ -63,7 +64,7 @@ export function GoalDetailScreen() {
         onAction={() =>
           router.push({ pathname: '/(goals)/goals/[id]/edit', params: { id: goal.id } })
         }
-        onBack={() => router.back()}
+        onBack={() => goBackOrReplace(router, '/(tabs)/goals')}
         title={localization.t('goals.details')}
       />
       <View style={{ gap: theme.spacing.sm }}>

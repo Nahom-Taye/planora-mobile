@@ -60,7 +60,7 @@ export function ReminderCalendarSettingsSection() {
           {localization.t(`reminders.permission${capitalize(reminders.notificationPermission)}` as never)}
         </Text>
         <Text tone="textMuted" variant="caption">{localization.t('reminders.permissionExplanation')}</Text>
-        {reminders.notificationPermission !== 'allowed' ? (
+        {reminders.notificationPermission !== 'allowed' && reminders.notificationPermission !== 'developmentBuildRequired' ? (
           <Button
             label={localization.t(reminders.notificationPermission === 'blocked' ? 'reminders.openSettings' : 'reminders.allow')}
             onPress={() => reminders.notificationPermission === 'blocked' ? void Linking.openSettings() : void reminders.requestNotifications()}

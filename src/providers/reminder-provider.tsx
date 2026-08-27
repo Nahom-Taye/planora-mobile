@@ -1,4 +1,4 @@
-import * as Notifications from 'expo-notifications';
+import type { NotificationResponse } from 'expo-notifications';
 import { useRouter, type Href } from 'expo-router';
 import {
   createContext,
@@ -10,7 +10,7 @@ import {
   useState,
   type PropsWithChildren,
 } from 'react';
-import { AppState, Platform } from 'react-native';
+import { AppState } from 'react-native';
 
 import {
   CalendarInteropService,
@@ -27,6 +27,7 @@ import {
 } from '@/features/reminders/services/device-permissions';
 import { resolveNotificationDestination } from '@/features/reminders/services/notification-navigation';
 import { expoNotificationGateway } from '@/features/reminders/services/notification-device';
+import { loadNotificationModule } from '@/features/reminders/services/notification-runtime';
 import {
   ReminderLifecycleService,
   ReminderValidationError,
@@ -163,7 +164,7 @@ function useReminderValue(repositories: RepositoryStore | null) {
   }, [reconcile, refreshPermissions]);
 
   const handleResponse = useCallback(
-    async (response: Notifications.NotificationResponse | null) => {
+    async (response: NotificationResponse | null) => {
       if (!response || !repositories || !workspace.workspace) return;
       const request = response.notification.request;
       if (handledResponse.current === request.identifier) return;
@@ -186,10 +187,17 @@ function useReminderValue(repositories: RepositoryStore | null) {
   );
 
   useEffect(() => {
-    if (Platform.OS === 'web') return;
-    void Notifications.getLastNotificationResponseAsync().then(handleResponse);
-    const subscription = Notifications.addNotificationResponseReceivedListener(handleResponse);
-    return () => subscription.remove();
+    let disposed = false;
+    let subscription: { remove: () => void } | null = null;
+    void loadNotificationModule().then((notifications) => {
+      if (!notifications || disposed) return;
+      void notifications.getLastNotificationResponseAsync().then(handleResponse);
+      subscription = notifications.addNotificationResponseReceivedListener(handleResponse);
+    });
+    return () => {
+      disposed = true;
+      subscription?.remove();
+    };
   }, [handleResponse]);
 
   const run = useCallback(async <TResult,>(operation: () => Promise<TResult>) => {

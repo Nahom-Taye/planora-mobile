@@ -9,6 +9,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useGoals } from '@/providers/goal-provider';
 import { useLocalization } from '@/providers/localization-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 export function GoalLinkScreen({ mode }: { mode: 'tasks' | 'routines' }) {
   const theme = useAppTheme();
@@ -22,7 +23,7 @@ export function GoalLinkScreen({ mode }: { mode: 'tasks' | 'routines' }) {
     return (
       <Screen>
         <GoalScreenHeader
-          onBack={() => router.back()}
+          onBack={() => goBackOrReplace(router, '/(tabs)/goals')}
           title={localization.t('goals.unavailable')}
         />
         <Text tone="textMuted">{localization.t('goals.unavailableDescription')}</Text>
@@ -46,7 +47,7 @@ export function GoalLinkScreen({ mode }: { mode: 'tasks' | 'routines' }) {
 
   return (
     <Screen testID={`goal-link-${mode}-screen`}>
-      <GoalScreenHeader onBack={() => router.back()} title={title} />
+      <GoalScreenHeader onBack={() => goBackOrReplace(router, '/(tabs)/goals')} title={title} />
       <Text style={{ marginBottom: theme.spacing.xl }} tone="textMuted">
         {goal.title}
       </Text>
@@ -66,7 +67,7 @@ export function GoalLinkScreen({ mode }: { mode: 'tasks' | 'routines' }) {
                     ? goals.linkTask(goal, item as (typeof goals.tasks)[number])
                     : goals.linkRoutine(goal, item as (typeof goals.routines)[number]);
                 void result.then((value) => {
-                  if (value.ok) router.back();
+                  if (value.ok) goBackOrReplace(router, '/(tabs)/goals');
                 });
               }}
             >

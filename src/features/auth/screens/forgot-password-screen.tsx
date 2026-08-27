@@ -33,6 +33,7 @@ export function ForgotPasswordScreen() {
 
   return (
     <AuthScaffold
+      backFallback="/(auth)/sign-in"
       description={localization.t('auth.recoveryDescription')}
       eyebrow={localization.t('auth.recoveryEyebrow')}
       icon="key-outline"

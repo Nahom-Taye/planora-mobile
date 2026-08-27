@@ -1,7 +1,7 @@
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import type { ReminderEntityType } from '../../../domain/entities/index.ts';
+import { loadNotificationModule } from './notification-runtime';
 
 export type NotificationScheduleRequest = {
   identifier: string;
@@ -19,8 +19,9 @@ export interface NotificationDeviceGateway {
 
 export const expoNotificationGateway: NotificationDeviceGateway = {
   async schedule(request) {
-    if (Platform.OS === 'web') throw new Error('Notifications are unavailable.');
-    return Notifications.scheduleNotificationAsync({
+    const notifications = await loadNotificationModule();
+    if (!notifications) throw new Error('Notifications are unavailable.');
+    return notifications.scheduleNotificationAsync({
       identifier: request.identifier,
       content: {
         title: request.title,
@@ -33,25 +34,15 @@ export const expoNotificationGateway: NotificationDeviceGateway = {
         },
       },
       trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        type: notifications.SchedulableTriggerInputTypes.DATE,
         date: request.date,
         channelId: Platform.OS === 'android' ? 'planora-reminders' : undefined,
       },
     });
   },
   async cancel(identifier) {
-    if (Platform.OS === 'web') return;
-    await Notifications.cancelScheduledNotificationAsync(identifier);
+    const notifications = await loadNotificationModule();
+    if (!notifications) return;
+    await notifications.cancelScheduledNotificationAsync(identifier);
   },
 };
-
-if (Platform.OS !== 'web') {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldPlaySound: false,
-      shouldSetBadge: false,
-      shouldShowBanner: true,
-      shouldShowList: true,
-    }),
-  });
-}

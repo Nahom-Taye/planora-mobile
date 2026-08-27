@@ -10,6 +10,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useInsights } from '@/providers/insights-provider';
 import { useLocalization } from '@/providers/localization-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 export function ReflectionEditorScreen({ create = false }: { create?: boolean }) {
   const theme = useAppTheme();
@@ -39,7 +40,7 @@ export function ReflectionEditorScreen({ create = false }: { create?: boolean })
         <Pressable
           accessibilityLabel={localization.t('common.goBack')}
           accessibilityRole="button"
-          onPress={() => router.back()}
+          onPress={() => goBackOrReplace(router, '/(tabs)/insights')}
           style={styles.iconButton}
         >
           <Ionicons
@@ -75,7 +76,7 @@ export function ReflectionEditorScreen({ create = false }: { create?: boolean })
             const result = reflection
               ? await insights.updateReflection(reflection, draft)
               : await insights.createReflection(draft);
-            if (result.ok) router.back();
+            if (result.ok) goBackOrReplace(router, '/(tabs)/insights');
             return result;
           }}
           periodStart={periodStart}
@@ -98,7 +99,7 @@ export function ReflectionEditorScreen({ create = false }: { create?: boolean })
                   style: 'destructive',
                   onPress: () =>
                     void insights.deleteReflection(reflection).then((result) => {
-                      if (result.ok) router.back();
+                      if (result.ok) goBackOrReplace(router, '/(tabs)/insights');
                     }),
                 },
               ],

@@ -12,6 +12,7 @@ import { useLocalization } from '@/providers/localization-provider';
 import { usePlanner } from '@/providers/planner-provider';
 import { usePlanning } from '@/providers/planning-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 export function PlanBlockEditorScreen({ create = false }: { create?: boolean }) {
   const theme = useAppTheme();
@@ -41,7 +42,7 @@ export function PlanBlockEditorScreen({ create = false }: { create?: boolean }) 
 
   const closeAfter = async (operation: () => Promise<{ ok: boolean }>) => {
     const result = await operation();
-    if (result.ok) router.back();
+    if (result.ok) goBackOrReplace(router, '/(tabs)/planner');
   };
   const cancelBlock = () => {
     if (!block) return;
@@ -86,7 +87,7 @@ export function PlanBlockEditorScreen({ create = false }: { create?: boolean }) 
         <Pressable
           accessibilityLabel={localization.t('common.goBack')}
           accessibilityRole="button"
-          onPress={() => router.back()}
+          onPress={() => goBackOrReplace(router, '/(tabs)/planner')}
           style={styles.iconButton}
         >
           <Ionicons
@@ -143,7 +144,7 @@ export function PlanBlockEditorScreen({ create = false }: { create?: boolean }) 
                   })
                 : await planner.createBlock(draft);
             }
-            if (result.ok) router.back();
+            if (result.ok) goBackOrReplace(router, '/(tabs)/planner');
             return result;
           }}
           recurrence={recurrence}
