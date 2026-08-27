@@ -14,6 +14,7 @@ export function RecoverableAuthErrorScreen() {
 
   return (
     <AuthScaffold
+      backFallback="/(auth)/welcome"
       description={localization.t('auth.issueDescription')}
       eyebrow={localization.t('auth.issueEyebrow')}
       icon="refresh-circle-outline"

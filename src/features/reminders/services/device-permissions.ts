@@ -1,7 +1,8 @@
 import * as Calendar from 'expo-calendar';
-import * as Notifications from 'expo-notifications';
+import type { NotificationPermissionsStatus } from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import { currentNotificationRuntime, loadNotificationModule } from './notification-runtime';
 import { normalizePermissionState } from './permission-state';
 
 export type DevicePermissionState =
@@ -9,6 +10,7 @@ export type DevicePermissionState =
   | 'allowed'
   | 'denied'
   | 'blocked'
+  | 'developmentBuildRequired'
   | 'unavailable';
 
 export type NotificationChannelText = {
@@ -17,19 +19,29 @@ export type NotificationChannelText = {
 };
 
 export async function readNotificationPermission(): Promise<DevicePermissionState> {
-  if (Platform.OS === 'web') return 'unavailable';
+  const runtime = currentNotificationRuntime();
+  if (runtime === 'web') return 'unavailable';
+  if (runtime === 'expo_go') return 'developmentBuildRequired';
   try {
-    return notificationState(await Notifications.getPermissionsAsync());
+    const notifications = await loadNotificationModule();
+    return notifications
+      ? notificationState(await notifications.getPermissionsAsync(), notifications)
+      : 'unavailable';
   } catch {
     return 'unavailable';
   }
 }
 
 export async function requestNotificationPermission(channel: NotificationChannelText): Promise<DevicePermissionState> {
-  if (Platform.OS === 'web') return 'unavailable';
+  const runtime = currentNotificationRuntime();
+  if (runtime === 'web') return 'unavailable';
+  if (runtime === 'expo_go') return 'developmentBuildRequired';
   await ensureReminderChannel(channel);
   try {
-    return notificationState(await Notifications.requestPermissionsAsync());
+    const notifications = await loadNotificationModule();
+    return notifications
+      ? notificationState(await notifications.requestPermissionsAsync(), notifications)
+      : 'unavailable';
   } catch {
     return 'unavailable';
   }
@@ -57,31 +69,34 @@ export async function requestCalendarPermission(): Promise<DevicePermissionState
 
 export async function ensureReminderChannel(channel: NotificationChannelText) {
   if (Platform.OS !== 'android') return;
-  await Notifications.setNotificationChannelAsync('planora-reminders', {
+  const notifications = await loadNotificationModule();
+  if (!notifications) return;
+  await notifications.setNotificationChannelAsync('planora-reminders', {
     name: channel.name,
     description: channel.description,
-    importance: Notifications.AndroidImportance.DEFAULT,
-    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
+    importance: notifications.AndroidImportance.DEFAULT,
+    lockscreenVisibility: notifications.AndroidNotificationVisibility.PRIVATE,
     sound: null,
     vibrationPattern: null,
   });
 }
 
 function notificationState(
-  response: Notifications.NotificationPermissionsStatus,
+  response: NotificationPermissionsStatus,
+  notifications: NonNullable<Awaited<ReturnType<typeof loadNotificationModule>>>,
 ): DevicePermissionState {
   const ios = response.ios?.status;
   if (
     response.granted ||
-    ios === Notifications.IosAuthorizationStatus.AUTHORIZED ||
-    ios === Notifications.IosAuthorizationStatus.PROVISIONAL ||
-    ios === Notifications.IosAuthorizationStatus.EPHEMERAL
+    ios === notifications.IosAuthorizationStatus.AUTHORIZED ||
+    ios === notifications.IosAuthorizationStatus.PROVISIONAL ||
+    ios === notifications.IosAuthorizationStatus.EPHEMERAL
   ) {
     return 'allowed';
   }
   if (
     response.status === 'undetermined' ||
-    ios === Notifications.IosAuthorizationStatus.NOT_DETERMINED
+    ios === notifications.IosAuthorizationStatus.NOT_DETERMINED
   ) {
     return 'undetermined';
   }

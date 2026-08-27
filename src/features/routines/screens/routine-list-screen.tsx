@@ -12,6 +12,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useLocalization } from '@/providers/localization-provider';
 import { usePlanning } from '@/providers/planning-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 export function RoutineListScreen() {
   const theme = useAppTheme();
@@ -56,7 +57,7 @@ export function RoutineListScreen() {
         <Pressable
           accessibilityLabel={localization.t('common.goBack')}
           accessibilityRole="button"
-          onPress={() => router.back()}
+          onPress={() => goBackOrReplace(router, '/(tabs)')}
           style={styles.iconButton}
         >
           <Ionicons color={theme.colors.text} name={localization.isRTL ? 'arrow-forward' : 'arrow-back'} size={24} />

@@ -8,6 +8,7 @@ import { useLocalization } from '@/providers/localization-provider';
 import { useSync } from '@/providers/sync-provider';
 import type { PortableEntityType } from '@/domain/entities';
 import type { TranslationKey } from '@/features/localization/catalogs';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 const entityTypeKeys: Record<PortableEntityType, TranslationKey> = {
   workspace: 'entityTypes.workspace',
@@ -34,7 +35,7 @@ export function ConflictsScreen() {
 
   return (
     <Screen testID="sync-conflicts-screen">
-      <Button label={localization.t('common.goBack')} onPress={() => router.back()} variant="ghost" />
+      <Button label={localization.t('common.goBack')} onPress={() => goBackOrReplace(router, '/(sync)/data')} variant="ghost" />
       <View style={{ height: theme.spacing.lg }} />
       <SectionHeader eyebrow={localization.t('sync.conflictEyebrow')} title={localization.t('sync.conflictTitle')} description={localization.t('sync.conflictDescription')} />
       <View style={{ gap: theme.spacing.lg, marginTop: theme.spacing.xl }}>

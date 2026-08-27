@@ -16,6 +16,8 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useLocalization } from '@/providers/localization-provider';
 import { useSync } from '@/providers/sync-provider';
+import { syncStatusTranslationKey } from '@/features/sync/services/sync-status';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 type PendingAction = 'clear_device' | 'delete_cloud' | 'delete_account' | null;
 
@@ -29,7 +31,12 @@ export function DataPrivacyScreen() {
   const [removeCalendarEvents, setRemoveCalendarEvents] = useState(false);
   const confirmationRef = useRef<TextInput>(null);
   const reducedMotion = useReducedMotion();
-  const statusKey = statusTranslationKey(sync.binding?.state);
+  const statusKey = syncStatusTranslationKey({
+    state: sync.binding?.state,
+    pending: sync.pending,
+    busy: sync.busy,
+    online: sync.online,
+  });
 
   const destructiveAction = async () => {
     const action = pendingAction;
@@ -64,7 +71,7 @@ export function DataPrivacyScreen() {
 
   return (
     <Screen testID="privacy-data-screen">
-      <Button label={localization.t('common.goBack')} onPress={() => router.back()} variant="ghost" />
+      <Button label={localization.t('common.goBack')} onPress={() => goBackOrReplace(router, '/(tabs)/settings')} variant="ghost" />
       <View style={{ height: theme.spacing.lg }} />
       <SectionHeader eyebrow={localization.t('sync.eyebrow')} title={localization.t('sync.title')} description={localization.t('sync.description')} />
 
@@ -167,17 +174,6 @@ export function DataPrivacyScreen() {
       </Modal>
     </Screen>
   );
-}
-
-function statusTranslationKey(state: string | undefined): 'sync.stateLocal' | 'sync.stateIdle' | 'sync.stateSyncing' | 'sync.stateOffline' | 'sync.stateError' | 'sync.stateConflict' | 'sync.stateRestoring' | 'sync.stateAccountMismatch' {
-  if (state === 'idle') return 'sync.stateIdle';
-  if (state === 'syncing') return 'sync.stateSyncing';
-  if (state === 'offline') return 'sync.stateOffline';
-  if (state === 'error') return 'sync.stateError';
-  if (state === 'conflict') return 'sync.stateConflict';
-  if (state === 'restoring') return 'sync.stateRestoring';
-  if (state === 'account_mismatch') return 'sync.stateAccountMismatch';
-  return 'sync.stateLocal';
 }
 
 const styles = StyleSheet.create({

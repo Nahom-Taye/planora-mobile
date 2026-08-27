@@ -1,17 +1,24 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import test from 'node:test';
 
+import { toCalendarDate, toInstant, toTimeZone, type Task } from '../src/domain/entities/index.ts';
 import { parseRecoveryUrl } from '../src/features/auth/services/recovery-link.ts';
 import { validateTranslationCatalogs } from '../src/features/localization/catalog-validation.ts';
+import { selectNotificationRuntime } from '../src/features/reminders/services/notification-runtime-selection.ts';
 import { normalizePermissionState } from '../src/features/reminders/services/permission-state.ts';
 import { parseNotificationDestination } from '../src/features/reminders/services/notification-navigation.ts';
-import { createRedactedDiagnostic } from '../src/features/recovery/services/redacted-diagnostics.ts';
+import { createDevelopmentDiagnostic, createRedactedDiagnostic } from '../src/features/recovery/services/redacted-diagnostics.ts';
+import { AutomaticSyncCoordinator, automaticRetryDelay } from '../src/features/sync/services/automatic-sync.ts';
 import { confirmationMatches } from '../src/features/sync/services/data-control.ts';
 import { exportContainsDeviceIdentifiers, type PlanningExport } from '../src/features/sync/services/export-format.ts';
 import { mapRemoteError } from '../src/features/sync/services/supabase-sync-gateway.ts';
+import { syncStatusTranslationKey } from '../src/features/sync/services/sync-status.ts';
+import { buildTodayPlan } from '../src/features/today/services/today-planning.ts';
 import { contrastRatio } from '../src/theme/contrast.ts';
+import { goBackOrReplace, type BackNavigation } from '../src/utils/safe-navigation.ts';
 
 const root = process.cwd();
 
@@ -39,6 +46,248 @@ test('feature diagnostics classify recoverable boundaries without reading error 
   assert.equal(createRedactedDiagnostic('today', storage).category, 'storage');
   assert.equal(createRedactedDiagnostic('synchronization', network).category, 'network');
   assert.equal(createRedactedDiagnostic('planner', interrupted).category, 'interrupted');
+});
+
+test('development diagnostics expose only safe error classes and project frames', () => {
+  const error = new RangeError('private task text secret@example.test');
+  error.stack = 'RangeError: private task text\nsrc/features/today/services/today-planning.ts:24:9\nnode_modules/library.ts:2:1';
+  assert.deepEqual(createDevelopmentDiagnostic(error), {
+    errorClass: 'range',
+    projectFrames: ['src/features/today/services/today-planning.ts:24:9'],
+  });
+  assert.equal(createRedactedDiagnostic('today', error).category, 'render');
+  assert.doesNotMatch(JSON.stringify(createDevelopmentDiagnostic(error)), /private|example|task text/i);
+});
+
+test('a synchronized completion rebuilds Today without losing local metadata', () => {
+  const completedAt = toInstant(new Date('2026-08-27T14:30:00.000Z'));
+  const task: Task = {
+    id: '123e4567-e89b-42d3-a456-426614174000',
+    workspaceId: '123e4567-e89b-42d3-a456-426614174001',
+    title: 'Synchronized task',
+    notes: null,
+    status: 'completed',
+    priority: 'none',
+    dueDate: null,
+    scheduledTime: null,
+    timeZone: toTimeZone('America/Asuncion'),
+    completedAt,
+    areaId: null,
+    goalId: null,
+    parentTaskId: null,
+    createdAt: toInstant(new Date('2026-08-26T12:00:00.000Z')),
+    updatedAt: completedAt,
+    revision: 8,
+    deletedAt: null,
+  };
+  const plan = buildTodayPlan(
+    [task],
+    [],
+    [],
+    toCalendarDate('2026-08-27'),
+    toTimeZone('America/Asuncion'),
+  );
+  assert.equal(plan.completed[0], task);
+  assert.equal(plan.completed[0].revision, 8);
+  assert.equal(plan.completed[0].completedAt, completedAt);
+});
+
+test('foreground Today rebuild tolerates a malformed optional completion timestamp', () => {
+  const task = {
+    id: '123e4567-e89b-42d3-a456-426614174002',
+    workspaceId: '123e4567-e89b-42d3-a456-426614174001',
+    title: 'Queued completion',
+    notes: null,
+    status: 'completed',
+    priority: 'none',
+    dueDate: null,
+    scheduledTime: null,
+    timeZone: null,
+    completedAt: '',
+    areaId: null,
+    goalId: null,
+    parentTaskId: null,
+    createdAt: '2026-08-27T12:00:00.000Z',
+    updatedAt: 'malformed',
+    revision: 4,
+    deletedAt: null,
+  } as unknown as Task;
+  assert.doesNotThrow(() =>
+    buildTodayPlan([task], [], [], toCalendarDate('2026-08-27'), toTimeZone('UTC')),
+  );
+});
+
+test('authentication back navigation uses history or a deterministic replacement', () => {
+  const calls: string[] = [];
+  const withHistory = {
+    canGoBack: () => true,
+    back: () => calls.push('back'),
+    replace: () => calls.push('replace'),
+  } as BackNavigation;
+  goBackOrReplace(withHistory, '/(auth)/welcome');
+  assert.deepEqual(calls, ['back']);
+  calls.length = 0;
+  goBackOrReplace({ ...withHistory, canGoBack: () => false }, '/(auth)/welcome');
+  assert.deepEqual(calls, ['replace']);
+});
+
+test('direct and deep-linked authentication screens define safe back destinations', async () => {
+  const files = [
+    'auth-welcome-screen.tsx',
+    'check-email-screen.tsx',
+    'create-account-screen.tsx',
+    'forgot-password-screen.tsx',
+    'recoverable-auth-error-screen.tsx',
+    'recovery-callback-screen.tsx',
+    'reset-password-screen.tsx',
+    'sign-in-screen.tsx',
+  ];
+  for (const file of files) {
+    const source = await readFile(`${root}/src/features/auth/screens/${file}`, 'utf8');
+    assert.match(source, /backFallback=/, file);
+  }
+  const scaffold = await readFile(`${root}/src/features/auth/components/auth-scaffold.tsx`, 'utf8');
+  assert.match(scaffold, /goBackOrReplace\(router, backFallback\)/);
+  assert.match(scaffold, /MIN_TOUCH_TARGET/);
+  assert.match(scaffold, /common\.goBack/);
+});
+
+test('notification runtime keeps Expo Go and web outside the native module boundary', () => {
+  assert.equal(selectNotificationRuntime('android', 'storeClient'), 'expo_go');
+  assert.equal(selectNotificationRuntime('ios', 'standalone'), 'native');
+  assert.equal(selectNotificationRuntime('android', 'bare'), 'native');
+  assert.equal(selectNotificationRuntime('web', 'standalone'), 'web');
+});
+
+test('project-owned code contains no remote push token calls or eager notification imports', async () => {
+  const files = [
+    ...(await ownedFiles(`${root}/app`)),
+    ...(await ownedFiles(`${root}/src`)),
+  ];
+  const forbidden = [
+    ['getExpo', 'PushTokenAsync'].join(''),
+    ['getDevice', 'PushTokenAsync'].join(''),
+  ];
+  for (const file of files) {
+    const source = await readFile(file, 'utf8');
+    for (const name of forbidden) assert.equal(source.includes(name), false, file);
+  }
+  for (const file of [
+    `${root}/src/providers/reminder-provider.tsx`,
+    `${root}/src/features/reminders/services/device-permissions.ts`,
+    `${root}/src/features/reminders/services/notification-device.ts`,
+  ]) {
+    const source = await readFile(file, 'utf8');
+    assert.doesNotMatch(source, /import \* as Notifications from 'expo-notifications'/);
+  }
+  const boundary = await readFile(`${root}/src/features/reminders/services/notification-runtime.ts`, 'utf8');
+  assert.match(boundary, /notificationModule \?\?= import\('expo-notifications'\)/);
+  assert.match(boundary, /currentNotificationRuntime\(\) !== 'native'/);
+});
+
+test('automatic synchronization debounces queue changes', async () => {
+  const reasons: string[] = [];
+  const coordinator = new AutomaticSyncCoordinator({
+    canRun: () => true,
+    run: async (reason) => { reasons.push(reason); },
+    debounceMs: 10,
+  });
+  coordinator.trigger('queue');
+  coordinator.trigger('queue');
+  coordinator.trigger('queue');
+  await delay(35);
+  coordinator.stop();
+  assert.deepEqual(reasons, ['queue']);
+});
+
+test('automatic synchronization remains single-flight and coalesces edits during a run', async () => {
+  let release: () => void = () => undefined;
+  let count = 0;
+  const firstRun = new Promise<void>((resolve) => { release = resolve; });
+  const coordinator = new AutomaticSyncCoordinator({
+    canRun: () => true,
+    run: async () => {
+      count += 1;
+      if (count === 1) await firstRun;
+    },
+    debounceMs: 5,
+  });
+  coordinator.trigger('foreground');
+  await delay(5);
+  coordinator.trigger('queue');
+  coordinator.trigger('queue');
+  assert.equal(count, 1);
+  release();
+  await delay(25);
+  coordinator.stop();
+  assert.equal(count, 2);
+});
+
+test('automatic synchronization obeys offline, disabled, account, lifecycle, foreground, and reconnect guards', async () => {
+  let enabled = false;
+  let online = true;
+  let active = true;
+  let accountMatches = true;
+  const reasons: string[] = [];
+  const coordinator = new AutomaticSyncCoordinator({
+    canRun: () => enabled && online && active && accountMatches,
+    run: async (reason) => { reasons.push(reason); },
+    debounceMs: 5,
+  });
+  coordinator.trigger('queue');
+  enabled = true;
+  online = false;
+  coordinator.trigger('queue');
+  online = true;
+  coordinator.trigger('foreground');
+  await delay(5);
+  coordinator.trigger('reconnect');
+  await delay(5);
+  accountMatches = false;
+  coordinator.trigger('queue');
+  accountMatches = true;
+  active = false;
+  coordinator.trigger('queue');
+  await delay(10);
+  coordinator.stop();
+  assert.deepEqual(reasons, ['foreground', 'reconnect']);
+});
+
+test('automatic retries honor queued backoff and exclude conflicts', () => {
+  const now = new Date('2026-08-27T12:00:00.000Z').getTime();
+  assert.equal(automaticRetryDelay([{
+    state: 'failed',
+    errorCode: 'offline',
+    lastAttemptAt: '2026-08-27T12:00:00.000Z',
+    nextAttemptAt: '2026-08-27T12:00:08.000Z',
+  }], now), 8000);
+  assert.equal(automaticRetryDelay([{
+    state: 'failed',
+    errorCode: 'conflict',
+    lastAttemptAt: '2026-08-27T12:00:00.000Z',
+    nextAttemptAt: null,
+  }], now), null);
+  assert.equal(automaticRetryDelay([{
+    state: 'pending',
+    errorCode: null,
+    lastAttemptAt: null,
+    nextAttemptAt: null,
+  }], now), 1200);
+  assert.equal(automaticRetryDelay([{
+    state: 'failed',
+    errorCode: 'offline',
+    lastAttemptAt: null,
+    nextAttemptAt: 'malformed',
+  }], now), 1200);
+});
+
+test('synchronization status never reports up to date while local changes are pending', () => {
+  assert.equal(syncStatusTranslationKey({ state: 'idle', pending: 1, busy: false, online: true }), 'sync.statePending');
+  assert.equal(syncStatusTranslationKey({ state: 'idle', pending: 1, busy: false, online: false }), 'sync.statePendingOffline');
+  assert.equal(syncStatusTranslationKey({ state: 'idle', pending: 0, busy: false, online: true }), 'sync.stateIdle');
+  assert.equal(syncStatusTranslationKey({ state: 'conflict', pending: 1, busy: false, online: true }), 'sync.stateConflict');
+  assert.equal(syncStatusTranslationKey({ state: 'account_mismatch', pending: 1, busy: false, online: true }), 'sync.stateAccountMismatch');
+  assert.equal(syncStatusTranslationKey({ state: 'idle', pending: 1, busy: true, online: true }), 'sync.stateSyncing');
 });
 
 test('permission denial and blocked states remain distinct and recoverable', () => {
@@ -214,6 +463,7 @@ test('released local and remote migrations retain canonical hashes', async () =>
     ['src/storage/database/migrations/008-resilient-sync.ts', '6f876c82b0681e3daeac280513de8a0e089040dc1e5b64f91983b2cbd96fc1d2'],
     ['supabase/migrations/202608040001_account_profiles.sql', 'af8e5cfb8b8d7515ad4ef8de21c323588a268a7c2880075976a71dd2cabc3dcc'],
     ['supabase/migrations/202608140001_resilient_sync.sql', '8f908e25d46b898b54a133f30b51d76cf58d58476b0af7929138fec9da30fb42'],
+    ['supabase/migrations/202608270001_qualify_sync_rpc_columns.sql', 'fce0e4e83aa7ae75e7169a262dc3a04863e0d297b9b00768c07a8e4201ceaa26'],
   ]);
   for (const [path, hash] of expected) {
     assert.equal(createHash('sha256').update(await readFile(`${root}/${path}`)).digest('hex'), hash, path);
@@ -240,4 +490,19 @@ async function pngMetadata(path: string) {
     height: value.readUInt32BE(20),
     colorType: value[25],
   };
+}
+
+async function ownedFiles(directory: string): Promise<string[]> {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files: string[] = [];
+  for (const entry of entries) {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...await ownedFiles(path));
+    else if (entry.isFile()) files.push(path);
+  }
+  return files;
+}
+
+function delay(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }

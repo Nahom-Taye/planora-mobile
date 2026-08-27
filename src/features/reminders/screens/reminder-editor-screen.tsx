@@ -22,6 +22,7 @@ import { usePlanning } from '@/providers/planning-provider';
 import { useReminders } from '@/providers/reminder-provider';
 import { useWorkspace } from '@/providers/workspace-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 export function ReminderEditorScreen() {
   const theme = useAppTheme();
@@ -93,7 +94,7 @@ export function ReminderEditorScreen() {
   if (!entityType || !source || !workspace.profile) {
     return (
       <Screen>
-        <Header onBack={() => router.back()} title={localization.t('reminders.title')} />
+        <Header onBack={() => goBackOrReplace(router, '/(tabs)')} title={localization.t('reminders.title')} />
         <Card variant="subtle">
           <Text variant="heading">{localization.t('reminders.unavailable')}</Text>
           <Text tone="textMuted">{localization.t('reminders.unavailableDescription')}</Text>
@@ -125,12 +126,12 @@ export function ReminderEditorScreen() {
       absoluteAt,
       enabled,
     });
-    if (saved) router.back();
+    if (saved) goBackOrReplace(router, '/(tabs)');
   };
 
   return (
     <Screen testID="reminder-editor-screen">
-      <Header onBack={() => router.back()} title={localization.t('reminders.title')} />
+      <Header onBack={() => goBackOrReplace(router, '/(tabs)')} title={localization.t('reminders.title')} />
       <Card style={{ gap: theme.spacing.sm }} variant="subtle">
         <Text variant="heading">{source.title}</Text>
         <Text tone="textMuted">{localization.t('reminders.permissionExplanation')}</Text>
@@ -140,18 +141,20 @@ export function ReminderEditorScreen() {
           <Text variant="label">
             {localization.t(`reminders.permission${capitalize(reminders.notificationPermission)}` as never)}
           </Text>
-          <Button
-            label={localization.t(
-              reminders.notificationPermission === 'blocked'
-                ? 'reminders.openSettings'
-                : 'reminders.allow',
-            )}
-            onPress={() =>
-              reminders.notificationPermission === 'blocked'
-                ? void Linking.openSettings()
-                : void reminders.requestNotifications()
-            }
-          />
+          {reminders.notificationPermission !== 'developmentBuildRequired' ? (
+            <Button
+              label={localization.t(
+                reminders.notificationPermission === 'blocked'
+                  ? 'reminders.openSettings'
+                  : 'reminders.allow',
+              )}
+              onPress={() =>
+                reminders.notificationPermission === 'blocked'
+                  ? void Linking.openSettings()
+                  : void reminders.requestNotifications()
+              }
+            />
+          ) : null}
         </Card>
       ) : null}
       <View style={styles.switchRow}>

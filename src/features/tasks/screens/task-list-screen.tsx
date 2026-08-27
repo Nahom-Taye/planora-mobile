@@ -11,6 +11,7 @@ import { useGoals } from '@/providers/goal-provider';
 import { useLocalization } from '@/providers/localization-provider';
 import { usePlanning } from '@/providers/planning-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 export function TaskListScreen() {
   const theme = useAppTheme();
@@ -54,7 +55,7 @@ export function TaskListScreen() {
       <ListHeader
         actionLabel={localization.t('tasks.new')}
         onAction={() => router.push('/(tasks)/tasks/new')}
-        onBack={() => router.back()}
+        onBack={() => goBackOrReplace(router, '/(tabs)')}
         title={localization.t('tasks.title')}
       />
       <Text style={{ marginBottom: theme.spacing.xl }} tone="textMuted">

@@ -19,7 +19,7 @@ Android version code and iOS build number start at 1. EAS uses remote app-versio
 
 Suggested short description: "Calm, local-first planning for tasks, routines, goals, and your day."
 
-The full description should accurately explain local-only use, optional account synchronization, tasks, routines, planner blocks, goals and milestones, local insights and reflections, optional reminders, one-way calendar export, portable export, and separate device, cloud, and account deletion controls. It must not imply that synchronization is automatic, that remote infrastructure is already deployed, or that payments or premium features exist.
+The full description should accurately explain local-only use, optional account synchronization, tasks, routines, planner blocks, goals and milestones, local insights and reflections, optional reminders, one-way calendar export, portable export, and separate device, cloud, and account deletion controls. It must explain that synchronization begins only after explicit enablement and then runs automatically while the app is active and online, without promising operating-system background synchronization. It must not imply that remote infrastructure is available in every build or that payments or premium features exist.
 
 Screenshots should be captured from a release candidate with real reviewer-created content and should cover Today, Tasks, Planner, Routines, Goals, Insights, reminders, privacy and data, synchronization choices, and settings. Required device sizes, localization sets, and store-specific image rules must be confirmed in the store consoles at submission time. No temporary screenshots belong in the repository.
 

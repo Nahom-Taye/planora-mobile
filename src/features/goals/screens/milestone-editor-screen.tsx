@@ -6,6 +6,7 @@ import { MilestoneForm } from '@/features/goals/components/milestone-form';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useGoals } from '@/providers/goal-provider';
 import { useLocalization } from '@/providers/localization-provider';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 export function MilestoneEditorScreen({ create = false }: { create?: boolean }) {
   const theme = useAppTheme();
@@ -20,7 +21,7 @@ export function MilestoneEditorScreen({ create = false }: { create?: boolean }) 
   return (
     <Screen testID={create ? 'create-milestone-screen' : 'edit-milestone-screen'}>
       <GoalScreenHeader
-        onBack={() => router.back()}
+        onBack={() => goBackOrReplace(router, '/(tabs)/goals')}
         title={localization.t(create ? 'goals.newMilestone' : 'goals.editMilestone')}
       />
       {!goal || (!create && !milestone) ? (
@@ -38,7 +39,7 @@ export function MilestoneEditorScreen({ create = false }: { create?: boolean }) 
             const result = milestone
               ? await goals.updateMilestone(goal, milestone, draft)
               : await goals.createMilestone(goal, draft);
-            if (result.ok) router.back();
+            if (result.ok) goBackOrReplace(router, '/(tabs)/goals');
             return result;
           }}
         />

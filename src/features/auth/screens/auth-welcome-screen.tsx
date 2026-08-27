@@ -21,6 +21,7 @@ export function AuthWelcomeScreen() {
 
   return (
     <AuthScaffold
+      backFallback="/(auth)/sign-in"
       description={localization.t('auth.chooseDescription')}
       icon="person-circle-outline"
       showBack

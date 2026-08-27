@@ -35,10 +35,11 @@ export function RecoveryCallbackScreen() {
 
   return (
     <AuthScaffold
+      backFallback="/(auth)/forgot-password"
       description={localization.t('auth.recoveryValidating')}
       eyebrow={localization.t('auth.recoveryEyebrow')}
       icon="shield-checkmark-outline"
-      showBack={false}
+      showBack
       title={localization.t(account.isBusy ? 'auth.recoveryValidating' : 'auth.secureRecovery')}
     >
       <AuthErrorSummary message={account.errorMessage} />

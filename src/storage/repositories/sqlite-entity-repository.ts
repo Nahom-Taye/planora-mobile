@@ -13,6 +13,24 @@ import type {
 import type { SqlExecutor, SqlValue } from '../database/connection.ts';
 import { StorageError, toStorageError } from '../database/errors.ts';
 import type { DatabaseRecord, DatabaseRow, EntityMapper } from '../mappers/types.ts';
+import { publishLocalDataChange } from './local-data-change-signal.ts';
+
+const SYNCHRONIZED_TABLES = new Set([
+  'workspaces',
+  'tasks',
+  'plan_block_series',
+  'plan_blocks',
+  'routines',
+  'routine_check_ins',
+  'goals',
+  'milestones',
+  'goal_routine_links',
+  'areas',
+  'tags',
+  'reflections',
+  'app_settings',
+  'reminder_intents',
+]);
 
 export type RepositoryDependencies = {
   createId: () => string;
@@ -93,6 +111,8 @@ export class SqliteEntityRepository<
         valuesFor(this.mapper.columns, row),
       );
 
+      this.publishChange();
+
       return entity;
     } catch (error) {
       throw toStorageError(error, 'WRITE_FAILED', 'Local data could not be saved.');
@@ -143,6 +163,8 @@ export class SqliteEntityRepository<
         throw revisionConflict();
       }
 
+      this.publishChange();
+
       return entity;
     } catch (error) {
       throw toStorageError(error, 'WRITE_FAILED', 'Local data could not be updated.');
@@ -178,9 +200,17 @@ export class SqliteEntityRepository<
         throw revisionConflict();
       }
 
+      this.publishChange();
+
       return entity;
     } catch (error) {
       throw toStorageError(error, 'WRITE_FAILED', 'Local data could not be removed.');
+    }
+  }
+
+  private publishChange() {
+    if (SYNCHRONIZED_TABLES.has(this.mapper.table)) {
+      publishLocalDataChange(this.mapper.table);
     }
   }
 

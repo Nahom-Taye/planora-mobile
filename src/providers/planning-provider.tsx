@@ -27,6 +27,7 @@ import type { TaskDraft } from '@/features/tasks/services/task-validation';
 import { localCalendarDate } from '@/features/today/services/local-date';
 import { buildTodayPlan } from '@/features/today/services/today-planning';
 import { StorageError } from '@/storage/database/errors';
+import { subscribeLocalDataChanges } from '@/storage/repositories/local-data-change-signal';
 
 import { useWorkspace } from './workspace-provider';
 
@@ -65,6 +66,7 @@ function usePlanningValue(repositories: RepositoryStore | null) {
   const [isMutating, setIsMutating] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const operationActive = useRef(false);
+  const refreshGeneration = useRef(0);
   const taskService = useMemo(
     () => (repositories ? new TaskService(repositories) : null),
     [repositories],
@@ -87,6 +89,8 @@ function usePlanningValue(repositories: RepositoryStore | null) {
       return;
     }
 
+    const generation = refreshGeneration.current + 1;
+    refreshGeneration.current = generation;
     setStatus('loading');
     setErrorMessage(null);
     try {
@@ -95,12 +99,14 @@ function usePlanningValue(repositories: RepositoryStore | null) {
         routineService.list(localWorkspace.workspace.id),
         routineService.listCheckIns(localWorkspace.workspace.id, today),
       ]);
+      if (generation !== refreshGeneration.current) return;
       setTasks(nextTasks);
       setRoutines(nextRoutines);
       setCheckIns(nextCheckIns);
       setHasLoaded(true);
       setStatus('ready');
     } catch {
+      if (generation !== refreshGeneration.current) return;
       setStatus('error');
       setErrorMessage(
         'Planora could not refresh this day. Your saved local data is unchanged.',
@@ -114,6 +120,19 @@ function usePlanningValue(repositories: RepositoryStore | null) {
       setHasLoaded(false);
       setStatus('idle');
     }
+  }, [localWorkspace.status, refresh]);
+
+  useEffect(() => {
+    if (localWorkspace.status !== 'ready') return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const unsubscribe = subscribeLocalDataChanges(() => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => void refresh(), 80);
+    });
+    return () => {
+      unsubscribe();
+      if (timer) clearTimeout(timer);
+    };
   }, [localWorkspace.status, refresh]);
 
   const mutate = useCallback(

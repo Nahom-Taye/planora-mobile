@@ -9,6 +9,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useLocalization } from '@/providers/localization-provider';
 import { useOnboarding } from '@/providers/onboarding-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
+import { goBackOrReplace } from '@/utils/safe-navigation';
 
 export function OnboardingScreen() {
   const theme = useAppTheme();
@@ -61,7 +62,7 @@ export function OnboardingScreen() {
 
   const closeReview = () => {
     onboarding.leaveReview();
-    router.back();
+    goBackOrReplace(router, '/(tabs)/settings');
   };
 
   return (
