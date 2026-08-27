@@ -171,6 +171,30 @@ test('incremental pulls are cursor ordered and bounded to one hundred records', 
   assert.match(sql, /payload := change_row\.payload/);
 });
 
+test('forward RPC correction qualifies returned-column names without changing contracts', async () => {
+  const sql = await readFile(`${root}/supabase/migrations/202608270001_qualify_sync_rpc_columns.sql`, 'utf8');
+  assert.equal((sql.match(/create or replace function public\./g) ?? []).length, 3);
+  for (const functionName of ['apply_planning_operation', 'pull_planning_changes', 'list_owned_planning_workspaces']) {
+    assert.match(sql, new RegExp(`create or replace function public\\.${functionName}\\(`));
+  }
+  assert.match(sql, /returns table\(status text, applied_revision integer, applied_cursor bigint, remote_payload jsonb, remote_deleted boolean\)/);
+  assert.match(sql, /select po\.applied_revision, po\.change_cursor/);
+  assert.match(sql, /from public\.planning_operations as po/);
+  for (const column of ['applied_revision', 'change_cursor', 'operation_id', 'owner_id']) {
+    assert.match(sql, new RegExp(`po\\.${column}`));
+  }
+  assert.doesNotMatch(sql, /select applied_revision, change_cursor/);
+  assert.match(sql, /select pc\.entity_type, pc\.entity_id, pc\.workspace_id, pc\.revision, pc\.change_cursor, pc\.deleted, pc\.payload/);
+  assert.match(sql, /where pc\.owner_id = caller and pc\.workspace_id = p_workspace_id and pc\.change_cursor > p_after_cursor/);
+  assert.match(sql, /order by pc\.change_cursor/);
+  assert.match(sql, /select pw\.id, pw\.revision, pw\.change_cursor, pw\.deleted_at is not null, pw\.payload/);
+  assert.match(sql, /where pw\.owner_id = \(select auth\.uid\(\)\)/);
+  assert.match(sql, /on conflict \(id, owner_id\) do update/);
+  assert.equal((sql.match(/security definer/g) ?? []).length, 3);
+  assert.equal((sql.match(/set search_path = ''/g) ?? []).length, 3);
+  assert.doesNotMatch(sql, /drop function|delete_my_planning_data|grant execute|revoke all/);
+});
+
 test('remote schema carries tombstones without unsafe cleanup', async () => {
   const sql = await readFile(`${root}/supabase/migrations/202608140001_resilient_sync.sql`, 'utf8');
   assert.match(sql, /deleted_at timestamptz/);
