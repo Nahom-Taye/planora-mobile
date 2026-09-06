@@ -10,6 +10,7 @@ import { useOnboarding } from '@/providers/onboarding-provider';
 import { useLocalization } from '@/providers/localization-provider';
 
 import { AuthScaffold } from '../components/auth-scaffold';
+import { AuthErrorSummary } from '../components/auth-error-summary';
 
 export function AuthWelcomeScreen() {
   const theme = useAppTheme();
@@ -27,6 +28,7 @@ export function AuthWelcomeScreen() {
       showBack
       title={localization.t('auth.chooseTitle')}
     >
+      <AuthErrorSummary message={account.errorMessage} />
       <Card variant="accent">
         <View style={[styles.option, { gap: theme.spacing.lg }]}>
           <Ionicons color={theme.colors.accent} name="phone-portrait-outline" size={30} />

@@ -42,6 +42,11 @@ const failures: Record<AuthFailure['code'], AuthFailure> = {
     message: 'This recovery link is no longer valid. Request a new link and try again.',
     recoverable: true,
   },
+  session_expired: {
+    code: 'session_expired',
+    message: 'Your account session has expired. Sign in again or continue locally. Your planning data is unchanged.',
+    recoverable: true,
+  },
   service_unavailable: {
     code: 'service_unavailable',
     message: 'Account services are temporarily unavailable. Your local data is unaffected.',
@@ -68,6 +73,12 @@ export function mapAuthError(error: unknown): AuthFailure {
     return failures.network_unavailable;
   }
 
+  if (code === 'email_not_confirmed') return failures.email_unverified;
+  if (code === 'weak_password') return failures.weak_password;
+  if (code === 'over_email_send_rate_limit' || code === 'over_request_rate_limit') return failures.rate_limited;
+  if (code === 'signup_disabled' || code === 'email_provider_disabled' || message.includes('timeout') || message.includes('storage') || message.includes('cryptography')) return failures.service_unavailable;
+  if (code === 'refresh_token_not_found' || code === 'refresh_token_already_used' || code === 'session_not_found' || code === 'session_expired') return failures.session_expired;
+
   if (status === 429 || message.includes('rate limit')) {
     return failures.rate_limited;
   }
@@ -88,7 +99,7 @@ export function mapAuthError(error: unknown): AuthFailure {
     return failures.weak_password;
   }
 
-  if (message.includes('expired') || message.includes('invalid token')) {
+  if (message.includes('expired') || message.includes('invalid token') || message.includes('invalid recovery link')) {
     return failures.expired_link;
   }
 

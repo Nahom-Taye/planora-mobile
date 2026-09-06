@@ -10,12 +10,14 @@ import {
   type PropsWithChildren,
 } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
+import * as Network from 'expo-network';
 
 import type { AccountProfile } from '../domain/entities/account.ts';
 import { AccountLinkService } from '../features/account/services/account-link-service.ts';
 import type { AccountGateway } from '../features/auth/services/account-gateway.ts';
 import { readAuthConfiguration } from '../features/auth/services/auth-configuration.ts';
 import { mapAuthError } from '../features/auth/services/auth-error-mapper.ts';
+import { startAccountLifecycle, withDeadline, operationTimeoutMs, SingleFlight } from '../features/auth/services/auth-runtime.ts';
 import {
   initialAuthState,
   reduceAuthState,
@@ -58,7 +60,15 @@ function useAccountValue() {
   const [state, dispatch] = useReducer(reduceAuthState, initialAuthState);
   const [profile, setProfile] = useState<AccountProfile | null>(null);
   const [isBusy, setIsBusy] = useState(false);
-  const operationActive = useRef(false);
+  const [confirmation, setConfirmation] = useState<{ email: string; redirectTo: string } | null>(null);
+  const operations = useRef(new SingleFlight());
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+  const activeAccountId = useRef<string | null>(null);
+  activeAccountId.current = state.session?.accountId ?? null;
   const linkService = useMemo(
     () =>
       storage.repositories
@@ -77,60 +87,68 @@ function useAccountValue() {
 
   const loadProfile = useCallback(async () => {
     if (!gateway) return;
+    const accountId = activeAccountId.current;
+    if (!accountId) return;
     const nextProfile = await gateway.getProfile().catch(() => null);
-    setProfile(nextProfile);
+    if (activeAccountId.current === accountId) setProfile(nextProfile);
   }, [gateway]);
 
-  useEffect(() => {
-    if (!gateway) {
-      dispatch({ type: 'configuration_unavailable' });
-      return;
+  const retryAccount = useCallback(async () => operations.current.run(async () => {
+    if (!gateway) return;
+    setIsBusy(true);
+    dispatch({ type: 'clear_error' });
+    gateway.stopAutoRefresh();
+    try {
+      await gateway.checkReadiness();
+      const session = await gateway.restoreSession();
+      dispatch({ type: 'restored', session });
+    } catch (error) {
+      dispatch({ type: 'failed', message: mapAuthError(error).message });
+    } finally {
+      setIsBusy(false);
+      void Network.getNetworkStateAsync().then((next) => {
+        if (mounted.current && AppState.currentState === 'active' && next.isConnected !== false && next.isInternetReachable !== false) gateway.startAutoRefresh();
+      }).catch(() => undefined);
     }
+  }), [gateway]);
 
-    let active = true;
-    const unsubscribe = gateway.subscribe((change) => {
-      if (!active) return;
-      dispatch({ type: 'changed', change });
-      if (change.session) {
-        void safelyLink(change.session.accountId);
-      } else {
-        setProfile(null);
-      }
-    });
+  useEffect(() => startAccountLifecycle(gateway, dispatch), [gateway]);
 
-    void gateway
-      .restoreSession()
-      .then((session) => {
-        if (!active) return;
-        dispatch({ type: 'restored', session });
-        if (session) {
-          void safelyLink(session.accountId);
-          void loadProfile();
-        }
-      })
-      .catch(() => {
-        if (!active) return;
-        dispatch({ type: 'restored', session: null });
-      });
-
-    const handleAppState = (nextState: AppStateStatus) => {
-      if (nextState === 'active') gateway.startAutoRefresh();
+  useEffect(() => {
+    if (!gateway) return;
+    let disposed = false;
+    let foreground = AppState.currentState === 'active';
+    let online = false;
+    const update = () => {
+      if (disposed) return;
+      if (foreground && online && !operations.current.isActive) gateway.startAutoRefresh();
       else gateway.stopAutoRefresh();
     };
 
-    handleAppState(AppState.currentState);
+    const handleAppState = (nextState: AppStateStatus) => {
+      foreground = nextState === 'active';
+      update();
+    };
+    const networkSubscription = Network.addNetworkStateListener((next) => {
+      online = next.isConnected !== false && next.isInternetReachable !== false;
+      update();
+    });
+    void Network.getNetworkStateAsync().then((next) => {
+      online = next.isConnected !== false && next.isInternetReachable !== false;
+      update();
+    }).catch(() => undefined);
     const appStateSubscription = AppState.addEventListener(
       'change',
       handleAppState,
     );
 
     return () => {
-      active = false;
+      disposed = true;
       gateway.stopAutoRefresh();
-      unsubscribe();
+      networkSubscription.remove();
       appStateSubscription.remove();
     };
-  }, [gateway, loadProfile, safelyLink]);
+  }, [gateway, state.session?.accountId]);
 
   useEffect(() => {
     if (onboarding.status === 'complete' && state.session) {
@@ -138,56 +156,65 @@ function useAccountValue() {
     }
   }, [onboarding.status, safelyLink, state.session]);
 
+  useEffect(() => {
+    setProfile(null);
+    if (state.session?.accountId) void loadProfile();
+  }, [loadProfile, state.session?.accountId]);
+
   const run = useCallback(
     async <T,>(operation: () => Promise<T>): Promise<T | null> => {
-      if (operationActive.current) return null;
-      operationActive.current = true;
+      if (operations.current.isActive) return null;
       setIsBusy(true);
+      dispatch({ type: 'clear_error' });
+      gateway?.stopAutoRefresh();
 
       try {
-        return await operation();
+        return await withDeadline(operations.current.run(async () => {
+          await gateway?.restoreSession().catch(() => undefined);
+          return operation();
+        }), operationTimeoutMs);
       } catch (error) {
         const failure = mapAuthError(error);
         dispatch({ type: 'failed', message: failure.message });
         return null;
       } finally {
-        operationActive.current = false;
         setIsBusy(false);
+        void Network.getNetworkStateAsync().then((next) => {
+          if (!operations.current.isActive && mounted.current && AppState.currentState === 'active' && next.isConnected !== false && next.isInternetReachable !== false) gateway?.startAutoRefresh();
+        }).catch(() => undefined);
       }
     },
-    [],
+    [gateway],
   );
 
   const signIn = useCallback(
     async (email: string, password: string): Promise<OperationResult> => {
       if (!gateway) return { ok: false };
-      const session = await run(() => gateway.signIn(email.trim(), password));
+      const session = await run(() => gateway.signIn(email.trim().toLowerCase(), password));
       if (!session) return { ok: false };
       dispatch({ type: 'restored', session });
-      await safelyLink(session.accountId);
-      void loadProfile();
       return { ok: true };
     },
-    [gateway, loadProfile, run, safelyLink],
+    [gateway, run],
   );
 
   const signUp = useCallback(
     async (input: SignUpInput): Promise<SignUpOperationResult> => {
       if (!gateway) return { ok: false, requiresEmailVerification: false };
       const result = await run(() =>
-        gateway.signUp({ ...input, email: input.email.trim() }),
+        gateway.signUp({ ...input, email: input.email.trim().toLowerCase() }),
       );
       if (!result) return { ok: false, requiresEmailVerification: false };
+      setConfirmation(result.requiresEmailVerification ? { email: input.email.trim().toLowerCase(), redirectTo: input.redirectTo } : null);
       if (result.session) {
         dispatch({ type: 'restored', session: result.session });
-        await safelyLink(result.session.accountId);
       }
       return {
         ok: true,
         requiresEmailVerification: result.requiresEmailVerification,
       };
     },
-    [gateway, run, safelyLink],
+    [gateway, run],
   );
 
   const signOut = useCallback(async (): Promise<OperationResult> => {
@@ -205,13 +232,23 @@ function useAccountValue() {
   const sendRecovery = useCallback(
     async (email: string, redirectTo: string): Promise<OperationResult> => {
       if (!gateway) return { ok: false };
+      setConfirmation(null);
       const result = await run(() =>
-        gateway.sendRecovery(email.trim(), redirectTo),
+        gateway.sendRecovery(email.trim().toLowerCase(), redirectTo),
       );
       return { ok: result !== null };
     },
     [gateway, run],
   );
+
+  const resendConfirmation = useCallback(async () => {
+    if (!gateway || !confirmation) return { ok: false };
+    const result = await run(async () => {
+      await gateway.resendConfirmation(confirmation.email, confirmation.redirectTo);
+      return true;
+    });
+    return { ok: Boolean(result) };
+  }, [confirmation, gateway, run]);
 
   const consumeCallback = useCallback(
     async (
@@ -231,10 +268,9 @@ function useAccountValue() {
           session,
         },
       });
-      await safelyLink(session.accountId);
       return { ok: true, purpose };
     },
-    [gateway, run, safelyLink],
+    [gateway, run],
   );
 
   const updatePassword = useCallback(
@@ -272,6 +308,9 @@ function useAccountValue() {
     updatePassword,
     saveProfile,
     refreshProfile: loadProfile,
+    retryAccount,
+    canResendConfirmation: Boolean(confirmation),
+    resendConfirmation,
   };
 }
 

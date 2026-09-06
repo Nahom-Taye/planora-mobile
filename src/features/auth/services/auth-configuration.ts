@@ -38,6 +38,8 @@ export function validateAuthConfiguration(
   const validUrl =
     parsedUrl.protocol === 'https:' &&
     parsedUrl.hostname.endsWith('.supabase.co') &&
+    (parsedUrl.pathname === '/' || parsedUrl.pathname === '') &&
+    !parsedUrl.search && !parsedUrl.hash && !parsedUrl.port &&
     !parsedUrl.username &&
     !parsedUrl.password;
 

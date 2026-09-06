@@ -12,7 +12,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandWordmark } from '@/components/brand';
-import { Text } from '@/components/ui';
+import { Button, Text } from '@/components/ui';
+import { useAccount } from '@/providers/account-provider';
+import { useAppEntry } from '@/providers/app-entry-provider';
+import { useOnboarding } from '@/providers/onboarding-provider';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useLocalization } from '@/providers/localization-provider';
 import { MAX_CONTENT_WIDTH, MIN_TOUCH_TARGET } from '@/utils/layout';
@@ -39,6 +42,9 @@ export function AuthScaffold({
   const theme = useAppTheme();
   const router = useRouter();
   const localization = useLocalization();
+  const account = useAccount();
+  const appEntry = useAppEntry();
+  const onboarding = useOnboarding();
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -93,7 +99,19 @@ export function AuthScaffold({
               </Text>
               <Text tone="textMuted">{description}</Text>
             </View>
-            <View style={{ gap: theme.spacing.lg }}>{children}</View>
+            <View style={{ gap: theme.spacing.lg }}>
+              {!account.configured ? <Text tone="warning" variant="caption">{localization.t('auth.accountUnavailable')}</Text> : null}
+              {children}
+              {account.errorMessage || !account.configured ? (
+                <>
+                  {account.configured ? <Button label={localization.t('common.retry')} loading={account.isBusy} onPress={() => void account.retryAccount()} variant="secondary" /> : null}
+                  <Button label={localization.t('auth.localTitle')} variant="ghost" onPress={() => {
+                    appEntry.continueLocally();
+                    router.replace(onboarding.status === 'complete' ? '/(tabs)' : '/(onboarding)/onboarding');
+                  }} />
+                </>
+              ) : null}
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

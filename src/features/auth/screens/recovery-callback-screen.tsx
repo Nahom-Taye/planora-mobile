@@ -1,6 +1,6 @@
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { Button } from '@/components/ui';
 import { useAccount } from '@/providers/account-provider';
@@ -19,19 +19,23 @@ export function RecoveryCallbackScreen() {
   const onboarding = useOnboarding();
   const url = Linking.useURL();
   const handledUrl = useRef<string | null>(null);
+  const consumeCallback = account.consumeCallback;
+  const retry = useCallback(async () => {
+    if (!url) return;
+    const result = await consumeCallback(url, Linking.createURL('/callback'));
+    if (!result.ok) return;
+    router.replace(
+      result.purpose === 'recovery'
+        ? '/(recovery)/reset-password'
+        : onboarding.status === 'complete' ? '/(tabs)' : '/(onboarding)/onboarding',
+    );
+  }, [consumeCallback, onboarding.status, router, url]);
 
   useEffect(() => {
-    if (!url || handledUrl.current === url) return;
+    if (!url || handledUrl.current === url || account.isBusy) return;
     handledUrl.current = url;
-    void account.consumeCallback(url, Linking.createURL('/callback')).then((result) => {
-      if (!result.ok) return;
-      router.replace(
-        result.purpose === 'recovery'
-          ? '/(recovery)/reset-password'
-          : '/(tabs)',
-      );
-    });
-  }, [account, router, url]);
+    void retry();
+  }, [account.isBusy, retry, url]);
 
   return (
     <AuthScaffold
@@ -43,6 +47,9 @@ export function RecoveryCallbackScreen() {
       title={localization.t(account.isBusy ? 'auth.recoveryValidating' : 'auth.secureRecovery')}
     >
       <AuthErrorSummary message={account.errorMessage} />
+      {account.errorMessage ? (
+        <Button label={localization.t('common.retry')} loading={account.isBusy} onPress={() => void retry()} variant="secondary" />
+      ) : null}
       {account.errorMessage ? (
         <Button
           label={localization.t('auth.requestNewLink')}

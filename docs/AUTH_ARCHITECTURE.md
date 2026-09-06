@@ -16,13 +16,17 @@ Account headings, fields, validation, confirmation dialogs, recovery instruction
 
 ## Session lifecycle
 
-One configured client restores its persisted session during application startup and subscribes to authentication state changes. The branded launch view remains visible until secure session restoration resolves, preventing a valid saved session from briefly showing account entry. A valid persisted session may restore without a network request. Expired, revoked, corrupt, or unreadable state resolves safely to account entry without changing the planning database.
+One immutable client factory serves the account and synchronization gateways. One application subscription dispatches state outside the authentication lock. Supabase also owns its internal token-change subscription. Repository initialization does not recreate the application subscription. Concurrent restoration and profile session lookups share one promise.
 
-Automatic refresh starts only while the application is active and stops when it becomes inactive. Subscriptions and refresh behavior are cleaned up with the provider lifecycle. Duplicate form submissions are rejected while an account operation is active.
+Startup stops waiting for accounts after 1.5 seconds and offers Sign in, Create account, and Continue locally. A separate readiness request never gates local navigation. Late restoration may recover account access. Network failures retain persisted sessions; rejected expired refresh tokens clear authentication material without touching planning records. Unavailable secure storage is distinguished from corrupt stored data.
+
+Supabase 2.112 uses a zero-millisecond lock attempt in its automatic-refresh tick. The application disables that timer and schedules session checks only in the foreground with connectivity. The schedule shares restoration, stops after two consecutive failures, and resumes on foreground, reconnection, or explicit retry. A successful signed-out result stops the schedule. Account operations pause scheduled refresh. The normal process-lock timeout is 45 seconds: longer than the SDK refresh retry window of 30 seconds plus bounded network overhead. No zero-timeout tick is invoked.
+
+Connectivity checks and requests each have a six-second deadline. Request bodies are consumed before the deadline ends. A failed network request opens a ten-second cooldown; refresh requests allow one actual network attempt per 35-second failure window, preventing SDK backoff from producing a request storm. Account actions have a 45-second UI deadline and a single-flight guard that stays held until underlying work settles. Subscriptions, timers, and AppState/network listeners are cleaned up.
 
 ## Secure-storage strategy
 
-Android and iOS store authentication session material with Expo SecureStore, separately from SQLite. Values are split into bounded chunks to respect practical platform value limits. The adapter rejects oversized values, clears incomplete or corrupt values, and never logs session content.
+Android and iOS store authentication material with Expo SecureStore, separately from SQLite. Per-key serialization prevents concurrent readers from observing writes. An inactive slot receives chunks before an atomic manifest switch; interrupted writes leave the prior committed slot readable. Each chunk contains at most 450 Unicode code points, within the native byte limit even for non-ASCII profile metadata, without splitting surrogate pairs. At most 64 chunks are accepted. The legacy numbered manifest remains readable and migrates on the next successful write. There are no persisted locks. Corrupt session objects are rejected; transient read failures do not delete stored credentials.
 
 Web uses bounded browser local storage because SecureStore protection is unavailable there. Browser scripts running in the same origin can access that storage, so web session persistence does not provide protection equivalent to Android keystore or iOS keychain storage. Passwords are never persisted by Planora on any platform.
 
@@ -63,6 +67,10 @@ Sign-in creates or refreshes the link. Sign-out marks the link as unlinked. Neit
 
 ## Deep-link and recovery behavior
 
+Email signup and recovery submit S256 challenges through the public Supabase Auth REST endpoints. Expo Crypto 15.0.9 supplies asynchronous native random bytes and SHA-256; no global cryptography patch or additional polyfill is used. The verifier follows the installed SDK storage contract, including the recovery suffix, so its public code-exchange method completes callbacks. Transient exchange failures restore the verifier for explicit retry. The SDK client does not generate challenges for password sign-in or password-only updates. Its default flow setting is not used to initiate implicit email links: both email-link operations supply S256 explicitly. Email resend shares a 60-second in-process cooldown; server limits may be longer.
+
+This implementation follows the [Expo SDK 54 crypto API](https://docs.expo.dev/versions/v54.0.0/sdk/crypto/), [Supabase Auth REST schema](https://github.com/supabase/auth/blob/master/openapi.yaml), and [Supabase PKCE exchange contract](https://supabase.com/docs/guides/auth/sessions/pkce-flow). SDK upgrades must rerun the verifier/exchange integration tests.
+
 The application scheme is `planora`. The production recovery callback is `planora://callback`. Expo Go development uses the callback produced by Expo Linking for the active development URL.
 
 The callback handler requires the incoming scheme, host, and path to match the callback destination produced for the running application before it accepts a one-time authorization code, verification token hash, recovery token hash, or provider recovery session. Private callback values are consumed in memory and are not written to route parameters, logs, or SQLite. Valid email verification returns to onboarding when needed or the main application, while valid recovery state opens the password-reset screen. Invalid or expired links lead to a recoverable request-new-link path. Continue locally from callback recovery follows the same onboarding decision as the opening screen.
@@ -71,7 +79,9 @@ The Supabase project URL configuration must allow the production callback and th
 
 ## Offline behavior
 
-SQLite remains the immediate source of truth. Local-only startup does not contact the account provider. A previously persisted valid session can restore offline, while profile refresh may wait for connectivity. Network-required account operations return calm, retryable messages. Authentication failures never reset or mutate the planning database.
+SQLite remains the immediate source of truth. Account readiness runs independently of local startup and sends no request when connectivity is explicitly unavailable. A previously persisted unexpired session can restore offline. Profile errors do not change local planning. Account errors distinguish credentials, confirmation, rate limits, configuration, service availability, and network failures in all five catalogs. Recovery does not disclose whether an account exists.
+
+Expo Go skips only the unsupported splash customization call, using Constants.executionEnvironment. Development, preview, and production builds retain the configured branded splash and reduced-motion behavior. Console methods and third-party diagnostics are unchanged.
 
 ## Sign-out behavior
 
@@ -84,6 +94,8 @@ Native secure storage protects session material using platform facilities, but i
 ## Testing strategy
 
 Automated tests use mocked boundaries and deterministic values for onboarding completion, configuration validation, authentication state transitions, restoration, corrupt storage recovery, cleanup, error mapping, local-only startup, account linkage, route decisions, profile mapping, callback parsing, migration order, and network-error handling.
+
+The authentication regression suite additionally exercises the installed client with in-memory transport and ephemeral session fixtures, single-client identity, subscription replacement/cleanup, concurrent restoration, deferred callbacks, offline startup, invalid refresh tokens, retained sessions, atomic chunk writes, repeated taps, S256 email requests and exchange, recovery privacy, offline sign-out, bounded refresh, and Expo Go splash selection. No real account is created by these tests.
 
 A configured test project is required to verify signup, email confirmation, sign-in, restart restoration, sign-out, password recovery, profile updates, incorrect-password behavior, and two-account policy isolation. Test accounts should be removed afterward only when deletion is safe and authorized.
 

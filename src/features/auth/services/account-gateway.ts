@@ -12,6 +12,7 @@ export type SignUpResult = {
 };
 
 export type AccountGateway = {
+  checkReadiness: () => Promise<void>;
   restoreSession: () => Promise<AccountSession | null>;
   subscribe: (listener: (change: AuthChange) => void) => () => void;
   startAutoRefresh: () => void;
@@ -20,6 +21,7 @@ export type AccountGateway = {
   signUp: (input: SignUpInput) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
   sendRecovery: (email: string, redirectTo: string) => Promise<void>;
+  resendConfirmation: (email: string, redirectTo: string) => Promise<void>;
   consumeCallback: (callback: RecoveryCallback) => Promise<AccountSession>;
   updatePassword: (password: string) => Promise<void>;
   getProfile: () => Promise<AccountProfile | null>;

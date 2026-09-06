@@ -38,6 +38,7 @@ export const translationCatalogs = { en, am, es, fr, ar } satisfies Record<
 >;
 
 const messageKeys = new Map<string, TranslationKey>([
+  ['Your account session has expired. Sign in again or continue locally. Your planning data is unchanged.', 'auth.sessionExpired'],
   ['Enter a task title.', 'validation.taskTitle'],
   ['Enter a block title.', 'validation.blockTitle'],
   ['Enter a routine title.', 'validation.routineTitle'],

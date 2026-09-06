@@ -7,6 +7,7 @@ export type AuthState = {
 };
 
 export type AuthStateEvent =
+  | { type: 'clear_error' }
   | { type: 'configuration_unavailable' }
   | { type: 'restored'; session: AccountSession | null }
   | { type: 'changed'; change: AuthChange }
@@ -22,6 +23,7 @@ export function reduceAuthState(
   state: AuthState,
   event: AuthStateEvent,
 ): AuthState {
+  if (event.type === 'clear_error') return { ...state, errorMessage: null };
   if (event.type === 'configuration_unavailable') {
     return { status: 'local_only', session: null, errorMessage: null };
   }
@@ -31,7 +33,7 @@ export function reduceAuthState(
   }
 
   if (event.type === 'failed') {
-    return { ...state, status: 'error', errorMessage: event.message };
+    return { ...state, status: state.session ? state.status : 'error', errorMessage: event.message };
   }
 
   if (event.change.event === 'password_recovery') {
@@ -40,6 +42,14 @@ export function reduceAuthState(
       session: event.change.session,
       errorMessage: null,
     };
+  }
+
+  if (event.change.event === 'refresh_failed') {
+    return { ...state, status: state.session ? state.status : 'error', errorMessage: event.change.errorMessage ?? null };
+  }
+
+  if (state.status === 'recovering' && event.change.event === 'initial' && event.change.session?.accountId === state.session?.accountId) {
+    return { ...state, errorMessage: null };
   }
 
   return sessionState(event.change.session);

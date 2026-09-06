@@ -5,6 +5,7 @@ import {
   type Theme as NavigationTheme,
 } from '@react-navigation/native';
 import { Stack } from 'expo-router';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
@@ -28,6 +29,7 @@ import { StorageProvider, useStorage } from '@/providers/storage-provider';
 import { SyncProvider } from '@/providers/sync-provider';
 import { WorkspaceProvider, useWorkspace } from '@/providers/workspace-provider';
 import { AppThemeProvider } from '@/theme';
+import { configureSplash } from '@/features/auth/services/splash-runtime';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -45,7 +47,7 @@ function RootNavigator() {
 
   useEffect(() => {
     if (reducedMotion === null) return;
-    SplashScreen.setOptions({ duration: reducedMotion ? 0 : 300, fade: !reducedMotion });
+    configureSplash(Constants.executionEnvironment === ExecutionEnvironment.StoreClient, reducedMotion, SplashScreen.setOptions);
     void SplashScreen.hideAsync();
     const launchTimer = setTimeout(() => setShowLaunchScreen(false), reducedMotion ? 0 : 550);
 

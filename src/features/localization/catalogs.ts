@@ -51,6 +51,9 @@ export const en = {
     settings: 'Settings',
   },
   auth: {
+    sessionExpired: 'Your account session has expired. Sign in again or continue locally. Your planning data is unchanged.',
+    resendConfirmation: 'Resend confirmation email',
+    resendWait: 'Wait at least 60 seconds before requesting another email. Check spam, and use the newest link on this device.',
     chooseTitle: 'Choose what fits today',
     chooseDescription: 'Keep using Planora locally, or add an account for a small profile and account recovery. Planning content stays on this device.',
     localTitle: 'Continue locally',

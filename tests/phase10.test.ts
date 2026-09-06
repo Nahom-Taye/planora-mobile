@@ -407,8 +407,10 @@ test('startup and confirmation animation honor reduced motion', async () => {
   const rootLayout = await readFile(`${root}/app/_layout.tsx`, 'utf8');
   const launch = await readFile(`${root}/src/components/brand/branded-launch-screen.tsx`, 'utf8');
   const data = await readFile(`${root}/src/features/sync/screens/data-privacy-screen.tsx`, 'utf8');
-  assert.match(rootLayout, /duration: reducedMotion \? 0 : 300/);
-  assert.match(rootLayout, /fade: !reducedMotion/);
+  const splashRuntime = await readFile(`${root}/src/features/auth/services/splash-runtime.ts`, 'utf8');
+  assert.match(rootLayout, /configureSplash\(Constants.executionEnvironment === ExecutionEnvironment.StoreClient, reducedMotion, SplashScreen.setOptions\)/);
+  assert.match(splashRuntime, /duration: reducedMotion \? 0 : 300/);
+  assert.match(splashRuntime, /fade: !reducedMotion/);
   assert.match(launch, /animating=\{reducedMotion === false\}/);
   assert.match(data, /animationType=\{reducedMotion === false \? 'fade' : 'none'\}/);
 });

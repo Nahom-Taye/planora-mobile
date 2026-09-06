@@ -20,6 +20,7 @@ export type AuthErrorCode =
   | 'network_unavailable'
   | 'rate_limited'
   | 'expired_link'
+  | 'session_expired'
   | 'service_unavailable'
   | 'unknown';
 
@@ -53,8 +54,10 @@ export type AuthChange = {
     | 'signed_in'
     | 'signed_out'
     | 'password_recovery'
+    | 'refresh_failed'
     | 'updated';
   session: AccountSession | null;
+  errorMessage?: string;
 };
 
 export type RecoveryCallback =
