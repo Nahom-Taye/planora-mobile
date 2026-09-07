@@ -8,6 +8,7 @@ import {
   useState,
   type PropsWithChildren,
 } from 'react';
+import { AppState } from 'react-native';
 
 import type {
   CalendarDate,
@@ -37,6 +38,8 @@ import {
   type RecurrenceDraft,
 } from '@/features/planner/services/recurrence';
 import { PlanningPreferencesService } from '@/features/settings/services/planning-preferences-service';
+import { RefreshGeneration } from '@/features/today/services/refresh-generation';
+import { subscribeLocalDataChanges } from '@/storage/repositories/local-data-change-signal';
 
 import { useLocalization } from './localization-provider';
 import { usePlanning } from './planning-provider';
@@ -70,6 +73,7 @@ function usePlannerValue(repositories: RepositoryStore | null) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isMutating, setIsMutating] = useState(false);
   const operationActive = useRef(false);
+  const refreshGeneration = useRef(new RefreshGeneration()).current;
   const blockService = useMemo(
     () => (repositories ? new PlanBlockService(repositories) : null),
     [repositories],
@@ -83,6 +87,9 @@ function usePlannerValue(repositories: RepositoryStore | null) {
     [repositories],
   );
   const today = planning.today;
+  const scope = useMemo(() => ({ repositories, workspace: workspace.workspace, status: workspace.status, today }), [repositories, workspace.workspace, workspace.status, today]);
+  const activeScope = useRef(scope);
+  activeScope.current = scope;
 
   useEffect(() => {
     if (today && !selectedDate) setSelectedDate(today);
@@ -90,6 +97,7 @@ function usePlannerValue(repositories: RepositoryStore | null) {
 
   const refresh = useCallback(async () => {
     if (
+      activeScope.current !== scope ||
       !blockService ||
       !recurrenceService ||
       !repositories ||
@@ -98,6 +106,7 @@ function usePlannerValue(repositories: RepositoryStore | null) {
     ) {
       return;
     }
+    const isCurrent = refreshGeneration.begin();
     setStatus('loading');
     setErrorMessage(null);
     try {
@@ -110,24 +119,52 @@ function usePlannerValue(repositories: RepositoryStore | null) {
         blockService.list(workspace.workspace.id),
         listAllSeries(repositories, workspace.workspace.id),
       ]);
+      if (!isCurrent()) return;
       setBlocks(nextBlocks);
       setSeries(nextSeries);
       setStatus('ready');
     } catch {
+      if (!isCurrent()) return;
       setStatus('error');
       setErrorMessage('Your schedule could not be refreshed. Saved local data is unchanged.');
     }
-  }, [blockService, recurrenceService, repositories, today, workspace.workspace]);
+  }, [blockService, recurrenceService, refreshGeneration, repositories, scope, today, workspace.workspace]);
 
   useEffect(() => {
     if (workspace.status === 'ready') void refresh();
-    else setStatus('idle');
-  }, [refresh, workspace.status]);
+    else {
+      setStatus('idle');
+      setBlocks([]);
+      setSeries([]);
+    }
+    return () => refreshGeneration.invalidate();
+  }, [refresh, refreshGeneration, workspace.status]);
+
+  useEffect(() => {
+    if (workspace.status !== 'ready') return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const unsubscribe = subscribeLocalDataChanges(() => {
+      refreshGeneration.invalidate();
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => void refresh(), 80);
+    });
+    const subscription = AppState.addEventListener('change', (state) => {
+      refreshGeneration.invalidate();
+      if (state === 'active') void refresh();
+    });
+    return () => {
+      refreshGeneration.invalidate();
+      unsubscribe();
+      subscription.remove();
+      if (timer) clearTimeout(timer);
+    };
+  }, [refresh, refreshGeneration, workspace.status]);
 
   const mutate = useCallback(
     async (operation: () => Promise<unknown>): Promise<MutationResult> => {
       if (operationActive.current) return { ok: false };
       operationActive.current = true;
+      refreshGeneration.invalidate();
       setIsMutating(true);
       setErrorMessage(null);
       try {
@@ -149,7 +186,7 @@ function usePlannerValue(repositories: RepositoryStore | null) {
         setIsMutating(false);
       }
     },
-    [refresh],
+    [refresh, refreshGeneration],
   );
 
   const activeWorkspace = workspace.workspace;

@@ -8,7 +8,7 @@ Phase 4 delivers local Today, task, and routine workflows. SQLite remains the im
 
 Storage and onboarding preferences initialize behind the branded launch view. Secure account restoration completes before route selection, so a valid saved session grants application access without an account-entry flash. A signed-out cold launch opens sign-in with create-account, recovery, and Continue locally actions.
 
-Continue locally is held only for the current application process. It survives background transitions but not a cold restart. After local or account access is granted, incomplete onboarding opens first; otherwise the five main tabs open. Sign-out clears session material and returns to account entry without changing SQLite planning records.
+Continue locally saves a device preference that survives background transitions and cold restarts. After local or account access is granted, incomplete onboarding opens first; otherwise the five main tabs open. Signing in clears this preference. Sign-out clears session material and returns to account entry without changing SQLite planning records or synchronization consent.
 
 Missing or invalid public account configuration disables network account actions. It never disables Continue locally. Recovery callbacks remain in their separate public route group.
 

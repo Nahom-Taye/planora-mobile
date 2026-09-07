@@ -13,6 +13,7 @@ import {
 } from '../../tasks/services/task-organization.ts';
 
 import { compareCalendarDates, localCalendarDate } from './local-date.ts';
+import { calendarDateValue, instantValue } from './display-values.ts';
 
 export type TodayPlan = {
   overdue: Task[];
@@ -32,11 +33,15 @@ export function buildTodayPlan(
   today: CalendarDate,
   timeZone?: TimeZone,
 ): TodayPlan {
-  const actionable = tasks.filter(isActionableTask);
+  const visibleTasks = tasks.filter((task) => task.deletedAt == null);
+  const actionable = visibleTasks.filter((task) =>
+    isActionableTask(task) || !['completed', 'cancelled'].includes(task.status),
+  );
+  const todayCheckIns = checkIns.filter((checkIn) => !checkIn.deletedAt && checkIn.date === today);
   const todayRoutines = routines
-    .filter((routine) => isRoutineScheduled(routine, today))
+    .filter((routine) => !routine.deletedAt && isRoutineScheduled(routine, today))
     .sort(compareRoutines);
-  const completed = tasks
+  const completed = visibleTasks
     .filter(
       (task) =>
         (task.status === 'completed' || task.status === 'cancelled') &&
@@ -45,7 +50,7 @@ export function buildTodayPlan(
     )
     .sort(compareTasks);
   const routineCompletions = todayRoutines.filter((routine) =>
-    checkIns.some(
+    todayCheckIns.some(
       (checkIn) =>
         checkIn.routineId === routine.id && checkIn.outcome === 'completed',
     ),
@@ -55,32 +60,32 @@ export function buildTodayPlan(
     overdue: actionable
       .filter(
         (task) =>
-          task.dueDate !== null && compareCalendarDates(task.dueDate, today) < 0,
+          calendarDateValue(task.dueDate) !== null && compareCalendarDates(task.dueDate!, today) < 0,
       )
       .sort(compareTasks),
     today: actionable
       .filter((task) => task.dueDate === today)
       .sort(compareTasks),
     unscheduled: actionable
-      .filter((task) => task.dueDate === null)
+      .filter((task) => calendarDateValue(task.dueDate) === null)
       .sort(compareTasks),
     completed,
     routines: todayRoutines,
-    checkIns,
+    checkIns: todayCheckIns,
     completedCount:
       completed.filter((task) => task.status === 'completed').length +
       routineCompletions,
     totalCount:
       completed.filter((task) => task.status === 'completed').length +
-      actionable.filter((task) => !task.dueDate || task.dueDate <= today).length +
+      actionable.filter((task) => !calendarDateValue(task.dueDate) || task.dueDate! <= today).length +
       todayRoutines.length,
   };
 }
 
 function completionCalendarDate(task: Task, timeZone?: TimeZone) {
   if (!timeZone) return null;
-  const instant = new Date(task.completedAt ?? task.updatedAt);
-  if (!Number.isFinite(instant.getTime())) return null;
+  const instant = instantValue(task.completedAt) ?? instantValue(task.updatedAt);
+  if (!instant) return null;
   try {
     return localCalendarDate(instant, timeZone);
   } catch {

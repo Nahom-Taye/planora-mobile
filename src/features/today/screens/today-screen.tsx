@@ -52,7 +52,7 @@ export function TodayScreen() {
   };
   const refresh = () => Promise.all([planning.refresh(), planner.refresh()]);
 
-  if (planning.status === 'loading' && !planning.plan) {
+  if ((planning.status === 'idle' || planning.status === 'loading') && !planning.plan) {
     return (
       <Screen contentStyle={styles.center} testID="today-loading">
         <ActivityIndicator color={theme.colors.primary} size="large" />
@@ -78,6 +78,11 @@ export function TodayScreen() {
           <Button
             label={localization.t('common.retry')}
             onPress={() => void refresh()}
+          />
+          <Button
+            label={localization.t('tabs.settings')}
+            onPress={() => router.replace('/(tabs)/settings')}
+            variant="secondary"
           />
         </Card>
       </Screen>

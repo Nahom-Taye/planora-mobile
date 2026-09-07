@@ -81,7 +81,8 @@ function RootNavigator() {
     !localization.fontsReady ||
     storage.status !== 'ready' ||
     onboarding.status === 'loading' ||
-    account.status === 'restoring'
+    account.status === 'restoring' ||
+    appEntry.destination === 'loading'
   ) {
     if (storage.status === 'error') {
       return (
@@ -139,7 +140,8 @@ function RootNavigator() {
   return (
     <NavigationThemeProvider value={navigationTheme}>
       <StatusBar style={theme.isDark ? 'light' : 'dark'} />
-      <Stack initialRouteName="(auth)" screenOptions={{ headerShown: false }}>
+      <Stack initialRouteName="entry" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="entry" />
         <Stack.Protected
           guard={
             appEntry.accessGranted &&
@@ -210,7 +212,7 @@ function StorageBackedApplication() {
                   <InsightsProvider repositories={storage.repositories}>
                     <ReminderProvider repositories={storage.repositories}>
                       <SyncProvider repositories={storage.repositories}>
-                        <FeatureErrorBoundary area="today">
+                        <FeatureErrorBoundary area="startup">
                           <RootNavigator />
                         </FeatureErrorBoundary>
                       </SyncProvider>

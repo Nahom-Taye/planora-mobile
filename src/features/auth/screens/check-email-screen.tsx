@@ -5,7 +5,6 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAppEntry } from '@/providers/app-entry-provider';
 import { useAccount } from '@/providers/account-provider';
 import { useLocalization } from '@/providers/localization-provider';
-import { useOnboarding } from '@/providers/onboarding-provider';
 
 import { AuthScaffold } from '../components/auth-scaffold';
 import { AuthErrorSummary } from '../components/auth-error-summary';
@@ -16,7 +15,6 @@ export function CheckEmailScreen() {
   const appEntry = useAppEntry();
   const account = useAccount();
   const localization = useLocalization();
-  const onboarding = useOnboarding();
 
   return (
     <AuthScaffold
@@ -47,11 +45,7 @@ export function CheckEmailScreen() {
         label={localization.t('auth.localTitle')}
         onPress={() => {
           appEntry.continueLocally();
-          router.replace(
-            onboarding.status === 'complete'
-              ? '/(tabs)'
-              : '/(onboarding)/onboarding',
-          );
+          router.replace('/entry');
         }}
         variant="ghost"
       />

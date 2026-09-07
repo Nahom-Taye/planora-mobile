@@ -10,6 +10,7 @@ import {
   startOfLocalWeek,
 } from '../../planner/services/calendar-math.ts';
 import { localCalendarDate } from '../../today/services/local-date.ts';
+import { instantValue } from '../../today/services/display-values.ts';
 
 export type InsightsPeriod = {
   start: CalendarDate;
@@ -48,8 +49,8 @@ export function normalizeWeeklyPeriod(
   return startOfLocalWeek(date, weekStartsOn);
 }
 
-export function dateWithinPeriod(date: CalendarDate, period: InsightsPeriod) {
-  return date >= period.start && date <= period.end;
+export function dateWithinPeriod(date: CalendarDate | null, period: InsightsPeriod) {
+  return date !== null && date >= period.start && date <= period.end;
 }
 
 export function datesInPeriod(period: InsightsPeriod) {
@@ -59,7 +60,8 @@ export function datesInPeriod(period: InsightsPeriod) {
 }
 
 export function localDateForTimestamp(timestamp: string, timeZone: TimeZone) {
-  return localCalendarDate(new Date(timestamp), timeZone);
+  const instant = instantValue(timestamp);
+  return instant ? localCalendarDate(instant, timeZone) : null;
 }
 
 export function orderedWeekdays(weekStartsOn: Weekday) {

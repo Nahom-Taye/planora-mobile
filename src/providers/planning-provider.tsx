@@ -8,6 +8,7 @@ import {
   useState,
   type PropsWithChildren,
 } from 'react';
+import { AppState } from 'react-native';
 
 import type {
   Routine,
@@ -26,6 +27,7 @@ import {
 import type { TaskDraft } from '@/features/tasks/services/task-validation';
 import { localCalendarDate } from '@/features/today/services/local-date';
 import { buildTodayPlan } from '@/features/today/services/today-planning';
+import { RefreshGeneration } from '@/features/today/services/refresh-generation';
 import { StorageError } from '@/storage/database/errors';
 import { subscribeLocalDataChanges } from '@/storage/repositories/local-data-change-signal';
 
@@ -66,7 +68,8 @@ function usePlanningValue(repositories: RepositoryStore | null) {
   const [isMutating, setIsMutating] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const operationActive = useRef(false);
-  const refreshGeneration = useRef(0);
+  const [, setClock] = useState(0);
+  const refreshGeneration = useRef(new RefreshGeneration()).current;
   const taskService = useMemo(
     () => (repositories ? new TaskService(repositories) : null),
     [repositories],
@@ -78,9 +81,13 @@ function usePlanningValue(repositories: RepositoryStore | null) {
   const today = localWorkspace.profile
     ? localCalendarDate(new Date(), localWorkspace.profile.timeZone)
     : null;
+  const scope = useMemo(() => ({ repositories, workspace: localWorkspace.workspace, status: localWorkspace.status, today }), [repositories, localWorkspace.workspace, localWorkspace.status, today]);
+  const activeScope = useRef(scope);
+  activeScope.current = scope;
 
   const refresh = useCallback(async () => {
     if (
+      activeScope.current !== scope ||
       !taskService ||
       !routineService ||
       !localWorkspace.workspace ||
@@ -89,8 +96,7 @@ function usePlanningValue(repositories: RepositoryStore | null) {
       return;
     }
 
-    const generation = refreshGeneration.current + 1;
-    refreshGeneration.current = generation;
+    const isCurrent = refreshGeneration.begin();
     setStatus('loading');
     setErrorMessage(null);
     try {
@@ -99,46 +105,64 @@ function usePlanningValue(repositories: RepositoryStore | null) {
         routineService.list(localWorkspace.workspace.id),
         routineService.listCheckIns(localWorkspace.workspace.id, today),
       ]);
-      if (generation !== refreshGeneration.current) return;
+      if (!isCurrent()) return;
       setTasks(nextTasks);
       setRoutines(nextRoutines);
       setCheckIns(nextCheckIns);
       setHasLoaded(true);
       setStatus('ready');
     } catch {
-      if (generation !== refreshGeneration.current) return;
+      if (!isCurrent()) return;
       setStatus('error');
       setErrorMessage(
         'Planora could not refresh this day. Your saved local data is unchanged.',
       );
     }
-  }, [localWorkspace.workspace, routineService, taskService, today]);
+  }, [localWorkspace.workspace, refreshGeneration, routineService, scope, taskService, today]);
 
   useEffect(() => {
     if (localWorkspace.status === 'ready') void refresh();
     else {
       setHasLoaded(false);
       setStatus('idle');
+      setTasks([]);
+      setRoutines([]);
+      setCheckIns([]);
     }
-  }, [localWorkspace.status, refresh]);
+    return () => refreshGeneration.invalidate();
+  }, [localWorkspace.status, refresh, refreshGeneration]);
 
   useEffect(() => {
     if (localWorkspace.status !== 'ready') return;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const unsubscribe = subscribeLocalDataChanges(() => {
+      refreshGeneration.invalidate();
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => void refresh(), 80);
     });
     return () => {
+      refreshGeneration.invalidate();
       unsubscribe();
       if (timer) clearTimeout(timer);
     };
-  }, [localWorkspace.status, refresh]);
+  }, [localWorkspace.status, refresh, refreshGeneration]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      refreshGeneration.invalidate();
+      if (state === 'active') {
+        setClock((value) => value + 1);
+        if (localWorkspace.status === 'ready') void refresh();
+      }
+    });
+    return () => subscription.remove();
+  }, [localWorkspace.status, refresh, refreshGeneration]);
 
   const mutate = useCallback(
     async (operation: () => Promise<unknown>): Promise<MutationResult> => {
       if (operationActive.current) return { ok: false };
       operationActive.current = true;
+      refreshGeneration.invalidate();
       setIsMutating(true);
       setErrorMessage(null);
       try {
@@ -163,7 +187,7 @@ function usePlanningValue(repositories: RepositoryStore | null) {
         setIsMutating(false);
       }
     },
-    [refresh],
+    [refresh, refreshGeneration],
   );
 
   const workspace = localWorkspace.workspace;

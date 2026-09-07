@@ -1,5 +1,6 @@
 import type { PlanBlock, Task, TimeZone } from '../../../domain/entities/index.ts';
 import { durationMinutes } from './calendar-math.ts';
+import { calendarDateValue, localTimeValue } from '../../today/services/display-values.ts';
 
 export type BlockOverlap = {
   firstId: string;
@@ -16,7 +17,7 @@ export type CapacitySummary = {
 
 export function detectOverlaps(blocks: PlanBlock[]): BlockOverlap[] {
   const actionable = blocks
-    .filter((block) => block.status !== 'cancelled' && !block.deletedAt)
+    .filter((block) => block.status !== 'cancelled' && !block.deletedAt && localTimeValue(block.startTime) && localTimeValue(block.endTime))
     .sort(
       (left, right) =>
         left.startTime.localeCompare(right.startTime) ||
@@ -53,7 +54,7 @@ export function calculateCapacity(
   const plannedMinutes = activeBlocks.reduce(
     (total, block) =>
       total +
-      durationMinutes(block.date, block.startTime, block.endTime, timeZone),
+      measurableDuration(block, timeZone),
     0,
   );
 
@@ -69,4 +70,13 @@ export function calculateCapacity(
         !linkedTaskIds.has(task.id),
     ).length,
   };
+}
+
+function measurableDuration(block: PlanBlock, timeZone: TimeZone) {
+  if (!calendarDateValue(block.date) || !localTimeValue(block.startTime) || !localTimeValue(block.endTime)) return 0;
+  try {
+    return Math.max(0, durationMinutes(block.date, block.startTime, block.endTime, timeZone));
+  } catch {
+    return 0;
+  }
 }

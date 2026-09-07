@@ -639,7 +639,7 @@ test('saved-session restoration and sign-out return deterministic destinations',
   );
 });
 
-test('Continue locally is process-only and missing account configuration stays safe', () => {
+test('an unselected local choice and missing account configuration stay safe', () => {
   assert.equal(
     resolveOpeningDestination({
       accountStatus: 'signed_out',

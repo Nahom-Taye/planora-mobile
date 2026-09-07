@@ -1,6 +1,7 @@
 import { I18n } from 'i18n-js';
 
 import type { LanguagePreference } from '../../domain/entities/index.ts';
+import { calendarDateValue, instantValue, localTimeValue } from '../today/services/display-values.ts';
 import { am } from './catalog-am.ts';
 import { ar } from './catalog-ar.ts';
 import { es } from './catalog-es.ts';
@@ -162,6 +163,7 @@ export function formatCalendarDateValue(
   locale: string,
   options: Intl.DateTimeFormatOptions,
 ) {
+  if (!calendarDateValue(date)) return '—';
   const [year, month, day] = date.split('-').map(Number);
   return new Intl.DateTimeFormat(locale, { timeZone: 'UTC', ...options }).format(
     new Date(Date.UTC(year, month - 1, day, 12)),
@@ -169,6 +171,7 @@ export function formatCalendarDateValue(
 }
 
 export function formatLocalTimeValue(time: string, locale: string) {
+  if (!localTimeValue(time)) return '—';
   const [hour, minute] = time.split(':').map(Number);
   return new Intl.DateTimeFormat(locale, {
     hour: 'numeric',
@@ -178,20 +181,24 @@ export function formatLocalTimeValue(time: string, locale: string) {
 }
 
 export function formatInstantValue(value: string, locale: string) {
+  const instant = instantValue(value);
+  if (!instant) return '—';
   return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
     month: 'short',
     year: 'numeric',
-  }).format(new Date(value));
+  }).format(instant);
 }
 
 export function formatNumberValue(value: number, locale: string) {
+  if (!Number.isFinite(value)) return '—';
   return new Intl.NumberFormat(locale).format(value);
 }
 
 export function formatPercentageValue(value: number, locale: string) {
+  if (!Number.isFinite(value)) return '—';
   return new Intl.NumberFormat(locale, {
     style: 'percent',
     maximumFractionDigits: 0,
@@ -211,6 +218,7 @@ export function formatDurationValue(
   locale: string,
   translate: ReturnType<typeof createTranslator>,
 ) {
+  if (!Number.isFinite(minutes)) return '—';
   const absolute = Math.abs(minutes);
   const hours = Math.floor(absolute / 60);
   const remainder = absolute % 60;

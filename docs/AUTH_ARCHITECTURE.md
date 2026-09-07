@@ -8,7 +8,7 @@ The authentication boundary contains a minimal account profile. When and only wh
 
 ## Local-only mode
 
-After branded initialization, a valid saved session opens the appropriate onboarding or main route. A signed-out cold launch opens the account-entry form. Continue locally grants access for the current application process and opens onboarding when incomplete or the main tabs when complete. The choice is intentionally not persisted, so a later signed-out cold launch offers account entry again. Backgrounding does not reset the in-memory local choice.
+After branded initialization, a valid saved session opens the appropriate onboarding or main route. A signed-out cold launch without a saved local choice opens account entry. Continue locally saves a device preference and opens onboarding when incomplete or the main tabs when complete, including after a cold restart. Signing in clears the local choice, so subsequent sign-out returns to account entry. This preference does not enable synchronization or change planning records.
 
 Account configuration, connectivity, sign-in, email verification, and synchronization availability never prevent the user from choosing local access. When public account configuration is missing or invalid, account and synchronization actions explain that they are unavailable while Continue locally remains active. Signing in alone never uploads local planning.
 
@@ -43,7 +43,7 @@ The URL must use HTTPS and the Supabase project hostname. Placeholder, missing, 
 
 ## Route protection
 
-Expo Router route groups separate onboarding, public account screens, main tabs, task editors, routine editors, protected account screens, and recovery callbacks. Protected routes use runtime session and local-entry state for navigation control. Main and editor routes require onboarding completion plus a valid session or the current-process Continue locally choice. Account profile routes require an active account session.
+Expo Router route groups separate onboarding, public account screens, main tabs, task editors, routine editors, protected account screens, and recovery callbacks. The root navigator uses the always-registered `entry` screen as its initial route. Entry resolves the current session, saved local choice, onboarding, and recovery state before redirecting to an available group. Main and editor routes require onboarding completion plus a valid session or the saved Continue locally choice. Account profile routes require an active account session. Callback and password-recovery routes remain public.
 
 Client route protection is not authorization. The database policies remain responsible for every remote profile operation.
 

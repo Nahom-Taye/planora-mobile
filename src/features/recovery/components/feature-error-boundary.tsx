@@ -71,12 +71,15 @@ export function FeatureErrorBoundary({
         description={localization.t('recoveryBoundary.description')}
         gap={theme.spacing.lg}
         onRetry={retry}
-        onToday={() => router.replace('/')}
+        onToday={() => {
+          retry();
+          if (area !== 'startup') router.replace(area === 'today' ? '/(tabs)/settings' : '/entry');
+        }}
         retryHint={localization.t('recoveryBoundary.retryHint')}
         retryLabel={localization.t('recoveryBoundary.retry')}
         title={localization.t('recoveryBoundary.title')}
-        todayHint={localization.t('recoveryBoundary.todayHint')}
-        todayLabel={localization.t('recoveryBoundary.today')}
+        todayHint={localization.t(area === 'startup' ? 'recoveryBoundary.retryHint' : area === 'today' ? 'tabs.settings' : 'recoveryBoundary.todayHint')}
+        todayLabel={localization.t(area === 'startup' ? 'recoveryBoundary.retry' : area === 'today' ? 'tabs.settings' : 'recoveryBoundary.today')}
       />
     ),
     [area, localization, router, theme.spacing.lg],

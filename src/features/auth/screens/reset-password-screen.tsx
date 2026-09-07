@@ -35,7 +35,7 @@ export function ResetPasswordScreen() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
     const result = await account.updatePassword(password);
-    if (result.ok) router.replace('/(tabs)');
+    if (result.ok) router.replace('/entry');
   };
 
   return (

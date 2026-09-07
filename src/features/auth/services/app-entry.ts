@@ -27,3 +27,16 @@ export function resolveOpeningDestination({
   if (!hasSession && !continuedLocally) return 'account_entry';
   return onboardingComplete ? 'tabs' : 'onboarding';
 }
+
+export function openingRoute(
+  destination: OpeningDestination,
+  accountStatus: AppEntryInput['accountStatus'],
+  reviewingOnboarding = false,
+  continuedLocally = false,
+) {
+  if (destination === 'loading') return null;
+  if (accountStatus === 'recovering' && !continuedLocally) return '/(recovery)/reset-password';
+  if (destination === 'account_entry') return '/(auth)/welcome';
+  if (destination === 'onboarding' || reviewingOnboarding) return '/(onboarding)/onboarding';
+  return '/(tabs)';
+}

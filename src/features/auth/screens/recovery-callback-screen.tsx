@@ -6,7 +6,6 @@ import { Button } from '@/components/ui';
 import { useAccount } from '@/providers/account-provider';
 import { useAppEntry } from '@/providers/app-entry-provider';
 import { useLocalization } from '@/providers/localization-provider';
-import { useOnboarding } from '@/providers/onboarding-provider';
 
 import { AuthErrorSummary } from '../components/auth-error-summary';
 import { AuthScaffold } from '../components/auth-scaffold';
@@ -16,7 +15,6 @@ export function RecoveryCallbackScreen() {
   const account = useAccount();
   const appEntry = useAppEntry();
   const localization = useLocalization();
-  const onboarding = useOnboarding();
   const url = Linking.useURL();
   const handledUrl = useRef<string | null>(null);
   const consumeCallback = account.consumeCallback;
@@ -27,9 +25,9 @@ export function RecoveryCallbackScreen() {
     router.replace(
       result.purpose === 'recovery'
         ? '/(recovery)/reset-password'
-        : onboarding.status === 'complete' ? '/(tabs)' : '/(onboarding)/onboarding',
+        : '/entry',
     );
-  }, [consumeCallback, onboarding.status, router, url]);
+  }, [consumeCallback, router, url]);
 
   useEffect(() => {
     if (!url || handledUrl.current === url || account.isBusy) return;
@@ -60,11 +58,7 @@ export function RecoveryCallbackScreen() {
         label={localization.t('auth.localTitle')}
         onPress={() => {
           appEntry.continueLocally();
-          router.replace(
-            onboarding.status === 'complete'
-              ? '/(tabs)'
-              : '/(onboarding)/onboarding',
-          );
+          router.replace('/entry');
         }}
         variant="ghost"
       />

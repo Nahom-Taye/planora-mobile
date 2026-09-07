@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 
 import { Button } from '@/components/ui';
 import { useAccount } from '@/providers/account-provider';
+import { useAppEntry } from '@/providers/app-entry-provider';
 import { useLocalization } from '@/providers/localization-provider';
 
 import { AuthErrorSummary } from '../components/auth-error-summary';
@@ -10,6 +11,7 @@ import { AuthScaffold } from '../components/auth-scaffold';
 export function RecoverableAuthErrorScreen() {
   const router = useRouter();
   const account = useAccount();
+  const appEntry = useAppEntry();
   const localization = useLocalization();
 
   return (
@@ -32,7 +34,10 @@ export function RecoverableAuthErrorScreen() {
       />
       <Button
         label={localization.t('auth.localTitle')}
-        onPress={() => router.replace('/(tabs)')}
+        onPress={() => {
+          appEntry.continueLocally();
+          router.replace('/entry');
+        }}
         variant="ghost"
       />
     </AuthScaffold>

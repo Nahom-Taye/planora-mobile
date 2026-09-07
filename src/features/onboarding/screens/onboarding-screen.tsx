@@ -57,7 +57,7 @@ export function OnboardingScreen() {
     const succeeded = skip
       ? await onboarding.skip()
       : await onboarding.complete();
-    if (succeeded) router.replace('/(tabs)');
+    if (succeeded) router.replace('/entry');
   };
 
   const closeReview = () => {

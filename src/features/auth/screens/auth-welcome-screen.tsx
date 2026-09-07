@@ -6,7 +6,6 @@ import { Button, Card, Text } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAccount } from '@/providers/account-provider';
 import { useAppEntry } from '@/providers/app-entry-provider';
-import { useOnboarding } from '@/providers/onboarding-provider';
 import { useLocalization } from '@/providers/localization-provider';
 
 import { AuthScaffold } from '../components/auth-scaffold';
@@ -17,7 +16,6 @@ export function AuthWelcomeScreen() {
   const router = useRouter();
   const account = useAccount();
   const appEntry = useAppEntry();
-  const onboarding = useOnboarding();
   const localization = useLocalization();
 
   return (
@@ -43,11 +41,7 @@ export function AuthWelcomeScreen() {
           label={localization.t('auth.localTitle')}
           onPress={() => {
             appEntry.continueLocally();
-            router.replace(
-              onboarding.status === 'complete'
-                ? '/(tabs)'
-                : '/(onboarding)/onboarding',
-            );
+            router.replace('/entry');
           }}
           style={{ marginTop: theme.spacing.lg }}
         />

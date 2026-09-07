@@ -80,7 +80,7 @@ function stringValue(row: DatabaseRow, key: string): string {
 function nullableString(row: DatabaseRow, key: string): string | null {
   const value = row[key];
 
-  if (value === null) {
+  if (value === null || value === undefined) {
     return null;
   }
 
@@ -142,10 +142,10 @@ function routineScheduleValue(row: DatabaseRow): Routine['schedule'] {
   }
 
   const time =
-    value.time === null
+    value.time === null || value.time === undefined
       ? null
       : typeof value.time === 'string'
-        ? toLocalTime(value.time)
+        ? value.time as Routine['schedule']['time']
         : undefined;
 
   if (time === undefined) {
@@ -238,6 +238,16 @@ function metadataToRow(entity: EntityMetadata): DatabaseRecord {
     updated_at: entity.updatedAt,
     revision: entity.revision,
     deleted_at: entity.deletedAt,
+  };
+}
+
+function planningMetadataFromRow(row: DatabaseRow): EntityMetadata {
+  return {
+    id: stringValue(row, 'id'),
+    createdAt: stringValue(row, 'created_at') as EntityMetadata['createdAt'],
+    updatedAt: stringValue(row, 'updated_at') as EntityMetadata['updatedAt'],
+    revision: numberValue(row, 'revision'),
+    deletedAt: nullableString(row, 'deleted_at') as EntityMetadata['deletedAt'],
   };
 }
 
@@ -603,7 +613,7 @@ export const routineMapper: EntityMapper<
     status: entity.status,
   }),
   fromRow: (row) => ({
-    ...metadataFromRow(row),
+    ...planningMetadataFromRow(row),
     workspaceId: stringValue(row, 'workspace_id'),
     title: stringValue(row, 'title'),
     notes: nullableString(row, 'notes'),
@@ -643,12 +653,12 @@ export const routineCheckInMapper: EntityMapper<
     note: entity.note,
   }),
   fromRow: (row) => ({
-    ...metadataFromRow(row),
+    ...planningMetadataFromRow(row),
     workspaceId: stringValue(row, 'workspace_id'),
     routineId: stringValue(row, 'routine_id'),
     date: toCalendarDate(stringValue(row, 'date')),
     outcome: stringValue(row, 'outcome') as RoutineCheckIn['outcome'],
-    recordedAt: toInstant(stringValue(row, 'recorded_at')),
+    recordedAt: stringValue(row, 'recorded_at') as RoutineCheckIn['recordedAt'],
     note: nullableString(row, 'note'),
   }),
   buildFilters: (filter) => {
@@ -712,16 +722,16 @@ export const taskMapper: EntityMapper<
     const completedAt = nullableString(row, 'completed_at');
 
     return {
-      ...metadataFromRow(row),
+      ...planningMetadataFromRow(row),
       workspaceId: stringValue(row, 'workspace_id'),
       title: stringValue(row, 'title'),
       notes: nullableString(row, 'notes'),
       status: stringValue(row, 'status') as Task['status'],
       priority: stringValue(row, 'priority') as Task['priority'],
-      dueDate: dueDate ? toCalendarDate(dueDate) : null,
-      scheduledTime: scheduledTime ? toLocalTime(scheduledTime) : null,
-      timeZone: timeZone ? toTimeZone(timeZone) : null,
-      completedAt: completedAt ? toInstant(completedAt) : null,
+      dueDate: dueDate as Task['dueDate'],
+      scheduledTime: scheduledTime as Task['scheduledTime'],
+      timeZone: timeZone as Task['timeZone'],
+      completedAt: completedAt as Task['completedAt'],
       areaId: nullableString(row, 'area_id'),
       goalId: nullableString(row, 'goal_id'),
       parentTaskId: nullableString(row, 'parent_task_id'),

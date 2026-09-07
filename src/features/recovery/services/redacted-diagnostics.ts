@@ -9,6 +9,7 @@ export type RecoveryArea =
   | 'reminders'
   | 'routines'
   | 'settings'
+  | 'startup'
   | 'synchronization'
   | 'tasks'
   | 'today';
@@ -41,7 +42,7 @@ export function createRedactedDiagnostic(
 export function reportFeatureFailure(area: RecoveryArea, error: unknown) {
   const diagnostic = createRedactedDiagnostic(area, error);
   if (typeof __DEV__ !== 'undefined' && __DEV__) {
-    console.error('feature_failure', {
+    console.warn('feature_failure', {
       ...diagnostic,
       technical: createDevelopmentDiagnostic(error),
     });

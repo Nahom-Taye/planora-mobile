@@ -7,7 +7,6 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAccount } from '@/providers/account-provider';
 import { useAppEntry } from '@/providers/app-entry-provider';
 import { useLocalization } from '@/providers/localization-provider';
-import { useOnboarding } from '@/providers/onboarding-provider';
 
 import { AuthErrorSummary } from '../components/auth-error-summary';
 import { AuthScaffold } from '../components/auth-scaffold';
@@ -24,7 +23,6 @@ export function SignInScreen() {
   const account = useAccount();
   const appEntry = useAppEntry();
   const localization = useLocalization();
-  const onboarding = useOnboarding();
   const passwordRef = useRef<TextInput>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,11 +37,7 @@ export function SignInScreen() {
     if (Object.keys(nextErrors).length > 0) return;
     const result = await account.signIn(email, password);
     if (result.ok) {
-      router.replace(
-        onboarding.status === 'complete'
-          ? '/(tabs)'
-          : '/(onboarding)/onboarding',
-      );
+      router.replace('/entry');
     }
   };
 
@@ -103,11 +97,7 @@ export function SignInScreen() {
         label={localization.t('auth.localTitle')}
         onPress={() => {
           appEntry.continueLocally();
-          router.replace(
-            onboarding.status === 'complete'
-              ? '/(tabs)'
-              : '/(onboarding)/onboarding',
-          );
+          router.replace('/entry');
         }}
         variant="secondary"
       />

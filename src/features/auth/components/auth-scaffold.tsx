@@ -15,7 +15,6 @@ import { BrandWordmark } from '@/components/brand';
 import { Button, Text } from '@/components/ui';
 import { useAccount } from '@/providers/account-provider';
 import { useAppEntry } from '@/providers/app-entry-provider';
-import { useOnboarding } from '@/providers/onboarding-provider';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useLocalization } from '@/providers/localization-provider';
 import { MAX_CONTENT_WIDTH, MIN_TOUCH_TARGET } from '@/utils/layout';
@@ -44,7 +43,6 @@ export function AuthScaffold({
   const localization = useLocalization();
   const account = useAccount();
   const appEntry = useAppEntry();
-  const onboarding = useOnboarding();
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -107,7 +105,7 @@ export function AuthScaffold({
                   {account.configured ? <Button label={localization.t('common.retry')} loading={account.isBusy} onPress={() => void account.retryAccount()} variant="secondary" /> : null}
                   <Button label={localization.t('auth.localTitle')} variant="ghost" onPress={() => {
                     appEntry.continueLocally();
-                    router.replace(onboarding.status === 'complete' ? '/(tabs)' : '/(onboarding)/onboarding');
+                    router.replace('/entry');
                   }} />
                 </>
               ) : null}

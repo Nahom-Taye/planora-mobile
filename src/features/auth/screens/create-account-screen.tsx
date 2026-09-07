@@ -7,7 +7,6 @@ import { Button, Text } from '@/components/ui';
 import { useAccount } from '@/providers/account-provider';
 import { useAppEntry } from '@/providers/app-entry-provider';
 import { useLocalization } from '@/providers/localization-provider';
-import { useOnboarding } from '@/providers/onboarding-provider';
 
 import { AuthErrorSummary } from '../components/auth-error-summary';
 import { AuthScaffold } from '../components/auth-scaffold';
@@ -25,7 +24,6 @@ export function CreateAccountScreen() {
   const account = useAccount();
   const appEntry = useAppEntry();
   const localization = useLocalization();
-  const onboarding = useOnboarding();
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmRef = useRef<TextInput>(null);
@@ -64,9 +62,7 @@ export function CreateAccountScreen() {
     router.replace(
       result.requiresEmailVerification
         ? '/(auth)/check-email'
-        : onboarding.status === 'complete'
-          ? '/(tabs)'
-          : '/(onboarding)/onboarding',
+        : '/entry',
     );
   };
 
@@ -145,11 +141,7 @@ export function CreateAccountScreen() {
         label={localization.t('auth.localTitle')}
         onPress={() => {
           appEntry.continueLocally();
-          router.replace(
-            onboarding.status === 'complete'
-              ? '/(tabs)'
-              : '/(onboarding)/onboarding',
-          );
+          router.replace('/entry');
         }}
         variant="secondary"
       />
