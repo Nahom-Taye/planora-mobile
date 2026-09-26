@@ -1,4 +1,4 @@
-import { type PropsWithChildren } from 'react';
+import { type PropsWithChildren, type Ref } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -25,6 +25,7 @@ type ScreenProps = PropsWithChildren<{
   testID?: string;
   refreshing?: boolean;
   onRefresh?: () => void;
+  scrollRef?: Ref<ScrollView>;
 }>;
 
 export function Screen({
@@ -35,6 +36,7 @@ export function Screen({
   testID,
   refreshing = false,
   onRefresh,
+  scrollRef,
 }: ScreenProps) {
   const theme = useAppTheme();
   const localization = useLocalization();
@@ -66,6 +68,7 @@ export function Screen({
             contentInsetAdjustmentBehavior="never"
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
+            ref={scrollRef}
             refreshControl={
               onRefresh ? (
                 <RefreshControl

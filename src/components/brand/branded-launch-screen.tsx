@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,6 +8,15 @@ import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useLocalization } from '@/providers/localization-provider';
 
 import { BrandWordmark } from './brand-wordmark';
+
+const QUOTE_KEYS = [
+  'today.quote1',
+  'today.quote2',
+  'today.quote3',
+  'today.quote4',
+  'today.quote5',
+  'today.quote6',
+] as const;
 
 type BrandedLaunchScreenProps = {
   message?: string;
@@ -18,6 +28,9 @@ export function BrandedLaunchScreen({
   const theme = useAppTheme();
   const localization = useLocalization();
   const reducedMotion = useReducedMotion();
+  const [quoteKey] = useState(
+    () => QUOTE_KEYS[Math.floor(Math.random() * QUOTE_KEYS.length)],
+  );
 
   return (
     <SafeAreaView
@@ -42,6 +55,14 @@ export function BrandedLaunchScreen({
       <View style={[styles.center, { gap: theme.spacing.xl }]}>
         <BrandWordmark markSize={58} />
         <Text
+          align="center"
+          style={styles.quote}
+          tone="text"
+          variant="heading"
+        >
+          {localization.t(quoteKey)}
+        </Text>
+        <Text
           accessibilityLiveRegion="polite"
           align="center"
           tone="textMuted"
@@ -63,6 +84,10 @@ const styles = StyleSheet.create({
   },
   center: {
     alignItems: 'center',
+  },
+  quote: {
+    fontStyle: 'italic',
+    maxWidth: 300,
   },
   indicator: {
     alignSelf: 'center',

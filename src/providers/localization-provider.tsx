@@ -172,8 +172,11 @@ export function LocalizationProvider({
   const setTheme = useCallback(
     async (preference: ThemePreference) => {
       if (!service || !settings) return false;
+      const previous = settings;
+      // Apply instantly for a responsive toggle; persist in the background.
+      setSettings({ ...previous, themePreference: preference });
       try {
-        const updated = await service.setTheme(settings, preference);
+        const updated = await service.setTheme(previous, preference);
         setSettings(updated);
         return true;
       } catch {
@@ -232,7 +235,8 @@ function deviceLanguageCode() {
 }
 
 function localeForLanguage(language: SupportedLanguage) {
-  if (language === 'am') return 'am-ET';
+  // Amharic uses the Ethiopian calendar for all date formatting.
+  if (language === 'am') return 'am-ET-u-ca-ethiopic';
   if (language === 'ar') return 'ar';
   if (language === 'es') return 'es';
   if (language === 'fr') return 'fr';

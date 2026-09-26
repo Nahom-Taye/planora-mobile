@@ -26,15 +26,6 @@ import { MIN_TOUCH_TARGET } from '@/utils/layout';
 import { TodayRoutineSection } from '../components/today-routine-section';
 import { TodayTaskSection } from '../components/today-task-section';
 
-const QUOTE_KEYS = [
-  'today.quote1',
-  'today.quote2',
-  'today.quote3',
-  'today.quote4',
-  'today.quote5',
-  'today.quote6',
-] as const;
-
 export function TodayScreen() {
   const theme = useAppTheme();
   const localization = useLocalization();
@@ -46,9 +37,6 @@ export function TodayScreen() {
   const [quickError, setQuickError] = useState<string | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [quoteKey] = useState(
-    () => QUOTE_KEYS[Math.floor(Math.random() * QUOTE_KEYS.length)],
-  );
   const logoSpin = useRef(new Animated.Value(0)).current;
   const menuProgress = useRef(new Animated.Value(0)).current;
 
@@ -144,6 +132,11 @@ export function TodayScreen() {
     workspace.profile.timeZone,
   );
   const nowTime = localTimeNow(workspace.profile.timeZone);
+  const streak = completionStreak(
+    planning.tasks,
+    planning.today,
+    workspace.profile.timeZone,
+  );
   const nextBlock = todayBlocks.find(
     (block) => block.status === 'planned' && block.endTime > nowTime,
   );
@@ -270,7 +263,8 @@ export function TodayScreen() {
               backgroundColor: theme.colors.surface,
               borderColor: theme.colors.divider,
               borderRadius: theme.radii.lg,
-              marginTop: theme.spacing.sm,
+              left: theme.spacing.lg,
+              right: theme.spacing.lg,
               opacity: menuProgress,
               transform: [
                 {
@@ -286,15 +280,22 @@ export function TodayScreen() {
         >
           {(
             [
-              { icon: 'person-circle-outline', label: localization.t('today.menuProfile') },
-              { icon: 'globe-outline', label: localization.t('settings.language') },
-              { icon: 'notifications-outline', label: localization.t('today.menuNotifications') },
+              { icon: 'person-circle-outline', label: localization.t('today.menuProfile'), section: 'account' },
+              { icon: 'globe-outline', label: localization.t('settings.language'), section: 'language' },
+              { icon: 'notifications-outline', label: localization.t('today.menuNotifications'), section: 'reminders' },
             ] as const
           ).map((item, index, items) => (
             <Pressable
               accessibilityRole="button"
               key={item.icon}
-              onPress={() => closeMenuAnd(() => router.push('/(tabs)/settings'))}
+              onPress={() =>
+                closeMenuAnd(() =>
+                  router.push({
+                    pathname: '/(tabs)/settings',
+                    params: { section: item.section, ts: String(Date.now()) },
+                  } as unknown as Href),
+                )
+              }
               style={[
                 styles.brandMenuRow,
                 { paddingHorizontal: theme.spacing.lg },
@@ -332,12 +333,6 @@ export function TodayScreen() {
             day: 'numeric',
           })}
         </Text>
-        <View style={styles.quoteRow}>
-          <Ionicons color={theme.colors.accent} name="sparkles" size={15} />
-          <Text style={styles.quoteText} tone="textMuted" variant="caption">
-            {localization.t(quoteKey)}
-          </Text>
-        </View>
       </View>
 
       <View
@@ -371,6 +366,16 @@ export function TodayScreen() {
                 total: localization.formatNumber(plan.totalCount),
               })}
             </Text>
+            {streak > 0 ? (
+              <View style={[styles.streakChip, { borderRadius: theme.radii.pill }]}>
+                <Ionicons color="#FFAD54" name="flame" size={14} />
+                <Text tone="onPrimary" variant="caption">
+                  {localization.t('today.streak', {
+                    count: localization.formatNumber(streak),
+                  })}
+                </Text>
+              </View>
+            ) : null}
           </View>
           <Text tone="onPrimary" variant="display">
             {localization.formatNumber(plan.completedCount)}
@@ -693,6 +698,46 @@ function uniqueTasks<T extends { id: string }>(tasks: T[]) {
   return [...new Map(tasks.map((task) => [task.id, task])).values()];
 }
 
+function dateInZone(instant: string, timeZone: string) {
+  const value = new Date(instant);
+  if (Number.isNaN(value.getTime())) return null;
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(value);
+  } catch {
+    return null;
+  }
+}
+
+function previousDay(date: string) {
+  const [year, month, day] = date.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day - 1, 12)).toISOString().slice(0, 10);
+}
+
+function completionStreak(
+  tasks: { completedAt: string | null }[],
+  today: string,
+  timeZone: string,
+) {
+  const days = new Set<string>();
+  for (const task of tasks) {
+    if (!task.completedAt) continue;
+    const day = dateInZone(task.completedAt, timeZone);
+    if (day) days.add(day);
+  }
+  let cursor = days.has(today) ? today : previousDay(today);
+  let streak = 0;
+  while (days.has(cursor)) {
+    streak += 1;
+    cursor = previousDay(cursor);
+  }
+  return streak;
+}
+
 const styles = StyleSheet.create({
   agendaRow: {
     alignItems: 'center',
@@ -703,7 +748,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   agendaTime: { width: 72 },
-  brandMenu: { borderWidth: 1, overflow: 'hidden' },
+  brandMenu: { borderWidth: 1, elevation: 12, position: 'absolute', top: 76, zIndex: 40 },
   brandMenuIcon: {
     alignItems: 'center',
     height: 32,
@@ -743,8 +788,6 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   inlineLink: { justifyContent: 'center', minHeight: MIN_TOUCH_TARGET, paddingHorizontal: 4 },
-  quoteRow: { alignItems: 'center', flexDirection: 'row', gap: 8, marginTop: 2 },
-  quoteText: { flex: 1, fontStyle: 'italic' },
   links: {
     borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
@@ -783,6 +826,16 @@ const styles = StyleSheet.create({
   sectionIcon: { alignItems: 'center', borderRadius: 8, height: 26, justifyContent: 'center', width: 26 },
   sectionTitleRow: { alignItems: 'center', flexDirection: 'row', gap: 10 },
   summary: { padding: 20 },
+  streakChip: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
   progressHeading: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 16 },
   progressCopy: { flex: 1, minWidth: 140, gap: 6 },
   progressTrack: { height: 6, borderRadius: 3, overflow: 'hidden' },

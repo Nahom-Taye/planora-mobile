@@ -49,7 +49,8 @@ function RootNavigator() {
     if (reducedMotion === null) return;
     configureSplash(Constants.executionEnvironment === ExecutionEnvironment.StoreClient, reducedMotion, SplashScreen.setOptions);
     void SplashScreen.hideAsync();
-    const launchTimer = setTimeout(() => setShowLaunchScreen(false), reducedMotion ? 0 : 550);
+    // Hold the branded launch screen long enough to read the daily quote.
+    const launchTimer = setTimeout(() => setShowLaunchScreen(false), reducedMotion ? 0 : 5000);
 
     return () => clearTimeout(launchTimer);
   }, [reducedMotion]);
