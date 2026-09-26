@@ -184,6 +184,7 @@ export function OnboardingScreen() {
 const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   detail: {
     alignItems: 'center',
@@ -207,7 +208,8 @@ const styles = StyleSheet.create({
     width: 92,
   },
   primaryAction: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: 180,
   },
   progressItem: {
     borderWidth: StyleSheet.hairlineWidth,
@@ -220,7 +222,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   progressText: {
-    marginLeft: 6,
+    marginStart: 6,
   },
   screen: {
     justifyContent: 'center',

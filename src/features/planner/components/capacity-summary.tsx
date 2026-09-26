@@ -22,7 +22,7 @@ export function CapacitySummary({ summary }: { summary: Summary }) {
       })}
       accessible
     >
-      <Card padded={false} variant="subtle">
+      <Card padded={false}>
         <View style={[styles.content, { gap: theme.spacing.lg }]}>
         <View style={styles.metric}>
           <Text variant="heading">
@@ -74,15 +74,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: 6,
+    width: '100%',
   },
   content: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
   },
   metric: {
-    minWidth: 110,
+    flexGrow: 1,
+    flexBasis: 130,
+    gap: 8,
   },
 });

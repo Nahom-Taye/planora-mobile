@@ -145,14 +145,14 @@ function ChoiceGroup<T extends string>({ busy, label, value, options, onChange }
               style={({ pressed }) => [
                 styles.choice,
                 {
-                  backgroundColor: selected ? theme.colors.accentSoft : theme.colors.surface,
+                  backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
                   borderColor: selected ? theme.colors.primary : theme.colors.border,
                   borderRadius: theme.radii.pill,
                   opacity: pressed ? 0.7 : 1,
                 },
               ]}
             >
-              <Text tone={selected ? 'primary' : 'textMuted'} variant="caption">
+              <Text tone={selected ? 'onPrimary' : 'textMuted'} variant="label">
                 {option.label}
               </Text>
             </Pressable>
@@ -170,6 +170,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: MIN_TOUCH_TARGET,
     paddingHorizontal: 16,
+    paddingVertical: 10,
+    maxWidth: '100%',
   },
   choices: {
     flexDirection: 'row',

@@ -5,6 +5,7 @@ import type {
   LanguagePreference,
   LocalTime,
   PlannerView,
+  ThemePreference,
 } from '../../../domain/entities/index.ts';
 import type { RepositoryStore } from '../../../domain/repositories/contracts.ts';
 
@@ -28,6 +29,13 @@ export class PlanningPreferencesService {
     return this.repositories.appSettings.update(settings.id, {
       expectedRevision: settings.revision,
       languagePreference,
+    });
+  }
+
+  async setTheme(settings: AppSettings, themePreference: ThemePreference) {
+    return this.repositories.appSettings.update(settings.id, {
+      expectedRevision: settings.revision,
+      themePreference,
     });
   }
 

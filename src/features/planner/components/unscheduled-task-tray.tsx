@@ -84,12 +84,12 @@ export function UnscheduledTaskTray({
 }
 
 const styles = StyleSheet.create({
-  copy: { flex: 1, gap: 2 },
+  copy: { flex: 1, gap: 8 },
   row: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: 12,
     minHeight: MIN_TOUCH_TARGET + 10,
-    paddingVertical: 8,
+    paddingVertical: 16,
   },
 });

@@ -45,7 +45,7 @@ export function AuthScaffold({
   const appEntry = useAppEntry();
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background, direction: localization.direction }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
@@ -56,7 +56,7 @@ export function AuthScaffold({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={[styles.inner, { paddingHorizontal: theme.spacing.xl }]}>
+          <View style={[styles.inner, { paddingHorizontal: theme.spacing.lg }]}>
             <View style={styles.navigation}>
               {showBack ? (
                 <Pressable
@@ -129,17 +129,18 @@ const styles = StyleSheet.create({
   },
   heading: {
     marginBottom: 32,
-    marginTop: 40,
+    marginTop: 28,
   },
   icon: {
     alignItems: 'center',
-    height: 68,
+    height: 72,
     justifyContent: 'center',
-    width: 68,
+    width: 72,
   },
   inner: {
     maxWidth: MAX_CONTENT_WIDTH,
     paddingBottom: 48,
+    paddingTop: 16,
     width: '100%',
   },
   navigation: {

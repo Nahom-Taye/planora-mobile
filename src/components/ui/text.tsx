@@ -31,8 +31,9 @@ export function Text({
         theme.typography[variant],
         {
           color: theme.colors[tone],
-          textAlign: align ?? 'left',
+          textAlign: align ?? (localization.isRTL ? 'right' : 'left'),
           writingDirection: localization.direction,
+          ...(localization.isRTL ? { letterSpacing: 0 } : {}),
         },
         style,
       ]}

@@ -280,7 +280,7 @@ test('handled diagnostics use warnings with redaction and never call console.err
   assert.doesNotMatch(JSON.stringify(warnings.mock.calls[0].arguments), /private content|credentials|token/);
 });
 
-const theme = { colors: {}, spacing: { sm: 8, md: 12, lg: 16, xl: 24 }, radii: { lg: 16 }, typography: { body: {} } };
+const theme = { colors: {}, shadows: { subtle: {}, floating: {} }, spacing: { sm: 8, md: 12, lg: 16, xl: 24 }, radii: { lg: 16 }, typography: { body: {} } };
 const translate = createTranslator('en');
 const localization = { t: translate, message: (value: string) => value, formatDate: (value: string, options = {}) => formatCalendarDateValue(value, 'en', options), formatTime: (value: string) => formatLocalTimeValue(value, 'en'), formatNumber: (value: number) => formatNumberValue(value, 'en'), formatDuration: (value: number) => formatDurationValue(value, 'en', translate), isRTL: false, direction: 'ltr' };
 const ui = Object.fromEntries(['Button', 'Card', 'Screen', 'Text'].map((name) => [name, host(name)]));

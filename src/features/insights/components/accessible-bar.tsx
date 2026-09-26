@@ -20,13 +20,13 @@ export function AccessibleBar({
     <View
       accessibilityLabel={`${label}. ${detail}`}
       accessible
-      style={{ gap: theme.spacing.xs }}
+      style={{ gap: theme.spacing.sm, marginVertical: theme.spacing.xs }}
     >
       <View style={styles.header}>
         <Text style={styles.label} variant="caption">
           {label}
         </Text>
-        <Text tone="textMuted" variant="caption">
+        <Text style={styles.detail} tone="textMuted" variant="caption">
           {detail}
         </Text>
       </View>
@@ -57,7 +57,8 @@ export function AccessibleBar({
 
 const styles = StyleSheet.create({
   fill: { height: 10 },
-  header: { flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
-  label: { flex: 1 },
+  header: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
+  label: { flexGrow: 1, flexBasis: 120 },
+  detail: { flexShrink: 1 },
   track: { borderWidth: StyleSheet.hairlineWidth, height: 12, overflow: 'hidden' },
 });

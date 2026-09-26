@@ -129,14 +129,16 @@ export function WeekSummaryList({
 }
 
 const styles = StyleSheet.create({
-  copy: { flex: 1, gap: 2 },
+  copy: { flex: 1, minWidth: 120, gap: 8 },
   date: { alignItems: 'center', width: 48 },
   overloaded: { alignItems: 'center', flexDirection: 'row', gap: 4 },
   row: {
     alignItems: 'center',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
     minHeight: MIN_TOUCH_TARGET + 14,
+    paddingVertical: 12,
   },
-  signals: { alignItems: 'center', flexDirection: 'row', gap: 8 },
+  signals: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });

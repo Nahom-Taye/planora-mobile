@@ -130,14 +130,14 @@ export function AccountSettingsSection() {
 
 const styles = StyleSheet.create({
   actions: {
-    flexDirection: 'row',
+    width: '100%',
   },
   copy: {
     flex: 1,
-    gap: 3,
+    gap: 8,
   },
   flex: {
-    flex: 1,
+    width: '100%',
   },
   icon: {
     alignItems: 'center',

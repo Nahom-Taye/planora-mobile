@@ -33,7 +33,7 @@ export function GoalScreenHeader({
           size={24}
         />
       </Pressable>
-      <Text accessibilityRole="header" numberOfLines={2} style={styles.title} variant="heading">
+      <Text accessibilityRole="header" style={styles.title} variant="heading">
         {title}
       </Text>
       {actionLabel && onAction ? (
@@ -49,6 +49,7 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
     marginBottom: 24,
   },
@@ -58,5 +59,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: MIN_TOUCH_TARGET,
   },
-  title: { flex: 1 },
+  title: { flex: 1, minWidth: 140 },
 });

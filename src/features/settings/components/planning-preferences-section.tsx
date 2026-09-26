@@ -48,7 +48,7 @@ export function PlanningPreferencesSection() {
     <View style={{ gap: theme.spacing.md, marginTop: theme.spacing.xxl }}>
       <View style={{ gap: theme.spacing.xs }}>
         <Text variant="heading">{localization.t('settings.planning')}</Text>
-        <Text tone="textMuted" variant="caption">
+        <Text tone="textMuted">
           {localization.t('settings.planningDescription')}
         </Text>
       </View>
@@ -82,4 +82,4 @@ export function PlanningPreferencesSection() {
   );
 }
 
-const styles = StyleSheet.create({ form: { gap: 16 } });
+const styles = StyleSheet.create({ form: { gap: 24 } });

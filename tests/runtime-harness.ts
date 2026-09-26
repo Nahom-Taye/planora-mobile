@@ -98,4 +98,17 @@ export const native = {
   Alert: { alert: () => undefined },
   AccessibilityInfo: { setAccessibilityFocus: () => undefined },
   findNodeHandle: () => null,
+  Animated: {
+    View: host('AnimatedView'),
+    Text: host('AnimatedText'),
+    Value: class {
+      constructor(private value: number) {}
+      setValue(value: number) { this.value = value; }
+      interpolate() { return 0; }
+    },
+    spring: () => ({ start: (callback?: () => void) => callback?.() }),
+    timing: () => ({ start: (callback?: () => void) => callback?.() }),
+    parallel: () => ({ start: (callback?: () => void) => callback?.() }),
+    sequence: () => ({ start: (callback?: () => void) => callback?.() }),
+  },
 };

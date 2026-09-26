@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter, type Href } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { Text } from '@/components/ui';
 import type { CalendarDate, PlanBlock, TimeZone } from '@/domain/entities';
@@ -10,7 +10,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useLocalization } from '@/providers/localization-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
 
-const HOUR_HEIGHT = 72;
+const HOUR_HEIGHT = 96;
 
 export function DayTimeline({
   blocks,
@@ -28,6 +28,8 @@ export function DayTimeline({
   const theme = useAppTheme();
   const localization = useLocalization();
   const router = useRouter();
+  const { fontScale } = useWindowDimensions();
+  const hourHeight = HOUR_HEIGHT * Math.max(1, fontScale);
   const firstHour = Math.min(
     Number(dayStartsAt.slice(0, 2)),
     ...blocks.map((block) => Number(block.startTime.slice(0, 2))),
@@ -37,7 +39,7 @@ export function DayTimeline({
     ...blocks.map((block) => Math.min(24, Number(block.endTime.slice(0, 2)) + 1)),
   );
   const hourCount = Math.max(1, lastHour - firstHour);
-  const timelineHeight = hourCount * HOUR_HEIGHT;
+  const timelineHeight = hourCount * hourHeight;
   const overlaps = new Set(
     detectOverlaps(blocks).flatMap((item) => [item.firstId, item.secondId]),
   );
@@ -45,7 +47,7 @@ export function DayTimeline({
   const currentTop =
     currentMinutes === null
       ? null
-      : ((currentMinutes - firstHour * 60) / 60) * HOUR_HEIGHT;
+      : ((currentMinutes - firstHour * 60) / 60) * hourHeight;
 
   return (
     <View
@@ -60,7 +62,7 @@ export function DayTimeline({
     >
       {Array.from({ length: hourCount + 1 }, (_, index) => {
         const hour = firstHour + index;
-        const top = index * HOUR_HEIGHT;
+        const top = index * hourHeight;
         return (
           <View key={hour} pointerEvents="none">
             <Text
@@ -88,8 +90,9 @@ export function DayTimeline({
       {blocks.map((block) => {
         const start = localMinutes(block.startTime) - firstHour * 60;
         const end = localMinutes(block.endTime) - firstHour * 60;
-        const top = (start / 60) * HOUR_HEIGHT;
-        const height = Math.max(MIN_TOUCH_TARGET, ((end - start) / 60) * HOUR_HEIGHT - 3);
+        const top = (start / 60) * hourHeight;
+        const height = Math.max(MIN_TOUCH_TARGET, theme.typography.label.lineHeight * fontScale + 16, ((end - start) / 60) * hourHeight - 4);
+        const showTime = height >= (theme.typography.label.lineHeight + theme.typography.caption.lineHeight) * fontScale + 16;
         const hasOverlap = overlaps.has(block.id);
         return (
           <Pressable
@@ -131,9 +134,9 @@ export function DayTimeline({
                 {block.title}
               </Text>
             </View>
-            <Text numberOfLines={1} tone="textMuted" variant="caption">
+            {showTime ? <Text numberOfLines={1} tone="textMuted" variant="caption">
               {localization.formatTime(block.startTime)}–{localization.formatTime(block.endTime)}
-            </Text>
+            </Text> : null}
           </Pressable>
         );
       })}
@@ -168,6 +171,7 @@ function currentLocalMinutes(timeZone: TimeZone) {
 const styles = StyleSheet.create({
   block: {
     borderWidth: 1,
+    borderStartWidth: 3,
     justifyContent: 'center',
     paddingHorizontal: 12,
     position: 'absolute',

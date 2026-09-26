@@ -17,7 +17,7 @@ export function SegmentedControl<TValue extends string | null>({
 }) {
   const theme = useAppTheme();
   return (
-    <View accessibilityLabel={label} accessibilityRole="tablist" style={styles.row}>
+    <View accessibilityLabel={label} accessibilityRole="tablist" style={[styles.row, { backgroundColor: theme.colors.surfaceSubtle, borderRadius: theme.radii.lg }]}>
       {options.map((option) => {
         const selected = value === option.value;
         return (
@@ -31,12 +31,9 @@ export function SegmentedControl<TValue extends string | null>({
               styles.option,
               {
                 backgroundColor: selected
-                  ? theme.colors.accentSoft
-                  : theme.colors.surface,
-                borderColor: selected
-                  ? theme.colors.primary
-                  : theme.colors.border,
-                borderRadius: theme.radii.lg,
+                  ? theme.colors.surface
+                  : 'transparent',
+                borderRadius: theme.radii.md,
                 opacity: pressed ? 0.76 : 1,
               },
             ]}
@@ -58,12 +55,12 @@ export function SegmentedControl<TValue extends string | null>({
 const styles = StyleSheet.create({
   option: {
     alignItems: 'center',
-    borderWidth: 1,
     flex: 1,
     justifyContent: 'center',
     minHeight: MIN_TOUCH_TARGET,
-    minWidth: 88,
-    paddingHorizontal: 8,
+    minWidth: 100,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, padding: 4 },
 });

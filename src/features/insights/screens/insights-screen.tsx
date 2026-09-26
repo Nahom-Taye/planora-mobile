@@ -79,13 +79,13 @@ export function InsightsScreen() {
       refreshing={insights.status === 'loading'}
       testID="insights-screen"
     >
-      <View style={{ gap: theme.spacing.xs }}>
+      <View style={{ gap: theme.spacing.md }}>
         <Text accessibilityRole="header" variant="display">
           {localization.t('insights.heading')}
         </Text>
         <Text tone="textMuted">{localization.t('insights.description')}</Text>
       </View>
-      <View style={{ gap: theme.spacing.sm, marginTop: theme.spacing.xl }}>
+      <View style={{ gap: theme.spacing.md, marginTop: theme.spacing.xl }}>
         <SegmentedControl
           label={localization.t('insights.destination')}
           onChange={insights.selectView}
@@ -520,7 +520,7 @@ function ReflectionRow({ reflection }: { reflection: Reflection }) {
       onPress={() => router.push({ pathname: '/(insights)/reflections/[id]', params: { id: reflection.id } } as unknown as Href)}
     >
       {({ pressed }) => (
-        <Card style={{ gap: theme.spacing.xs, opacity: pressed ? 0.76 : 1 }} variant="subtle">
+        <Card style={{ gap: theme.spacing.md, opacity: pressed ? 0.76 : 1 }}>
           <Text variant="label">{goal?.title ? `${scope}: ${goal.title}` : scope}</Text>
           <Text tone="textMuted" variant="caption">{localization.formatDate(reflection.periodStart, { year: 'numeric', month: 'short', day: 'numeric' })} · {localization.t('reflections.moodValue', { mood })}</Text>
           <Text numberOfLines={3}>{reflection.body}</Text>
@@ -614,13 +614,12 @@ const styles = StyleSheet.create({
   actionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   center: { alignItems: 'center', gap: 16, justifyContent: 'center' },
   detailRow: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
     gap: 12,
     minHeight: MIN_TOUCH_TARGET,
-    paddingVertical: 6,
+    paddingVertical: 16,
   },
   metricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  rowCopy: { flex: 1 },
+  rowCopy: { width: '100%' },
 });

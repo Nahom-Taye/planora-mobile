@@ -34,9 +34,9 @@ export function Card({
         styles.base,
         {
           backgroundColor,
-          borderColor: theme.colors.border,
+          borderColor: variant === 'default' ? theme.colors.divider : 'transparent',
           borderRadius: theme.radii.xl,
-          padding: padded ? theme.spacing.xl : 0,
+          padding: padded ? theme.spacing.lg : 0,
         },
         variant === 'default' && theme.shadows.subtle,
         style,
@@ -49,6 +49,6 @@ export function Card({
 
 const styles = StyleSheet.create({
   base: {
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
   },
 });

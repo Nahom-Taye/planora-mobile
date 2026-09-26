@@ -150,7 +150,7 @@ function TaskListRow({ task, quiet }: { task: Task; quiet: boolean }) {
         >
           <View style={styles.row}>
             <View style={styles.copy}>
-              <Text variant="label">{task.title}</Text>
+              <Text variant="body">{task.title}</Text>
               <Text tone="textMuted" variant="caption">
                 {statusLabel(task, localization.t)} · {dueLabel}
                 {task.scheduledTime ? ` · ${localization.formatTime(task.scheduledTime)}` : ''} · {priority}
@@ -198,7 +198,7 @@ function ListHeader({
       >
         <Ionicons color={theme.colors.text} name={localization.isRTL ? 'arrow-forward' : 'arrow-back'} size={24} />
       </Pressable>
-      <Text accessibilityRole="header" style={styles.headerTitle} variant="heading">
+      <Text accessibilityRole="header" style={styles.headerTitle} variant="title">
         {title}
       </Text>
       <Button label={actionLabel} onPress={onAction} variant="ghost" />
@@ -214,21 +214,24 @@ const styles = StyleSheet.create({
   },
   copy: {
     flex: 1,
-    gap: 4,
+    gap: 8,
   },
   header: {
     alignItems: 'center',
     flexDirection: 'row',
-    marginBottom: 16,
+    flexWrap: 'wrap',
+    rowGap: 12,
+    marginBottom: 24,
   },
   headerTitle: {
     flex: 1,
+    minWidth: 140,
   },
   iconButton: {
     alignItems: 'center',
     height: MIN_TOUCH_TARGET,
     justifyContent: 'center',
-    marginRight: 8,
+    marginEnd: 8,
     width: MIN_TOUCH_TARGET,
   },
   row: {

@@ -10,13 +10,16 @@ const ThemeContext = createContext<AppTheme | undefined>(undefined);
 export function AppThemeProvider({ children }: PropsWithChildren) {
   const colorScheme = useColorScheme();
   const localization = useLocalization();
+  const preference = localization.settings?.themePreference ?? 'system';
   const theme = useMemo(() => {
-    const base = colorScheme === 'dark' ? darkTheme : lightTheme;
+    const resolvedMode =
+      preference === 'system' ? (colorScheme === 'dark' ? 'dark' : 'light') : preference;
+    const base = resolvedMode === 'dark' ? darkTheme : lightTheme;
     return {
       ...base,
       typography: typographyForFonts(localization.fontFamilies),
     };
-  }, [colorScheme, localization.fontFamilies]);
+  }, [colorScheme, localization.fontFamilies, preference]);
 
   return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }

@@ -21,12 +21,13 @@ type AuthTextFieldProps = TextInputProps & {
 
 export const AuthTextField = forwardRef<TextInput, AuthTextFieldProps>(
   function AuthTextField(
-    { label, error, password = false, style, ...props },
+    { label, error, password = false, style, onFocus, onBlur, ...props },
     ref,
   ) {
     const theme = useAppTheme();
     const localization = useLocalization();
     const [revealed, setRevealed] = useState(false);
+    const [focused, setFocused] = useState(false);
     const errorId = `${label.toLowerCase().replace(/\s+/g, '-')}-error`;
 
     return (
@@ -37,7 +38,7 @@ export const AuthTextField = forwardRef<TextInput, AuthTextFieldProps>(
             styles.field,
             {
               backgroundColor: theme.colors.surface,
-              borderColor: error ? theme.colors.danger : theme.colors.border,
+              borderColor: error ? theme.colors.danger : focused ? theme.colors.primary : theme.colors.border,
               borderRadius: theme.radii.lg,
             },
           ]}
@@ -52,10 +53,12 @@ export const AuthTextField = forwardRef<TextInput, AuthTextFieldProps>(
             style={[
               styles.input,
               theme.typography.body,
-              { color: theme.colors.text },
+              { color: theme.colors.text, textAlign: localization.isRTL ? 'right' : 'left' },
               style,
             ]}
             {...props}
+            onFocus={(event) => { setFocused(true); onFocus?.(event); }}
+            onBlur={(event) => { setFocused(false); onBlur?.(event); }}
           />
           {password ? (
             <Pressable
@@ -88,13 +91,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     flexDirection: 'row',
-    minHeight: 56,
+    minHeight: 60,
   },
   input: {
     flex: 1,
-    minHeight: 54,
+    minHeight: 58,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
   },
   visibility: {
     alignItems: 'center',

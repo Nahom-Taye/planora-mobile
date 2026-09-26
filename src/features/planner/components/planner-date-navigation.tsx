@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     minWidth: 150,
   },
   dateInput: {
-    minHeight: 28,
+    minHeight: MIN_TOUCH_TARGET,
     minWidth: 100,
     padding: 0,
     textAlign: 'center',
@@ -142,5 +142,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: MIN_TOUCH_TARGET,
     paddingHorizontal: 14,
+    paddingVertical: 10,
+    width: '100%',
   },
 });

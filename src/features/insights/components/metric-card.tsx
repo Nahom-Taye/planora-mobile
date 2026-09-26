@@ -19,8 +19,8 @@ export function MetricCard({
       accessible
       style={styles.item}
     >
-      <Card style={{ flex: 1, gap: theme.spacing.sm }} variant="subtle">
-        <Text variant="heading">{value}</Text>
+      <Card style={{ flex: 1, gap: theme.spacing.md }}>
+        <Text tone="primary" variant="title">{value}</Text>
         <Text variant="label">{label}</Text>
         <Text tone="textMuted" variant="caption">
           {basis}
@@ -31,5 +31,5 @@ export function MetricCard({
 }
 
 const styles = StyleSheet.create({
-  item: { flexGrow: 1, minWidth: 150, width: '47%' },
+  item: { flexGrow: 1, flexBasis: 160 },
 });

@@ -80,7 +80,7 @@ export function PlannerScreen() {
 
       <View style={[styles.headingRow, { marginTop: theme.spacing.xl }]}>
         <View style={styles.headingCopy}>
-          <Text accessibilityRole="header" variant="title">
+          <Text accessibilityRole="header" variant="display">
             {localization.t('planner.title')}
           </Text>
           <Text tone="textMuted">
@@ -91,7 +91,7 @@ export function PlannerScreen() {
           accessibilityRole="tablist"
           style={[
             styles.segment,
-            { backgroundColor: theme.colors.surfaceSubtle, borderRadius: theme.radii.pill },
+            { backgroundColor: theme.colors.surfaceSubtle, borderRadius: theme.radii.lg },
           ]}
         >
           {(['day', 'week'] as const).map((view) => {
@@ -106,11 +106,11 @@ export function PlannerScreen() {
                   styles.segmentButton,
                   selected && {
                     backgroundColor: theme.colors.surface,
-                    borderRadius: theme.radii.pill,
+                    borderRadius: theme.radii.md,
                   },
                 ]}
               >
-                <Text tone={selected ? 'primary' : 'textMuted'} variant="caption">
+                <Text align="center" tone={selected ? 'primary' : 'textMuted'} variant="label">
                   {localization.t(view === 'day' ? 'planner.day' : 'planner.week')}
                 </Text>
               </Pressable>
@@ -192,20 +192,24 @@ const styles = StyleSheet.create({
     width: MIN_TOUCH_TARGET,
   },
   center: { gap: 16, justifyContent: 'center' },
-  content: { marginTop: 24 },
-  headingCopy: { flex: 1, gap: 3 },
-  headingRow: { alignItems: 'center', flexDirection: 'row', gap: 12 },
+  content: { marginTop: 32 },
+  headingCopy: { gap: 8 },
+  headingRow: { gap: 24 },
   sectionHeader: {
     alignItems: 'center',
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: 12,
     justifyContent: 'space-between',
   },
-  segment: { flexDirection: 'row', padding: 3 },
+  segment: { flexDirection: 'row', padding: 4 },
   segmentButton: {
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: MIN_TOUCH_TARGET,
+    flex: 1,
     paddingHorizontal: 14,
+    paddingVertical: 10,
   },
   topRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
 });

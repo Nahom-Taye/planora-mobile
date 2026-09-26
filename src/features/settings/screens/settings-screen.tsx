@@ -19,7 +19,7 @@ export function SettingsScreen() {
   return (
     <Screen safeAreaEdges={['top', 'right', 'left']} testID="settings-screen">
       <BrandWordmark compact markSize={32} />
-      <View style={{ height: theme.spacing.xxxl }} />
+      <View style={{ height: theme.spacing.xl }} />
       <SectionHeader
         description={localization.t('settings.description')}
         eyebrow={localization.t('settings.eyebrow')}

@@ -77,16 +77,20 @@ export function GoalsScreen() {
           <Text accessibilityRole="header" variant="display">
             {localization.t('goals.heading')}
           </Text>
-          <Text tone="textMuted" variant="caption">
+          <Text tone="textMuted">
             {localization.t('goals.summaryActive', {
               count: localization.formatNumber(activeCount),
             })}
           </Text>
         </View>
-        <Button
-          label={localization.t('goals.create')}
+        <Pressable
+          accessibilityLabel={localization.t('goals.create')}
+          accessibilityRole="button"
           onPress={() => router.push('/(goals)/goals/new')}
-        />
+          style={[styles.addButton, { backgroundColor: theme.colors.primary, borderRadius: theme.radii.pill }]}
+        >
+          <Ionicons color={theme.colors.onPrimary} name="add" size={26} />
+        </Pressable>
       </View>
       {goals.goals.length === 0 ? (
         <EmptyState
@@ -188,7 +192,7 @@ function GoalRow({ goal }: { goal: Goal }) {
         <Card style={{ opacity: pressed ? 0.78 : 1 }}>
           <View style={styles.row}>
             <View style={styles.rowCopy}>
-              <Text numberOfLines={2} variant="heading">
+              <Text variant="heading">
                 {goal.title}
               </Text>
               <Text tone="textMuted" variant="caption">
@@ -197,7 +201,7 @@ function GoalRow({ goal }: { goal: Goal }) {
               </Text>
               <GoalProgressSummary compact progress={goals.progressFor(goal)} />
               {nextMilestone || nextAction ? (
-                <Text numberOfLines={2} tone="textMuted" variant="caption">
+                <Text tone="textMuted" variant="caption">
                   {nextMilestone
                     ? `${localization.t('goals.nextMilestone')}: ${nextMilestone.title}`
                     : `${localization.t('goals.nextAction')}: ${nextAction?.title}`}
@@ -227,15 +231,16 @@ function statusLabel(
 }
 
 const styles = StyleSheet.create({
+  addButton: { alignItems: 'center', justifyContent: 'center', width: MIN_TOUCH_TARGET, height: MIN_TOUCH_TARGET },
   center: { alignItems: 'center', gap: 16, justifyContent: 'center' },
   header: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: 16,
     justifyContent: 'space-between',
-    marginBottom: 24,
+    marginBottom: 32,
   },
-  headerCopy: { flex: 1, gap: 2 },
+  headerCopy: { flex: 1, gap: 8 },
   row: { alignItems: 'center', flexDirection: 'row', gap: 12, minHeight: MIN_TOUCH_TARGET },
-  rowCopy: { flex: 1, gap: 8 },
+  rowCopy: { flex: 1, gap: 12 },
 });

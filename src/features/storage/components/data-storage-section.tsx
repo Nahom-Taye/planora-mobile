@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     minHeight: 72,
+    paddingVertical: 16,
   },
   lastRow: {
     borderBottomWidth: 0,
@@ -118,6 +119,6 @@ const styles = StyleSheet.create({
   },
   rowCopy: {
     flex: 1,
-    gap: 2,
+    gap: 8,
   },
 });

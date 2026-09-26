@@ -1,30 +1,30 @@
 import { Platform, type TextStyle, type ViewStyle } from 'react-native';
 
 export const palette = {
-  indigo: {
-    50: '#F0EFFF',
-    100: '#E2E1FF',
-    400: '#7774E8',
-    500: '#5B57D9',
-    600: '#4844BA',
-    900: '#252354',
+  violet: {
+    50: '#F3EFFF',
+    100: '#E9E2FF',
+    400: '#8B66F2',
+    500: '#5B2EE5',
+    600: '#4A21C4',
+    900: '#241356',
   },
-  teal: {
-    50: '#DDF5F0',
-    400: '#4FD0BC',
-    500: '#159D8B',
-    600: '#117D70',
+  pink: {
+    50: '#FDE7F1',
+    400: '#FF8BC2',
+    500: '#D6337F',
+    600: '#B01A63',
   },
-  warm: {
-    50: '#FCFAF7',
-    100: '#F8F6F2',
-    200: '#F0ECE6',
-    300: '#DED9D1',
-    700: '#66636B',
-    900: '#25242B',
+  lavender: {
+    50: '#FBFAFF',
+    100: '#F7F5FF',
+    200: '#EEEAFB',
+    300: '#DCD5F0',
+    700: '#5C5680',
+    900: '#17132B',
   },
   white: '#FFFFFF',
-  black: '#111015',
+  black: '#0D0B1E',
 } as const;
 
 export const spacing = {
@@ -32,18 +32,18 @@ export const spacing = {
   xs: 4,
   sm: 8,
   md: 12,
-  lg: 16,
-  xl: 24,
-  xxl: 32,
-  xxxl: 48,
+  lg: 20,
+  xl: 28,
+  xxl: 40,
+  xxxl: 56,
   huge: 64,
 } as const;
 
 export const radii = {
-  sm: 8,
-  md: 12,
+  sm: 10,
+  md: 14,
   lg: 18,
-  xl: 24,
+  xl: 26,
   pill: 999,
 } as const;
 
@@ -58,6 +58,7 @@ export type FontFamilies = {
   medium: string;
   semibold: string;
   bold: string;
+  display: string;
 };
 
 const systemFonts: FontFamilies = {
@@ -65,56 +66,57 @@ const systemFonts: FontFamilies = {
   medium: fontFamily,
   semibold: fontFamily,
   bold: fontFamily,
+  display: fontFamily,
 };
 
 export function typographyForFonts(fonts: FontFamilies) {
   return {
   display: {
-    fontFamily: fonts.bold,
-    fontSize: 34,
-    lineHeight: 41,
+    fontFamily: fonts.display,
+    fontSize: 29,
+    lineHeight: 36,
     fontWeight: '700',
-    letterSpacing: -0.8,
+    letterSpacing: -0.6,
   },
   title: {
-    fontFamily: fonts.bold,
-    fontSize: 28,
-    lineHeight: 34,
+    fontFamily: fonts.display,
+    fontSize: 24,
+    lineHeight: 31,
     fontWeight: '700',
-    letterSpacing: -0.45,
+    letterSpacing: -0.4,
   },
   heading: {
-    fontFamily: fonts.semibold,
-    fontSize: 20,
-    lineHeight: 26,
+    fontFamily: fonts.display,
+    fontSize: 18,
+    lineHeight: 25,
     fontWeight: '600',
     letterSpacing: -0.2,
   },
   body: {
     fontFamily: fonts.regular,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 23,
     fontWeight: '400',
   },
   label: {
     fontFamily: fonts.semibold,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: 14,
+    lineHeight: 21,
     fontWeight: '600',
   },
   caption: {
-    fontFamily: fonts.medium,
-    fontSize: 13,
+    fontFamily: fonts.regular,
+    fontSize: 12.5,
     lineHeight: 18,
-    fontWeight: '500',
+    fontWeight: '400',
     letterSpacing: 0.1,
   },
   overline: {
-    fontFamily: fonts.bold,
-    fontSize: 12,
+    fontFamily: fonts.semibold,
+    fontSize: 11,
     lineHeight: 16,
-    fontWeight: '700',
-    letterSpacing: 1.2,
+    fontWeight: '600',
+    letterSpacing: 1.1,
   },
   } satisfies Record<string, TextStyle>;
 }
@@ -123,18 +125,18 @@ export const typography = typographyForFonts(systemFonts);
 
 export const shadows = {
   subtle: {
-    shadowColor: palette.black,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
+    shadowColor: palette.violet[900],
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.07,
+    shadowRadius: 20,
     elevation: 2,
   },
   floating: {
-    shadowColor: palette.black,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 5,
+    shadowColor: palette.violet[900],
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.18,
+    shadowRadius: 30,
+    elevation: 8,
   },
 } satisfies Record<string, ViewStyle>;
 

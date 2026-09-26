@@ -543,8 +543,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6,
     minHeight: MIN_TOUCH_TARGET + 12,
-    paddingVertical: 6,
+    paddingVertical: 14,
   },
   rowActions: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap' },
-  rowCopy: { flex: 1, gap: 2, justifyContent: 'center', minHeight: MIN_TOUCH_TARGET },
+  rowCopy: { flex: 1, gap: 8, justifyContent: 'center', minHeight: MIN_TOUCH_TARGET },
 });

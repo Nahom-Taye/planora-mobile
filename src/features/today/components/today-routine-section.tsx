@@ -21,33 +21,24 @@ export function TodayRoutineSection({
   const localization = useLocalization();
 
   return (
-    <View style={{ marginTop: theme.spacing.xl }}>
-      <Text
-        accessibilityRole="header"
-        style={{ marginBottom: theme.spacing.sm }}
-        variant="heading"
-      >
-        {localization.t('today.routines')}
-      </Text>
+    <View style={{ marginTop: theme.spacing.lg }}>
+      <View style={[styles.sectionHeader, { marginBottom: theme.spacing.md }]}>
+        <View style={[styles.sectionIcon, { backgroundColor: theme.colors.primarySoft }]}>
+          <Ionicons color={theme.colors.primary} name="repeat" size={15} />
+        </View>
+        <Text accessibilityRole="header" variant="heading">
+          {localization.t('today.routines')}
+        </Text>
+      </View>
       {routines.length === 0 ? (
-        <Text tone="textMuted" variant="caption">
+        <Text tone="textMuted" style={{ paddingVertical: theme.spacing.sm }}>
           {localization.t('today.noRoutines')}
         </Text>
       ) : (
-        <View
-          style={[
-            styles.list,
-            {
-              backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.divider,
-              borderRadius: theme.radii.lg,
-            },
-          ]}
-        >
-          {routines.map((routine, index) => (
+        <View style={styles.list}>
+          {routines.map((routine) => (
             <TodayRoutineRow
               checkIn={checkInForRoutine(checkIns, routine.id)}
-              isLast={index === routines.length - 1}
               key={routine.id}
               routine={routine}
             />
@@ -61,11 +52,9 @@ export function TodayRoutineSection({
 function TodayRoutineRow({
   routine,
   checkIn,
-  isLast,
 }: {
   routine: Routine;
   checkIn: RoutineCheckIn | null;
-  isLast: boolean;
 }) {
   const theme = useAppTheme();
   const localization = useLocalization();
@@ -83,8 +72,12 @@ function TodayRoutineRow({
     <View
       style={[
         styles.itemRow,
-        { borderBottomColor: theme.colors.divider, opacity: checkIn ? 0.7 : 1 },
-        isLast && styles.last,
+        theme.shadows.subtle,
+        {
+          backgroundColor: theme.colors.surface,
+          borderColor: theme.colors.divider,
+          borderRadius: theme.radii.lg,
+        },
       ]}
     >
       <Pressable
@@ -126,9 +119,10 @@ function TodayRoutineRow({
         }
         style={styles.itemCopy}
       >
-        <Text numberOfLines={2} variant="label">{routine.title}</Text>
+        <Text variant="body">{routine.title}</Text>
         <Text tone="textMuted" variant="caption">{description}</Text>
       </Pressable>
+      <View style={styles.secondaryAction}>
       <Button
         disabled={planning.isMutating}
         label={
@@ -146,6 +140,7 @@ function TodayRoutineRow({
         }
         variant="ghost"
       />
+      </View>
     </View>
   );
 }
@@ -157,14 +152,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: MIN_TOUCH_TARGET,
   },
-  itemCopy: { flex: 1, gap: 2, justifyContent: 'center', minHeight: MIN_TOUCH_TARGET },
+  itemCopy: { flex: 1, minWidth: 160, gap: 6, justifyContent: 'center', minHeight: MIN_TOUCH_TARGET },
+  secondaryAction: { alignItems: 'flex-end', width: '100%' },
   itemRow: {
     alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     flexDirection: 'row',
-    paddingEnd: 4,
-    paddingVertical: 5,
+    flexWrap: 'wrap',
+    paddingHorizontal: 8,
+    paddingTop: 12,
+    paddingBottom: 4,
   },
-  last: { borderBottomWidth: 0 },
-  list: { borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  list: { gap: 10 },
+  sectionHeader: { alignItems: 'center', flexDirection: 'row', gap: 10 },
+  sectionIcon: {
+    alignItems: 'center',
+    borderRadius: 8,
+    height: 26,
+    justifyContent: 'center',
+    width: 26,
+  },
 });

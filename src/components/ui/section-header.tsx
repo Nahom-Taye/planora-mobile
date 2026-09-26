@@ -18,13 +18,13 @@ export function SectionHeader({
   const theme = useAppTheme();
 
   return (
-    <View style={[styles.container, { gap: theme.spacing.sm }]}>
+    <View style={[styles.container, { gap: theme.spacing.md }]}>
       {eyebrow ? (
         <Text tone="accent" variant="overline">
           {eyebrow}
         </Text>
       ) : null}
-      <Text variant="display">{title}</Text>
+      <Text accessibilityRole="header" variant="display">{title}</Text>
       {description ? <Text tone="textMuted">{description}</Text> : null}
     </View>
   );

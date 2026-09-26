@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
 import { useAppTheme } from '@/hooks/use-app-theme';
@@ -13,9 +13,10 @@ type FormFieldProps = TextInputProps & {
 };
 
 export const FormField = forwardRef<TextInput, FormFieldProps>(
-  function FormField({ label, error, hint, style, ...props }, ref) {
+  function FormField({ label, error, hint, style, onFocus, onBlur, ...props }, ref) {
     const theme = useAppTheme();
     const localization = useLocalization();
+    const [focused, setFocused] = useState(false);
 
     return (
       <View style={{ gap: theme.spacing.sm }}>
@@ -31,7 +32,7 @@ export const FormField = forwardRef<TextInput, FormFieldProps>(
             theme.typography.body,
             {
               backgroundColor: theme.colors.surface,
-              borderColor: error ? theme.colors.danger : theme.colors.border,
+              borderColor: error ? theme.colors.danger : focused ? theme.colors.primary : theme.colors.border,
               borderRadius: theme.radii.lg,
               color: theme.colors.text,
               textAlign: localization.isRTL ? 'right' : 'left',
@@ -41,6 +42,8 @@ export const FormField = forwardRef<TextInput, FormFieldProps>(
             style,
           ]}
           {...props}
+          onFocus={(event) => { setFocused(true); onFocus?.(event); }}
+          onBlur={(event) => { setFocused(false); onBlur?.(event); }}
         />
         {error ? (
           <Text accessibilityLiveRegion="polite" tone="danger" variant="caption">
@@ -59,12 +62,12 @@ export const FormField = forwardRef<TextInput, FormFieldProps>(
 const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
-    minHeight: 56,
+    minHeight: 60,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
   },
   multiline: {
-    minHeight: 112,
+    minHeight: 140,
     textAlignVertical: 'top',
   },
 });

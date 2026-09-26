@@ -40,7 +40,7 @@ export function Screen({
   const localization = useLocalization();
   const innerStyle = [
     styles.inner,
-    { paddingHorizontal: theme.spacing.xl },
+    { paddingHorizontal: theme.spacing.lg },
     contentStyle,
   ];
 
@@ -105,8 +105,8 @@ const styles = StyleSheet.create({
   },
   inner: {
     maxWidth: MAX_CONTENT_WIDTH,
-    paddingBottom: 112,
-    paddingTop: 20,
+    paddingBottom: 48,
+    paddingTop: 24,
     width: '100%',
   },
 });

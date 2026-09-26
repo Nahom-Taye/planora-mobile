@@ -22,7 +22,7 @@ export function EmptyState({
 
   return (
     <View style={styles.container}>
-      {icon}
+      <View style={[styles.icon, { backgroundColor: theme.colors.primarySoft }]}>{icon}</View>
       <View style={{ gap: theme.spacing.sm }}>
         <Text align="center" variant="heading">
           {title}
@@ -37,9 +37,16 @@ export function EmptyState({
 }
 
 const styles = StyleSheet.create({
+  icon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+  },
   container: {
     alignItems: 'center',
-    gap: 20,
-    paddingVertical: 20,
+    gap: 24,
+    paddingVertical: 36,
   },
 });

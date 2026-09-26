@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import { type ComponentProps } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
@@ -16,42 +17,48 @@ export function TodayTaskSection({
   tasks,
   completed = false,
   emptyLabel,
+  icon,
 }: {
   title: string;
   tasks: Task[];
   completed?: boolean;
   emptyLabel?: string;
+  icon?: ComponentProps<typeof Ionicons>['name'];
 }) {
   const theme = useAppTheme();
+  const localization = useLocalization();
   if (tasks.length === 0 && !emptyLabel) return null;
 
   return (
-    <View style={{ marginTop: completed ? theme.spacing.sm : theme.spacing.xl }}>
-      <Text
-        accessibilityRole="header"
-        style={{ marginBottom: theme.spacing.sm }}
-        tone={completed ? 'textMuted' : 'text'}
-        variant="heading"
-      >
-        {title}
-      </Text>
-      {tasks.length === 0 ? (
-        <Text tone="textMuted" variant="caption">{emptyLabel}</Text>
-      ) : (
-        <View
-          style={[
-            styles.list,
-            {
-              backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.divider,
-              borderRadius: theme.radii.lg,
-            },
-          ]}
+    <View style={{ marginTop: completed ? theme.spacing.sm : theme.spacing.lg }}>
+      <View style={[styles.sectionHeader, { marginBottom: theme.spacing.md }]}>
+        {icon ? (
+          <View style={[styles.sectionIcon, { backgroundColor: theme.colors.primarySoft }]}>
+            <Ionicons color={theme.colors.primary} name={icon} size={15} />
+          </View>
+        ) : null}
+        <Text
+          accessibilityRole="header"
+          tone={completed ? 'textMuted' : 'text'}
+          variant="heading"
         >
-          {tasks.map((task, index) => (
+          {title}
+        </Text>
+        {tasks.length > 0 ? (
+          <View style={[styles.countChip, { backgroundColor: theme.colors.primarySoft }]}>
+            <Text style={{ color: theme.colors.primary }} variant="caption">
+              {localization.formatNumber(tasks.length)}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+      {tasks.length === 0 ? (
+        <Text tone="textMuted" style={{ paddingVertical: theme.spacing.sm }}>{emptyLabel}</Text>
+      ) : (
+        <View style={styles.list}>
+          {tasks.map((task) => (
             <TodayTaskRow
               completed={completed}
-              isLast={index === tasks.length - 1}
               key={task.id}
               task={task}
             />
@@ -65,11 +72,9 @@ export function TodayTaskSection({
 function TodayTaskRow({
   task,
   completed,
-  isLast,
 }: {
   task: Task;
   completed: boolean;
-  isLast: boolean;
 }) {
   const theme = useAppTheme();
   const localization = useLocalization();
@@ -84,16 +89,24 @@ function TodayTaskRow({
     : isDone
       ? localization.t('common.completed')
       : priorityLabel(task, localization.t);
+  const priorityColor = isDone
+    ? theme.colors.success
+    : task.priority === 'high'
+      ? theme.colors.danger
+      : task.priority === 'medium'
+        ? theme.colors.warning
+        : theme.colors.textMuted;
 
   return (
     <View
       style={[
         styles.itemRow,
+        theme.shadows.subtle,
         {
-          borderBottomColor: theme.colors.divider,
-          opacity: completed ? 0.68 : 1,
+          backgroundColor: theme.colors.surface,
+          borderColor: theme.colors.divider,
+          borderRadius: theme.radii.lg,
         },
-        isLast && styles.last,
       ]}
     >
       <Pressable
@@ -133,19 +146,22 @@ function TodayTaskRow({
         style={styles.itemCopy}
       >
         <Text
-          numberOfLines={2}
           style={isDone || isCancelled ? styles.strike : undefined}
+          tone={completed ? 'textMuted' : 'text'}
           variant="label"
         >
           {task.title}
         </Text>
-        <Text tone="textMuted" variant="caption">
-          {task.scheduledTime
-            ? `${localization.formatTime(task.scheduledTime)} · ${state}`
-            : state}
-        </Text>
+        <View style={styles.metaRow}>
+          <View style={[styles.priorityDot, { backgroundColor: priorityColor }]} />
+          <Text tone="textMuted" variant="caption">
+            {task.scheduledTime
+              ? `${localization.formatTime(task.scheduledTime)} · ${state}`
+              : state}
+          </Text>
+        </View>
         {linkedGoal ? (
-          <Text numberOfLines={1} tone="accent" variant="caption">
+          <Text tone="accent" variant="caption">
             {localization.t('goals.linkedGoal', { title: linkedGoal.title })}
           </Text>
         ) : null}
@@ -176,20 +192,39 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: MIN_TOUCH_TARGET,
   },
+  countChip: {
+    alignItems: 'center',
+    borderRadius: 999,
+    justifyContent: 'center',
+    minWidth: 28,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
   itemCopy: {
     flex: 1,
-    gap: 2,
+    gap: 6,
     justifyContent: 'center',
     minHeight: MIN_TOUCH_TARGET,
   },
   itemRow: {
     alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     flexDirection: 'row',
-    paddingEnd: 12,
-    paddingVertical: 5,
+    paddingStart: 4,
+    paddingEnd: 16,
+    paddingVertical: 12,
+    gap: 4,
   },
-  last: { borderBottomWidth: 0 },
-  list: { borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  list: { gap: 10 },
+  metaRow: { alignItems: 'center', flexDirection: 'row', gap: 6 },
+  priorityDot: { borderRadius: 4, height: 8, width: 8 },
+  sectionHeader: { alignItems: 'center', flexDirection: 'row', gap: 10 },
+  sectionIcon: {
+    alignItems: 'center',
+    borderRadius: 8,
+    height: 26,
+    justifyContent: 'center',
+    width: 26,
+  },
   strike: { textDecorationLine: 'line-through' },
 });

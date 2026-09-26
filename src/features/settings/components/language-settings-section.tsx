@@ -29,7 +29,7 @@ export function LanguageSettingsSection() {
     <View style={{ gap: theme.spacing.md, marginTop: theme.spacing.xxl }}>
       <View style={{ gap: theme.spacing.xs }}>
         <Text variant="heading">{localization.t('settings.language')}</Text>
-        <Text tone="textMuted" variant="caption">
+        <Text tone="textMuted">
           {localization.t('settings.languageDescription')}
         </Text>
       </View>
@@ -81,6 +81,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    minHeight: MIN_TOUCH_TARGET + 8,
+    minHeight: MIN_TOUCH_TARGET + 16,
+    paddingVertical: 12,
+    gap: 16,
   },
 });

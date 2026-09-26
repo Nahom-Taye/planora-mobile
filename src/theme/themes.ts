@@ -1,47 +1,64 @@
 import { palette, radii, shadows, spacing, typography } from './tokens';
 
 export const lightColors = {
-  background: palette.warm[100],
+  background: palette.lavender[100],
   surface: palette.white,
-  surfaceSubtle: palette.warm[200],
-  text: palette.warm[900],
-  textMuted: palette.warm[700],
-  primary: palette.indigo[500],
-  primaryPressed: palette.indigo[600],
+  surfaceSubtle: palette.lavender[200],
+  text: palette.lavender[900],
+  textMuted: palette.lavender[700],
+  primary: palette.violet[500],
+  primaryPressed: palette.violet[600],
+  primarySoft: palette.violet[100],
   onPrimary: palette.white,
-  accent: palette.teal[600],
-  accentSoft: palette.teal[50],
-  success: palette.teal[600],
-  warning: '#9A6215',
+  accent: palette.pink[600],
+  accentSoft: palette.pink[50],
+  success: '#0E7D62',
+  warning: '#8A5410',
   danger: '#B83A45',
   onDanger: palette.white,
-  border: palette.warm[300],
-  divider: '#E8E3DC',
-  tabBar: '#FFFDFC',
-  focus: palette.indigo[400],
-  overlay: 'rgba(17, 16, 21, 0.42)',
+  border: palette.lavender[300],
+  divider: '#E9E4F7',
+  tabBar: palette.white,
+  focus: palette.violet[400],
+  overlay: 'rgba(23, 19, 43, 0.5)',
 } as const;
 
 export const darkColors: ColorTokens = {
-  background: '#121116',
-  surface: '#1C1B22',
-  surfaceSubtle: '#27252E',
-  text: '#F7F3EE',
-  textMuted: '#B1ACB6',
-  primary: '#9C99F5',
-  primaryPressed: '#B2B0FF',
-  onPrimary: '#1D1B4E',
-  accent: palette.teal[400],
-  accentSoft: '#163A36',
-  success: '#65D5C1',
-  warning: '#E4AE5E',
+  background: '#0D0B1E',
+  surface: '#171430',
+  surfaceSubtle: '#221D42',
+  text: '#F3F1FF',
+  textMuted: '#B0A9D9',
+  primary: '#A78BFF',
+  primaryPressed: '#BEA8FF',
+  primarySoft: '#2E2560',
+  onPrimary: '#1C1048',
+  accent: palette.pink[400],
+  accentSoft: '#3D1230',
+  success: '#59D6B4',
+  warning: '#E8B366',
   danger: '#F08A92',
   onDanger: '#241216',
-  border: '#383640',
-  divider: '#302E37',
-  tabBar: '#19181E',
-  focus: '#B2B0FF',
-  overlay: 'rgba(0, 0, 0, 0.6)',
+  border: '#332C5C',
+  divider: '#2A2450',
+  tabBar: '#131028',
+  focus: '#BEA8FF',
+  overlay: 'rgba(0, 0, 0, 0.65)',
+};
+
+export type GradientTokens = {
+  primary: readonly [string, string];
+  aurora: readonly [string, string, string];
+};
+
+export const lightGradients: GradientTokens = {
+  primary: ['#7C3AED', palette.violet[500]],
+  aurora: ['#5B2EE5', '#7C3AED', '#B01A63'],
+};
+
+export const darkGradients: GradientTokens = {
+  primary: ['#BEA8FF', '#A78BFF'],
+  aurora: ['#2E2560', '#4A21C4', '#8B2E63'],
 };
 
 export type ColorTokens = {
@@ -54,6 +71,7 @@ export type AppTheme = {
   mode: 'light' | 'dark';
   isDark: boolean;
   colors: ColorTokens;
+  gradients: GradientTokens;
   spacing: typeof spacing;
   radii: typeof radii;
   typography: typeof typography;
@@ -64,6 +82,7 @@ export const lightTheme: AppTheme = {
   mode: 'light',
   isDark: false,
   colors: lightColors,
+  gradients: lightGradients,
   spacing,
   radii,
   typography,
@@ -74,6 +93,7 @@ export const darkTheme: AppTheme = {
   mode: 'dark',
   isDark: true,
   colors: darkColors,
+  gradients: darkGradients,
   spacing,
   radii,
   typography,

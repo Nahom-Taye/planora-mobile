@@ -1,7 +1,8 @@
-import { NotoSans_400Regular } from '@expo-google-fonts/noto-sans/400Regular';
-import { NotoSans_500Medium } from '@expo-google-fonts/noto-sans/500Medium';
-import { NotoSans_600SemiBold } from '@expo-google-fonts/noto-sans/600SemiBold';
-import { NotoSans_700Bold } from '@expo-google-fonts/noto-sans/700Bold';
+import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
+import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
+import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
+import { SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk/700Bold';
 import { NotoSansArabic_400Regular } from '@expo-google-fonts/noto-sans-arabic/400Regular';
 import { NotoSansArabic_500Medium } from '@expo-google-fonts/noto-sans-arabic/500Medium';
 import { NotoSansArabic_600SemiBold } from '@expo-google-fonts/noto-sans-arabic/600SemiBold';
@@ -26,6 +27,7 @@ import { AppState, I18nManager, Platform } from 'react-native';
 import type {
   AppSettings,
   LanguagePreference,
+  ThemePreference,
 } from '@/domain/entities';
 import type { RepositoryStore } from '@/domain/repositories';
 import {
@@ -49,6 +51,7 @@ type FontFamilies = {
   medium: string;
   semibold: string;
   bold: string;
+  display: string;
 };
 
 type LocalizationContextValue = {
@@ -70,6 +73,7 @@ type LocalizationContextValue = {
   formatDuration: (minutes: number) => string;
   formatList: (items: readonly string[]) => string;
   setLanguage: (preference: LanguagePreference) => Promise<boolean>;
+  setTheme: (preference: ThemePreference) => Promise<boolean>;
   refresh: () => Promise<void>;
 };
 
@@ -85,10 +89,11 @@ export function LocalizationProvider({
   const [deviceLanguage, setDeviceLanguage] = useState(deviceLanguageCode);
   const [requiresDirectionRestart, setRequiresDirectionRestart] = useState(false);
   const [fontsLoaded, fontError] = useFonts({
-    PlanoraLatinRegular: NotoSans_400Regular,
-    PlanoraLatinMedium: NotoSans_500Medium,
-    PlanoraLatinSemibold: NotoSans_600SemiBold,
-    PlanoraLatinBold: NotoSans_700Bold,
+    PlanoraLatinRegular: Inter_400Regular,
+    PlanoraLatinMedium: Inter_500Medium,
+    PlanoraLatinSemibold: Inter_600SemiBold,
+    PlanoraLatinBold: Inter_700Bold,
+    PlanoraLatinDisplay: SpaceGrotesk_700Bold,
     PlanoraArabicRegular: NotoSansArabic_400Regular,
     PlanoraArabicMedium: NotoSansArabic_500Medium,
     PlanoraArabicSemibold: NotoSansArabic_600SemiBold,
@@ -164,6 +169,21 @@ export function LocalizationProvider({
     [refresh, service, settings],
   );
 
+  const setTheme = useCallback(
+    async (preference: ThemePreference) => {
+      if (!service || !settings) return false;
+      try {
+        const updated = await service.setTheme(settings, preference);
+        setSettings(updated);
+        return true;
+      } catch {
+        await refresh();
+        return false;
+      }
+    },
+    [refresh, service, settings],
+  );
+
   const fontFamilies = useMemo(() => fontsForLanguage(language), [language]);
   const value = useMemo<LocalizationContextValue>(
     () => ({
@@ -186,9 +206,10 @@ export function LocalizationProvider({
       formatDuration: (minutes) => formatDurationValue(minutes, locale, t),
       formatList: (items) => formatLocalizedList(items, locale),
       setLanguage,
+      setTheme,
       refresh,
     }),
-    [direction, fontError, fontFamilies, fontsLoaded, isRTL, language, locale, refresh, requiresDirectionRestart, setLanguage, settings, t],
+    [direction, fontError, fontFamilies, fontsLoaded, isRTL, language, locale, refresh, requiresDirectionRestart, setLanguage, setTheme, settings, t],
   );
 
   return (
@@ -230,5 +251,6 @@ function fontsForLanguage(language: SupportedLanguage): FontFamilies {
     medium: `${prefix}Medium`,
     semibold: `${prefix}Semibold`,
     bold: `${prefix}Bold`,
+    display: prefix === 'PlanoraLatin' ? 'PlanoraLatinDisplay' : `${prefix}Bold`,
   };
 }

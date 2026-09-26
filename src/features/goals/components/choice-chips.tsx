@@ -33,7 +33,7 @@ export function ChoiceChips<TValue extends string>({
                 styles.option,
                 {
                   backgroundColor: selected
-                    ? theme.colors.accentSoft
+                    ? theme.colors.primary
                     : theme.colors.surface,
                   borderColor: selected
                     ? theme.colors.primary
@@ -44,7 +44,7 @@ export function ChoiceChips<TValue extends string>({
                 },
               ]}
             >
-              <Text tone={selected ? 'primary' : 'textMuted'} variant="label">
+              <Text tone={selected ? 'onPrimary' : 'textMuted'} variant="label">
                 {option.label}
               </Text>
             </Pressable>
@@ -60,6 +60,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: 'center',
     minHeight: MIN_TOUCH_TARGET,
+    maxWidth: '100%',
+    paddingVertical: 10,
   },
   wrap: {
     flexDirection: 'row',

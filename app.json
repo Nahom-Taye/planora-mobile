@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "scheme": "planora",
     "userInterfaceStyle": "automatic",
-    "backgroundColor": "#F8F6F2",
+    "backgroundColor": "#F7F5FF",
     "newArchEnabled": true,
     "ios": {
       "bundleIdentifier": "com.nahomtaye.planora",
@@ -22,7 +22,7 @@
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#F8F6F2"
+        "backgroundColor": "#F7F5FF"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -44,12 +44,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F8F6F2",
+          "backgroundColor": "#F7F5FF",
           "image": "./assets/images/splash-artwork.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "dark": {
-            "backgroundColor": "#121116",
+            "backgroundColor": "#0D0B1E",
             "image": "./assets/images/adaptive-icon.png"
           }
         }
@@ -60,7 +60,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/notification-icon.png",
-          "color": "#5B57D9",
+          "color": "#5B2EE5",
           "defaultChannel": "planora-reminders"
         }
       ],

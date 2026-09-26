@@ -23,7 +23,7 @@ export function AuthWelcomeScreen() {
       backFallback="/(auth)/sign-in"
       description={localization.t('auth.chooseDescription')}
       icon="person-circle-outline"
-      showBack
+      showBack={false}
       title={localization.t('auth.chooseTitle')}
     >
       <AuthErrorSummary message={account.errorMessage} />
@@ -32,7 +32,7 @@ export function AuthWelcomeScreen() {
           <Ionicons color={theme.colors.accent} name="phone-portrait-outline" size={30} />
           <View style={styles.copy}>
             <Text variant="heading">{localization.t('auth.localTitle')}</Text>
-            <Text tone="textMuted" variant="caption">
+            <Text tone="textMuted">
               {localization.t('auth.localDescription')}
             </Text>
           </View>
@@ -52,7 +52,7 @@ export function AuthWelcomeScreen() {
           <Ionicons color={theme.colors.primary} name="person-add-outline" size={30} />
           <View style={styles.copy}>
             <Text variant="heading">{localization.t('auth.accountTitle')}</Text>
-            <Text tone="textMuted" variant="caption">
+            <Text tone="textMuted">
               {localization.t('auth.accountDescription')}
             </Text>
           </View>
@@ -89,14 +89,14 @@ export function AuthWelcomeScreen() {
 
 const styles = StyleSheet.create({
   actions: {
-    flexDirection: 'row',
+    width: '100%',
   },
   copy: {
     flex: 1,
-    gap: 4,
+    gap: 8,
   },
   flex: {
-    flex: 1,
+    width: '100%',
   },
   option: {
     alignItems: 'flex-start',
