@@ -14,7 +14,15 @@
       "buildNumber": "1",
       "supportsTablet": true,
       "infoPlist": {
-        "CFBundleAllowMixedLocalizations": true
+        "CFBundleAllowMixedLocalizations": true,
+        "ExpoLocalization_supportsRTL": true,
+        "CFBundleLocalizations": [
+          "en",
+          "am",
+          "es",
+          "fr",
+          "ar"
+        ]
       }
     },
     "android": {
@@ -26,7 +34,11 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "softwareKeyboardLayoutMode": "resize"
+      "softwareKeyboardLayoutMode": "resize",
+      "permissions": [
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
+      ]
     },
     "web": {
       "output": "static",
@@ -74,8 +86,20 @@
         "expo-localization",
         {
           "supportedLocales": {
-            "ios": ["en", "am", "es", "fr", "ar"],
-            "android": ["en", "am", "es", "fr", "ar"]
+            "ios": [
+              "en",
+              "am",
+              "es",
+              "fr",
+              "ar"
+            ],
+            "android": [
+              "en",
+              "am",
+              "es",
+              "fr",
+              "ar"
+            ]
           },
           "supportsRTL": true
         }
@@ -84,6 +108,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1a6eed7e-6f0d-480b-ba3c-03f71521807c"
+      }
     }
   }
 }
