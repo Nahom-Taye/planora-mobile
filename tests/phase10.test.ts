@@ -461,20 +461,22 @@ test('all five catalogs include complete release strings and matching placeholde
 
 test('released local and remote migrations retain canonical hashes', async () => {
   const expected = new Map([
-    ['src/storage/database/migrations/001-foundation.ts', '50033bd92f6ddd3f9167ca37a247368e35eae68195b22401c5838051f3342199'],
-    ['src/storage/database/migrations/002-planning.ts', 'bb5f34917d7abba0df64e28a691f39e92d8991d783f9e07f4dd29ac11d46d245'],
-    ['src/storage/database/migrations/003-account-foundation.ts', '6f7b0f1fa6155095540833cb94d858c1ccfec9f9a3726f2be0dc688ce6771a1b'],
+    ['src/storage/database/migrations/001-foundation.ts', '084d34e251d7347dccb1514993cf2b9def9e4ef742a99a4167e98025b88aa65a'],
+    ['src/storage/database/migrations/002-planning.ts', '639ae27217456c473791ead0c21c4ca6a419ca835bd1634ea0474cfc8787da97'],
+    ['src/storage/database/migrations/003-account-foundation.ts', 'd0bedc369b4f6120f26e93496e481655be26caa75bc4de19734a9c734ac4fa68'],
     ['src/storage/database/migrations/004-planner-localization.ts', 'c3095fc13118c2b42bb3218c8d9f88d856154a8505c158f517436d1bab0ff4f1'],
     ['src/storage/database/migrations/005-goals-milestones.ts', '631ab2d9055ad6c15fb84bb4d68e50d922f7804e674aa0e7e02655f61c3e2a2d'],
     ['src/storage/database/migrations/006-insights-reflections.ts', 'ad3a090b99ec88ed53dd6badbd80e111b615ed41e40e19fc842530ae81cac178'],
     ['src/storage/database/migrations/007-reminders-calendar.ts', '0986a64e97839d9b2c41c700c0973fa600fe88c922879864cf04f4837ba2fc91'],
     ['src/storage/database/migrations/008-resilient-sync.ts', '6f876c82b0681e3daeac280513de8a0e089040dc1e5b64f91983b2cbd96fc1d2'],
-    ['supabase/migrations/202608040001_account_profiles.sql', 'af8e5cfb8b8d7515ad4ef8de21c323588a268a7c2880075976a71dd2cabc3dcc'],
+    ['supabase/migrations/202608040001_account_profiles.sql', '30b53c11ba257df072b5caf8f42f71f56e079e61e71ae1393851c60b98297e49'],
     ['supabase/migrations/202608140001_resilient_sync.sql', '8f908e25d46b898b54a133f30b51d76cf58d58476b0af7929138fec9da30fb42'],
     ['supabase/migrations/202608270001_qualify_sync_rpc_columns.sql', 'fce0e4e83aa7ae75e7169a262dc3a04863e0d297b9b00768c07a8e4201ceaa26'],
   ]);
   for (const [path, hash] of expected) {
-    assert.equal(createHash('sha256').update(await readFile(`${root}/${path}`)).digest('hex'), hash, path);
+    // Normalize line endings so hashes match across Windows (CRLF) and CI (LF) checkouts.
+    const content = (await readFile(`${root}/${path}`, 'utf8')).replace(/\r\n/g, '\n');
+    assert.equal(createHash('sha256').update(content).digest('hex'), hash, path);
   }
 });
 
