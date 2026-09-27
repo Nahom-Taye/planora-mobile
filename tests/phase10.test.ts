@@ -351,7 +351,13 @@ test('release configuration preserves application identity and controlled distri
   assert.equal(eas.build.production.distribution, 'store');
   assert.equal(eas.build.production.autoIncrement, true);
   assert.equal('submit' in eas, false);
-  assert.doesNotMatch(JSON.stringify({ app, eas }), /projectId|appleId|ascAppId|serviceAccountKeyPath|googleServicesFile/i);
+  // The public EAS project identifier is required for cloud builds; only it may live in extra.eas.
+  if (app.expo.extra?.eas !== undefined) {
+    assert.deepEqual(Object.keys(app.expo.extra.eas), ['projectId']);
+  }
+  const sanitized = JSON.parse(JSON.stringify({ app, eas }));
+  delete sanitized.app.expo.extra?.eas;
+  assert.doesNotMatch(JSON.stringify(sanitized), /projectId|appleId|ascAppId|serviceAccountKeyPath|googleServicesFile/i);
 });
 
 test('release artwork uses required dimensions and transparent notification pixels', async () => {
