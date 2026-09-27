@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 
@@ -17,7 +18,8 @@ const standalone = ['.env.example', '.gitignore', 'README.md', 'app.json', 'eas.
 
 const files = [
   ...(await Promise.all(roots.map((root) => collect(root)))).flat(),
-  ...standalone,
+  // Generated files such as expo-env.d.ts are gitignored and absent in CI checkouts.
+  ...standalone.filter((file) => existsSync(file)),
 ];
 const utf8Issues: string[] = [];
 const decoder = new TextDecoder('utf-8', { fatal: true });
