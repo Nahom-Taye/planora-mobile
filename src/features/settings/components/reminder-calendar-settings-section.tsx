@@ -4,6 +4,7 @@ import { Linking, Platform, Pressable, StyleSheet, Switch, View } from 'react-na
 import { Button, Card, FormField, Text } from '@/components/ui';
 import { toLocalTime } from '@/domain/entities';
 import type { WritableCalendar } from '@/features/calendar/services/calendar-device';
+import { expoNotificationGateway } from '@/features/reminders/services/notification-device';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useLocalization } from '@/providers/localization-provider';
 import { useReminders } from '@/providers/reminder-provider';
@@ -51,19 +52,46 @@ export function ReminderCalendarSettingsSection() {
     if (permission === 'allowed') setCalendars(await reminders.listCalendars());
   };
 
+  const sendTest = async () => {
+    try {
+      await expoNotificationGateway.schedule({
+        identifier: 'planora:test-notification',
+        date: new Date(Date.now() + 10_000),
+        entityType: 'task',
+        entityId: 'test-notification',
+        title: localization.t('reminders.genericTitle'),
+        body: localization.t('reminders.genericBody'),
+      });
+      setMessage(localization.t('reminders.testScheduled'));
+    } catch {
+      setMessage(localization.t('reminders.testFailed'));
+    }
+  };
+
   return (
     <View style={{ gap: theme.spacing.lg, marginTop: theme.spacing.xxxl }}>
       <Text accessibilityRole="header" variant="heading">{localization.t('reminders.settingsTitle')}</Text>
       <Card style={{ gap: theme.spacing.md }} variant="subtle">
         <Text variant="label">{localization.t('reminders.permissionStatus')}</Text>
-        <Text tone="textMuted">
+        <Text tone={reminders.notificationPermission === 'developmentBuildRequired' ? 'warning' : 'textMuted'}>
           {localization.t(`reminders.permission${capitalize(reminders.notificationPermission)}` as never)}
         </Text>
-        <Text tone="textMuted" variant="caption">{localization.t('reminders.permissionExplanation')}</Text>
+        {reminders.notificationPermission === 'developmentBuildRequired' ? (
+          <Text tone="textMuted" variant="caption">{localization.t('reminders.expoGoWarning')}</Text>
+        ) : (
+          <Text tone="textMuted" variant="caption">{localization.t('reminders.permissionExplanation')}</Text>
+        )}
         {reminders.notificationPermission !== 'allowed' && reminders.notificationPermission !== 'developmentBuildRequired' ? (
           <Button
             label={localization.t(reminders.notificationPermission === 'blocked' ? 'reminders.openSettings' : 'reminders.allow')}
             onPress={() => reminders.notificationPermission === 'blocked' ? void Linking.openSettings() : void reminders.requestNotifications()}
+            variant="secondary"
+          />
+        ) : null}
+        {reminders.notificationPermission === 'allowed' ? (
+          <Button
+            label={localization.t('reminders.testButton')}
+            onPress={() => void sendTest()}
             variant="secondary"
           />
         ) : null}

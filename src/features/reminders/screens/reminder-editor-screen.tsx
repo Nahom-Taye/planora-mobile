@@ -13,6 +13,10 @@ import {
 } from '@/domain/entities';
 import { SegmentedControl } from '@/features/insights/components/segmented-control';
 import { addCalendarDays, localDateTimeInstant } from '@/features/planner/services/calendar-math';
+import {
+  calculateReminderOccurrences,
+  type ReminderSource,
+} from '@/features/reminders/services/reminder-time';
 import { localCalendarDate } from '@/features/today/services/local-date';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useGoals } from '@/providers/goal-provider';
@@ -91,6 +95,39 @@ export function ReminderEditorScreen() {
     [intent, reminders.schedules],
   );
 
+  const previewAt = useMemo(() => {
+    if (!enabled || !entityType || !source || !workspace.profile) return null;
+    let absoluteInstant: string | null = null;
+    if (triggerKind === 'absolute') {
+      try {
+        absoluteInstant = toInstant(
+          localDateTimeInstant(
+            toCalendarDate(absoluteDate),
+            toLocalTime(absoluteTime),
+            workspace.profile.timeZone,
+          ),
+        );
+      } catch {
+        return null;
+      }
+    }
+    const draft = {
+      entityType,
+      entityId,
+      triggerKind,
+      offsetMinutes: triggerKind === 'relative' ? offsetMinutes : null,
+      absoluteAt: absoluteInstant,
+      enabled: true,
+    };
+    const occurrences = calculateReminderOccurrences(
+      draft as never,
+      source as ReminderSource,
+      workspace.profile.timeZone,
+      new Date(),
+    );
+    return occurrences[0]?.scheduledAt ?? null;
+  }, [absoluteDate, absoluteTime, enabled, entityId, entityType, offsetMinutes, source, triggerKind, workspace.profile]);
+
   if (!entityType || !source || !workspace.profile) {
     return (
       <Screen>
@@ -138,10 +175,14 @@ export function ReminderEditorScreen() {
       </Card>
       {reminders.notificationPermission !== 'allowed' ? (
         <Card style={{ gap: theme.spacing.md }}>
-          <Text variant="label">
+          <Text tone={reminders.notificationPermission === 'developmentBuildRequired' ? 'warning' : 'text'} variant="label">
             {localization.t(`reminders.permission${capitalize(reminders.notificationPermission)}` as never)}
           </Text>
-          {reminders.notificationPermission !== 'developmentBuildRequired' ? (
+          {reminders.notificationPermission === 'developmentBuildRequired' ? (
+            <Text tone="textMuted" variant="caption">
+              {localization.t('reminders.expoGoWarning')}
+            </Text>
+          ) : (
             <Button
               label={localization.t(
                 reminders.notificationPermission === 'blocked'
@@ -154,7 +195,7 @@ export function ReminderEditorScreen() {
                   : void reminders.requestNotifications()
               }
             />
-          ) : null}
+          )}
         </Card>
       ) : null}
       <View style={styles.switchRow}>
@@ -206,6 +247,14 @@ export function ReminderEditorScreen() {
           <FormField label={localization.t('reminders.time')} onChangeText={setAbsoluteTime} value={absoluteTime} />
         </View>
       )}
+      <Card style={{ gap: theme.spacing.xs }} variant="accent">
+        <Text variant="label">{localization.t('reminders.previewLabel')}</Text>
+        <Text tone={previewAt ? 'text' : 'textMuted'}>
+          {previewAt && enabled
+            ? new Intl.DateTimeFormat(localization.locale, { dateStyle: 'full', timeStyle: 'short' }).format(previewAt)
+            : localization.t('reminders.previewNone')}
+        </Text>
+      </Card>
       {upcoming ? (
         <Card variant="subtle">
           <Text variant="label">{localization.t('reminders.upcoming')}</Text>
