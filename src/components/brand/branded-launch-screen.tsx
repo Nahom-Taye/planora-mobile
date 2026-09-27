@@ -31,6 +31,11 @@ export function BrandedLaunchScreen({
   const [quoteKey] = useState(
     () => QUOTE_KEYS[Math.floor(Math.random() * QUOTE_KEYS.length)],
   );
+  const rawQuote = localization.t(quoteKey);
+  // Split "“Quote text” — Author" so the author always shows on its own line.
+  const separatorIndex = rawQuote.lastIndexOf('—');
+  const quoteText = separatorIndex > 0 ? rawQuote.slice(0, separatorIndex).trim() : rawQuote;
+  const quoteAuthor = separatorIndex > 0 ? rawQuote.slice(separatorIndex + 1).trim() : null;
 
   return (
     <SafeAreaView
@@ -54,14 +59,21 @@ export function BrandedLaunchScreen({
       />
       <View style={[styles.center, { gap: theme.spacing.xl }]}>
         <BrandWordmark markSize={58} />
-        <Text
-          align="center"
-          style={styles.quote}
-          tone="text"
-          variant="heading"
-        >
-          {localization.t(quoteKey)}
-        </Text>
+        <View style={{ gap: theme.spacing.sm }}>
+          <Text
+            align="center"
+            style={styles.quote}
+            tone="text"
+            variant="heading"
+          >
+            {quoteText}
+          </Text>
+          {quoteAuthor ? (
+            <Text align="center" tone="primary" variant="label">
+              — {quoteAuthor}
+            </Text>
+          ) : null}
+        </View>
         <Text
           accessibilityLiveRegion="polite"
           align="center"
