@@ -164,6 +164,14 @@ export function ReminderEditorScreen() {
         </View>
         <Switch accessibilityLabel={localization.t('reminders.enabled')} onValueChange={setEnabled} value={enabled} />
       </View>
+      {entityType === 'task' && !supportsRelative ? (
+        <Card style={{ gap: theme.spacing.xs }} variant="accent">
+          <Text variant="label">{localization.t('reminders.needsTimeTitle')}</Text>
+          <Text tone="textMuted" variant="caption">
+            {localization.t('reminders.needsTimeHint')}
+          </Text>
+        </Card>
+      ) : null}
       <SegmentedControl
         label={localization.t('reminders.timing')}
         onChange={setTriggerKind}
@@ -175,6 +183,11 @@ export function ReminderEditorScreen() {
           : [{ value: 'absolute', label: localization.t('reminders.absolute') }]}
         value={triggerKind}
       />
+      <Text tone="textMuted" variant="caption">
+        {localization.t(
+          triggerKind === 'relative' ? 'reminders.relativeHint' : 'reminders.absoluteHint',
+        )}
+      </Text>
       {triggerKind === 'relative' ? (
         <SegmentedControl
           label={localization.t('reminders.offset')}

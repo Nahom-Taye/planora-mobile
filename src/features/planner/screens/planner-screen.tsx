@@ -86,6 +86,9 @@ export function PlannerScreen() {
           <Text tone="textMuted">
             {localization.formatDate(planner.selectedDate)}
           </Text>
+          <Text tone="textMuted" variant="caption">
+            {localization.t('planner.help')}
+          </Text>
         </View>
         <View
           accessibilityRole="tablist"

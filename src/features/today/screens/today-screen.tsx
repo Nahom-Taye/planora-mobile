@@ -3,7 +3,6 @@ import { useRouter, type Href } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Animated,
   Pressable,
   StyleSheet,
@@ -23,6 +22,7 @@ import { usePlanning } from '@/providers/planning-provider';
 import { useWorkspace } from '@/providers/workspace-provider';
 import { MIN_TOUCH_TARGET } from '@/utils/layout';
 
+import { CreateActionSheet } from '../components/create-action-sheet';
 import { TodayRoutineSection } from '../components/today-routine-section';
 import { TodayTaskSection } from '../components/today-task-section';
 
@@ -37,6 +37,7 @@ export function TodayScreen() {
   const [quickError, setQuickError] = useState<string | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const logoSpin = useRef(new Animated.Value(0)).current;
   const menuProgress = useRef(new Animated.Value(0)).current;
 
@@ -156,26 +157,39 @@ export function TodayScreen() {
       todayBlocks.length >
     0;
 
-  const showCreateMenu = () =>
-    Alert.alert(localization.t('today.moreActions'), undefined, [
-      {
-        text: localization.t('tasks.new'),
-        onPress: () => router.push('/(tasks)/tasks/new'),
-      },
-      {
-        text: localization.t('routines.new'),
-        onPress: () => router.push('/(routines)/routines/new'),
-      },
-      {
-        text: localization.t('planner.newBlock'),
-        onPress: () =>
+  const createAnd = (action: () => void) => {
+    setCreateOpen(false);
+    action();
+  };
+  const createActions = [
+    {
+      key: 'task',
+      icon: 'checkbox-outline' as const,
+      label: localization.t('tasks.new'),
+      description: localization.t('today.createTaskHint'),
+      onPress: () => createAnd(() => router.push('/(tasks)/tasks/new')),
+    },
+    {
+      key: 'routine',
+      icon: 'repeat-outline' as const,
+      label: localization.t('routines.new'),
+      description: localization.t('today.createRoutineHint'),
+      onPress: () => createAnd(() => router.push('/(routines)/routines/new')),
+    },
+    {
+      key: 'block',
+      icon: 'time-outline' as const,
+      label: localization.t('planner.newBlock'),
+      description: localization.t('today.createBlockHint'),
+      onPress: () =>
+        createAnd(() =>
           router.push({
             pathname: '/(planner)/blocks/new',
             params: { date: planning.today },
           } as unknown as Href),
-      },
-      { text: localization.t('common.cancel'), style: 'cancel' },
-    ]);
+        ),
+    },
+  ];
 
   return (
     <Screen
@@ -247,13 +261,20 @@ export function TodayScreen() {
           <Pressable
             accessibilityLabel={localization.t('today.moreActions')}
             accessibilityRole="button"
-            onPress={showCreateMenu}
+            onPress={() => setCreateOpen(true)}
             style={[styles.iconButton, { backgroundColor: theme.colors.primary, borderRadius: theme.radii.pill }, theme.shadows.floating]}
           >
             <Ionicons color={theme.colors.onPrimary} name="add" size={25} />
           </Pressable>
         </View>
       </View>
+
+      <CreateActionSheet
+        actions={createActions}
+        onClose={() => setCreateOpen(false)}
+        title={localization.t('today.createTitle')}
+        visible={createOpen}
+      />
 
       {menuOpen ? (
         <Animated.View
@@ -332,6 +353,9 @@ export function TodayScreen() {
             month: 'long',
             day: 'numeric',
           })}
+        </Text>
+        <Text tone="textMuted" variant="caption">
+          {localization.t('today.help')}
         </Text>
       </View>
 

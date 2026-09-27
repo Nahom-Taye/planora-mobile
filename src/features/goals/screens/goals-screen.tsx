@@ -82,6 +82,9 @@ export function GoalsScreen() {
               count: localization.formatNumber(activeCount),
             })}
           </Text>
+          <Text tone="textMuted" variant="caption">
+            {localization.t('goals.help')}
+          </Text>
         </View>
         <Pressable
           accessibilityLabel={localization.t('goals.create')}
